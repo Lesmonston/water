@@ -1,0 +1,1419 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave11-controller-acceptance",
+  "status": "CONTROLLER_ACCEPTANCE",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "-N1": "scripts/checkup-wave-check.mjs",
+    "-N2": "scripts/desktop-wave-check.mjs",
+    "-N3": "scripts/checkup-wave-check.mjs",
+    "-N4": "scripts/checkup-wave-check.mjs",
+    "-N5": "scripts/checkup-wave-check.mjs",
+    "-N6": "scripts/checkup-wave-check.mjs",
+    "-N7": "scripts/checkup-wave-check.mjs",
+    "-N8": "scripts/desktop-wave-check.mjs"
+  },
+  "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+  "baseTag": "water-w11-n1-base-20261107 (one tag per batch-one task, all on this commit)",
+  "plan": "docs/dispatch/wave11/PLAN.md",
+  "workerRules": "docs/dispatch/W11-WORKER-RULES.md",
+  "commonRules": "docs/dispatch/WORKER-RULES.md",
+  "contract": "contracts/w11-v1/RENAME-FLICK.md",
+  "userDecision": "2026-11-07: \"按推荐排\" (wave 11 fixes first, skip-forever to wave 12, then M4); \"然后软件名改成Flick，你再设计一下logo\" (mark D, scope 看得见的全改); \"按计划出单\" (plan approved, data-directory move keeps the old folder this run when the rename fails)",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+      "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+    },
+    {
+      "path": "contracts/m35-v1/IPC-M35.md",
+      "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "contracts/w11-v1/RENAME-FLICK.md",
+      "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+    },
+    {
+      "path": "docs/dispatch/WORKER-RULES.md",
+      "sha256": "e578f86200d3f492782f451ba84fa0a1a0b60e4806fefb36dd561504aca90a78"
+    },
+    {
+      "path": "docs/dispatch/W11-WORKER-RULES.md",
+      "sha256": "d18758a62db1f2730b129e629cf2c3c3a6feeca001509fc5672db485f72a7a22"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave11/PLAN.md",
+  "tasks": [
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_v2_view_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v3/tokens.css",
+      "fixtures": "contracts/m35-v1/ui-fixtures-m35.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_v2_home_scan",
+        "ui_v2_conclusion",
+        "ui_v2_drawer_details",
+        "ui_v2_confirm_done",
+        "ui_v2_quarantine_dedupe",
+        "ui_v2_pages_layout_a11y"
+      ],
+      "requiredScreenshots": [
+        "v3-home-1240x820.png",
+        "v3-home-new-1240x820.png",
+        "v3-scan-1240x820.png",
+        "v3-results-1240x820.png",
+        "v3-results-decided-1240x820.png",
+        "v3-results-folds-1240x820.png",
+        "v3-results-stale-1240x820.png",
+        "v3-results-empty-1240x820.png",
+        "v3-menu-1240x820.png",
+        "v3-drawer-1240x820.png",
+        "v3-drawer-big-1240x820.png",
+        "v3-details-1240x820.png",
+        "v3-confirm-1240x820.png",
+        "v3-confirm-direct-1240x820.png",
+        "v3-done-1240x820.png",
+        "v3-quarantine-1240x820.png",
+        "v3-quarantine-leftover-1240x820.png",
+        "v3-dedupe-menu-1240x820.png",
+        "v3-dedupe-intro-1240x820.png",
+        "v3-dedupe-1240x820.png",
+        "v3-trends-1240x820.png",
+        "v3-history-1240x820.png",
+        "v3-settings-1240x820.png",
+        "v3-settings-decl-1240x820.png",
+        "v3-home-narrow-1040x720.png"
+      ],
+      "browserProofs": [
+        "nc1",
+        "nc2",
+        "nc3"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "archive",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W11-ACCEPT-N1",
+      "title": "界面：改名 Flick、0 字节、部分完成",
+      "slot": "w11-n1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n1",
+      "branch": "controller/accept-w11-n1",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n1-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "Flick rename in the UI (title, mark, visible text), 0 bytes shows 0 MB (R7), partial status line on the conclusion header (R9)",
+      "report": "docs/dispatch/reports/WATER-W11-N1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N1-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N1-UI-20261107.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "proofTargets": {
+        "nc1": "UI_W11_ZERO",
+        "nc2": "UI_W11_BRAND",
+        "nc3": "UI_W11_PARTIAL"
+      },
+      "modelHint": "UI only: rename and mark per RENAME-FLICK section 6, formatBytes zero, partial subtitle; 3 pre-listed old assertions; light gate with browser NCs.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/UI-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/ui-fixtures-m35.json",
+        "docs/design/flick-brand/BRAND.md",
+        "apps/water/ui/index.html",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/format.mjs",
+        "apps/water/ui/views/results.mjs",
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/UI-M35.md",
+          "sha256": "8292e85d7327af22ee3f2304ff9953241ee3602c82f738741b8af626ad9d19e4"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "8bb75e4e7860345bbde9f0561e4b4c119891bb3219a102093a2f5c095706450c"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "docs/design/water-ui-v3/DESIGN.md",
+          "sha256": "0da4340331085f9131872e95879236e67ae44ddf5aa57cef1dd517b4124e5d69"
+        },
+        {
+          "path": "docs/design/water-ui-v3/mockup.html",
+          "sha256": "96f6980ea330bbed297cc14ce59cc4d9ed29f8050fe53014689101e1f2e19ad0"
+        },
+        {
+          "path": "docs/design/water-ui-v3/tokens.css",
+          "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697"
+        },
+        {
+          "path": "docs/design/flick-brand/BRAND.md",
+          "sha256": "3cf5f070f2d2cbce0b18116e14a84b8413421f631da3f23675fc90de777b561e"
+        },
+        {
+          "path": "docs/design/flick-brand/flick-mark.svg",
+          "sha256": "92636401b781a36f623c8897fb4fcb69aafcdf74dc6c7ec975f103297edf00c7"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave11/n1/",
+        "docs/acceptance/wave11/controller/accept-20261107/n1/"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "astra",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n1/2026-11-07T06-43-45.873Z-12496-baseline-result.json",
+      "acceptsTask": "WATER-W11-N1",
+      "acceptsHead": "0bb24797169b922e1636b1137605cd640e8fd287"
+    },
+    {
+      "kind": "host",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "binName": "flick",
+      "windowTitle": "Flick",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md"
+      ],
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\"",
+        "\"SystemRoot\""
+      ],
+      "expectedConfig": {
+        "productName": "Flick",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "forbidSetup": true,
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory",
+        "host_service_wiring"
+      ],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-service",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/water-service",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "native",
+        "archive",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "realMode": null,
+      "nativeModule": null,
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "native --final only: fixture clean loop (quarantine one item, then purge); categories off, only the synthetic fixture is selectable; WATER_DATA_DIR under .local; protected locations are measured read-only; process list read for in-use",
+      "nativeObserver": "scripts/acceptance/w3-wired-native-observe.ps1",
+      "nativeMaximumSeconds": 300,
+      "nativeRealData": true,
+      "nativeSteps": [
+        {
+          "wait": "这次检查哪里？",
+          "absent": "无法连接 Water 服务",
+          "seconds": 45,
+          "shot": "home"
+        },
+        {
+          "invoke": "常用位置",
+          "type": "Button",
+          "match": "contains"
+        },
+        {
+          "invoke": "-fixture",
+          "type": "Button",
+          "match": "contains"
+        },
+        {
+          "invoke": "开始体检",
+          "type": "Button"
+        },
+        {
+          "wait": "可以放心清理",
+          "fail": "体检未能完成，请重新体检。",
+          "seconds": 120,
+          "shot": "results"
+        },
+        {
+          "invoke": "清理",
+          "type": "Button"
+        },
+        {
+          "wait": "已加入清理",
+          "match": "prefix",
+          "seconds": 20
+        },
+        {
+          "invoke": "清理 ",
+          "type": "Button",
+          "match": "prefix"
+        },
+        {
+          "wait": "先放进隔离区",
+          "seconds": 30,
+          "shot": "confirm"
+        },
+        {
+          "invoke": "开始清理",
+          "type": "Button"
+        },
+        {
+          "wait": "清理完成",
+          "seconds": 90,
+          "shot": "done"
+        },
+        {
+          "invoke": "去隔离区",
+          "type": "Button"
+        },
+        {
+          "wait": "隔离区里有 1 批",
+          "seconds": 30,
+          "shot": "quarantine"
+        },
+        {
+          "invoke": "永久删除",
+          "type": "Button"
+        },
+        {
+          "wait": "不进入回收站，无法恢复。",
+          "seconds": 15
+        },
+        {
+          "invoke": "永久删除",
+          "type": "Button",
+          "pick": "last"
+        },
+        {
+          "wait": "隔离区是空的",
+          "seconds": 90,
+          "shot": "purged"
+        }
+      ],
+      "nativeStore": {
+        "allowedTop": [
+          "cleans",
+          "dedupes",
+          "events",
+          "journal",
+          "plans",
+          "quarantine",
+          "scans",
+          "settings.json",
+          "snapshots",
+          "water.lock",
+          "webview"
+        ],
+        "counts": {
+          "scans": 1,
+          "plans": 1,
+          "cleans": 1,
+          "quarantine": 0,
+          "dedupes": 0
+        }
+      },
+      "nativeFixture": {
+        "flow": "quarantine-purge",
+        "ageHours": 240,
+        "categoriesOff": [
+          "agent_tool",
+          "browser",
+          "system_temp",
+          "app_leftover",
+          "dev_cache",
+          "crash_log",
+          "gpu_system"
+        ],
+        "files": [
+          {
+            "path": "projA/build-cache/CACHEDIR.TAG",
+            "text": "Signature: 8a477f597d28d172789f06886806bc55\n# Water M2 native fixture: safe to delete.\n"
+          },
+          {
+            "path": "projA/build-cache/blob-1.bin",
+            "bytes": 2097152
+          },
+          {
+            "path": "projA/build-cache/sub/blob-2.bin",
+            "bytes": 1048576
+          },
+          {
+            "path": "projA/src/main.rs",
+            "text": "fn main() {}\n"
+          },
+          {
+            "path": "setups/tool-1.2.msi",
+            "bytes": 1048576
+          },
+          {
+            "path": "lab/profile-a/Local State",
+            "text": "{}\n"
+          },
+          {
+            "path": "lab/profile-a/Default/Preferences",
+            "text": "{}\n"
+          }
+        ],
+        "gone": [
+          "projA/build-cache",
+          "setups/tool-1.2.msi"
+        ],
+        "kept": [
+          "projA/src/main.rs",
+          "lab/profile-a/Local State",
+          "lab/profile-a/Default/Preferences"
+        ],
+        "directFreedBytes": 3145815,
+        "quarantinedBytes": 1048576,
+        "purgedBytes": 1048576
+      },
+      "id": "WATER-W11-ACCEPT-N2",
+      "title": "宿主：改名 Flick、数据目录搬家、打开隔离区认两个名字",
+      "slot": "w11-n2",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n2",
+      "branch": "controller/accept-w11-n2",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n2-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "Flick rename in the host (productName, flick.exe, window title, icon, visible text), data directory move Water to Flick with keep-old-on-failure, reveal accepts both quarantine names",
+      "report": "docs/dispatch/reports/WATER-W11-N2-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n2/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N2-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N2-HOST-20261107.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "nativeDataPrefix": ".local/w11-n2-native/",
+      "proofTargets": {
+        "nc1": "HOST_W11_DATA_MOVE",
+        "nc2": "HOST_W11_REVEAL",
+        "nc3": "HOST_W11_RENAME"
+      },
+      "modelHint": "Host: RENAME-FLICK sections 3.3, 5, 6; seven data-directory cases; pre-listed old assertions; native 17 steps with windowTitle Flick and binName flick.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/HOST-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "docs/design/flick-brand/flick-app-icon.ico",
+        "apps/water/host/src/data.rs",
+        "apps/water/host/src/opener.rs",
+        "apps/water/host/src/policy.rs",
+        "apps/water/host/src/startup.rs",
+        "apps/water/host/src/lib.rs",
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/HOST-M35.md",
+          "sha256": "fc5b36a879b6d68363145cfa3e7c8a575f25c283de699bbf279a06f2f8e61d2a"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m3c-v1/HOST-M3C.md",
+          "sha256": "e6c9a195404807ba206b22325d8a098642cd960df0c60b8eaa211df646a4cd29"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3-v1/HOST-M3-FIX.md",
+          "sha256": "82a719a90ab2ea2b076b8b65a85665ddf8a815bd43e2abbc26eb8b692aca65b2"
+        },
+        {
+          "path": "contracts/m3-v1/HOST-M3.md",
+          "sha256": "9d6ff18afe2ca065b007efdda2a63c2611f9b7ea3f755e5d836d0d342ef983df"
+        },
+        {
+          "path": "contracts/m2-v1/HOST-M2.md",
+          "sha256": "0ff719abc4c87e8ad0a4a13477ac0d37543ae58666da2e30d94d97290297c7c3"
+        },
+        {
+          "path": "contracts/desktop-v1/HOST.md",
+          "sha256": "3d1f3cbb2f98415f73721ef111cfc13b6d0fed78a2b09641008495c2d8f304fc"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "docs/design/flick-brand/flick-app-icon.ico",
+          "sha256": "7e5f864ab2ec13be0981886c162c0c49566bbcbc578c07fa3dc25c66788709b1"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/host/",
+        "docs/acceptance/wave11/n2/",
+        "docs/acceptance/wave11/controller/accept-20261107/n2/"
+      ],
+      "spawnFile": "src/opener.rs",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n2/2026-11-07T06-43-48.058Z-32292-baseline-result.json",
+      "acceptsTask": "WATER-W11-N2",
+      "acceptsHead": "6345f5a416796b670e42fc832535abb6718222d8"
+    },
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-clean",
+      "packageName": "water-junk-clean",
+      "testTarget": "clean_v1",
+      "testFiles": [
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-clean/Cargo.toml",
+        "packages/junk-clean/Cargo.lock",
+        "packages/junk-clean/README.md",
+        "packages/junk-clean/examples/real_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "nativeModule": "native_windows.rs",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "clean_plan_contract",
+        "clean_revalidation_skips",
+        "clean_no_follow",
+        "clean_partial_stop_journal",
+        "clean_report_volume",
+        "clean_handle_hardening",
+        "quarantine_unlock_pair",
+        "quarantine_move_contract",
+        "quarantine_restore_contract",
+        "quarantine_purge_contract",
+        "quarantine_inspect_and_list"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "forbidPatterns": [
+        [
+          "\\bstd::fs\\b",
+          "Path-based file access (std::fs) is not allowed"
+        ],
+        [
+          "\\bfs::",
+          "Path-based file access (fs::) is not allowed"
+        ],
+        [
+          "\\bPath(?:Buf)?\\b",
+          "Path objects are not allowed; file access goes through handles"
+        ],
+        [
+          "\\b(?:remove_file|remove_dir|read_dir|symlink_metadata|set_permissions|OpenOptions)\\b",
+          "Path-based file operation is not allowed"
+        ]
+      ],
+      "allowedFfi": [
+        "CreateFileW",
+        "GetFileInformationByHandleEx",
+        "SetFileInformationByHandle",
+        "GetVolumeInformationByHandleW",
+        "GetDiskFreeSpaceExW",
+        "CloseHandle",
+        "NtOpenFile",
+        "NtCreateFile",
+        "RtlNtStatusToDosError",
+        "NtSetInformationFile"
+      ],
+      "realMode": "env-only",
+      "browserBudget": 0,
+      "realDataPermission": "real --final read-only: state and numbered-folder count of <drive>:\\.flick-quarantine and <drive>:\\.water-quarantine on fixed drives; no move, restore or delete",
+      "id": "WATER-W11-ACCEPT-N3",
+      "title": "执行器：隔离区改名与兼容、拒绝互相包含、补测试",
+      "slot": "w11-n3",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n3",
+      "branch": "controller/accept-w11-n3",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n3-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "default quarantine root .flick-quarantine, both names accepted and guarded; nested plan items rejected (M4 carry-over 5); product-path tests for M10 carry-overs 1-3",
+      "report": "docs/dispatch/reports/WATER-W11-N3-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n3/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N3-REPORT.md"
+      ],
+      "gate": "heavy",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N3-CLEAN-20261107.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "proofTargets": {
+        "nc1": "CLEAN_W11_RENAME",
+        "nc2": "CLEAN_W11_RENAME",
+        "nc3": "CLEAN_W11_NESTED"
+      },
+      "modelHint": "Executor: RENAME-FLICK 3.1; InvalidPlan for nested items in execute and quarantine; tests through quarantine() for c12, c13, c4, c5, c7 or a written reason; heavy gate.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/CLEAN-M35.md",
+        "contracts/checkup-v1/CLEAN.md",
+        "contracts/hardening-v1/CLEAN-HARDENING.md",
+        "packages/junk-clean/src/lib.rs",
+        "packages/junk-clean/src/quarantine.rs",
+        "packages/junk-clean/src/native_windows.rs",
+        "packages/junk-clean/src/move_checks.rs",
+        "packages/junk-clean/examples/real_smoke.rs",
+        "packages/junk-clean/tests/clean_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/CLEAN.md",
+          "sha256": "95b5ad120c6d7a04d427318c09df8e58ba77d6f96167cb040bc07a33e5c5a55f"
+        },
+        {
+          "path": "contracts/hardening-v1/CLEAN-HARDENING.md",
+          "sha256": "b22cfe2458d17303fd5ffde08899ef6df89c4484ba502c0d4af4139c8a18dc85"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-clean/",
+        "docs/acceptance/wave11/n3/",
+        "docs/acceptance/wave11/controller/accept-20261107/n3/"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n3/2026-11-07T06-43-51.668Z-32868-baseline-result.json",
+      "acceptsTask": "WATER-W11-N3",
+      "acceptsHead": "c12b1610eab9ade8582ac8b053be443f2208c18c"
+    },
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "id": "WATER-W11-ACCEPT-N4",
+      "title": "规则：说明里的 Water 改为 Flick",
+      "slot": "w11-n4",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n4",
+      "branch": "controller/accept-w11-n4",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n4-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "Flick rename in user-visible rule text (23 *_zh occurrences), data_version 2026-11-07.2",
+      "report": "docs/dispatch/reports/WATER-W11-N4-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n4/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N4-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N4-RULES-20261107.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "proofTargets": {
+        "nc1": "RULES_W11_RENAME",
+        "nc2": "RULES_W11_RENAME",
+        "nc3": "RULES_M35_VERSION"
+      },
+      "modelHint": "Rules data only: *_zh Water to Flick, ref unchanged, data_version; pre-listed old assertions; NCs edit rules/windows.json.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "packages/junk-rules/rules/windows.json",
+        "packages/junk-rules/tests/rules_v1.rs",
+        "packages/junk-rules/README.md"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/checkup-v1/RULES.md",
+          "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave11/n4/",
+        "docs/acceptance/wave11/controller/accept-20261107/n4/"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "negativeControlPaths": [
+        "packages/junk-rules/src",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "bundle": "A",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n4/2026-11-07T06-43-56.139Z-3184-baseline-result.json",
+      "acceptsTask": "WATER-W11-N4",
+      "acceptsHead": "7a05a4342482cc333c0058055153a91f3784f24a"
+    },
+    {
+      "id": "WATER-W11-ACCEPT-N5",
+      "title": "扫描：认新隔离区名与新声明名",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w11-n5",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n5",
+      "branch": "controller/accept-w11-n5",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n5-base-20261107",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N5-SCAN-20261107.md",
+      "report": "docs/dispatch/reports/WATER-W11-N5-REPORT.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_W11_RENAME",
+        "nc2": "SCAN_W11_RENAME",
+        "nc3": "SCAN_W11_RENAME"
+      },
+      "productionFiles": [
+        "packages/junk-scan/Cargo.toml",
+        "packages/junk-scan/Cargo.lock",
+        "packages/junk-scan/README.md"
+      ],
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N5-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave11/n5/",
+        "docs/acceptance/wave11/controller/accept-20261107/n5/"
+      ],
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n5/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/scan/streaming.rs",
+        "packages/junk-scan/README.md",
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "medium",
+      "readyOn": "2026-11-07",
+      "purpose": "scan skips both quarantine names and reports both declaration file names",
+      "modelHint": "Scan: RENAME-FLICK 3.3 and 4.2; new assertions next to the old-name ones; three NCs each caught by SCAN_W11_RENAME.",
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "DeviceIoControl",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "bundle": "A",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n5/2026-11-07T06-44-00.871Z-10392-baseline-result.json",
+      "acceptsTask": "WATER-W11-N5",
+      "acceptsHead": "b5c8bcb30fce162e47c97c9d79bd100902a76aaf"
+    },
+    {
+      "id": "WATER-W11-ACCEPT-N6",
+      "title": "项目声明：认两个文件名、真实冒烟找根",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w11-n6",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n6",
+      "branch": "controller/accept-w11-n6",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n6-base-20261107",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N6-MANIFEST-20261107.md",
+      "report": "docs/dispatch/reports/WATER-W11-N6-REPORT.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "outputRoot": "packages/cleanup-manifest",
+      "packageName": "water-cleanup-manifest",
+      "testTarget": "manifest_v1",
+      "expectedTests": [
+        "manifest_parse_contract",
+        "manifest_targets_and_protect",
+        "manifest_read_files",
+        "manifest_git_link"
+      ],
+      "proofTargets": {
+        "nc1": "MANIFEST_W11_NAMES",
+        "nc2": "MANIFEST_W11_NAMES"
+      },
+      "productionFiles": [
+        "packages/cleanup-manifest/Cargo.toml",
+        "packages/cleanup-manifest/Cargo.lock",
+        "packages/cleanup-manifest/README.md"
+      ],
+      "testFiles": [
+        "packages/cleanup-manifest/tests/manifest_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N6-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/cleanup-manifest/",
+        "docs/acceptance/wave11/n6/",
+        "docs/acceptance/wave11/controller/accept-20261107/n6/"
+      ],
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n6/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/MANIFEST-M35.md",
+        "packages/cleanup-manifest/src/lib.rs",
+        "packages/cleanup-manifest/examples/real_smoke.rs",
+        "packages/cleanup-manifest/README.md",
+        "packages/cleanup-manifest/tests/manifest_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "real --final read-only: counts of the three .git file states under this repository's .worktrees; the repository root .flick-cleanup.json and .water-cleanup.json read once each when present",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "readyOn": "2026-11-07",
+      "purpose": "FILE_NAME_FLICK and FILE_NAMES, read_manifest accepts both names; real smoke finds the repository by its .worktrees folder (M3 carry-over 4)",
+      "modelHint": "Declarations: RENAME-FLICK 4.1; two constants added, FILE_NAME unchanged; real smoke without ancestors().nth(4).",
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/MANIFEST-M35.md",
+          "sha256": "4e3dc89590a42d33fb0d1e77f017e5ec26c61c03887f2aca580a096b8dd5f611"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        }
+      ],
+      "outputRootExists": true,
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "bundle": "A",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n6/2026-11-07T06-44-05.334Z-27140-baseline-result.json",
+      "acceptsTask": "WATER-W11-N6",
+      "acceptsHead": "d66e9f26ae410cf9ce86f91c50247ff596a076d4"
+    },
+    {
+      "id": "WATER-W11-ACCEPT-N7",
+      "title": "查重：跳过新隔离区名、真实冒烟找根",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w11-n7",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n7",
+      "branch": "controller/accept-w11-n7",
+      "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
+      "snapshotRef": "refs/tags/water-w11-n7-base-20261107",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N7-DUP-20261107.md",
+      "report": "docs/dispatch/reports/WATER-W11-N7-REPORT.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "outputRoot": "packages/dup-finder",
+      "packageName": "water-dup-finder",
+      "testTarget": "dup_v1",
+      "expectedTests": [
+        "dup_contract",
+        "dup_skips_and_change",
+        "dup_cancel_and_budget",
+        "dup_sha256_vectors"
+      ],
+      "proofTargets": {
+        "nc1": "DUP_W11_RENAME",
+        "nc2": "DUP_W11_RENAME"
+      },
+      "productionFiles": [
+        "packages/dup-finder/Cargo.toml",
+        "packages/dup-finder/Cargo.lock",
+        "packages/dup-finder/README.md"
+      ],
+      "testFiles": [
+        "packages/dup-finder/tests/dup_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N7-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/dup-finder/",
+        "docs/acceptance/wave11/n7/",
+        "docs/acceptance/wave11/controller/accept-20261107/n7/"
+      ],
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n7/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/DUP-M35.md",
+        "packages/dup-finder/src/util.rs",
+        "packages/dup-finder/examples/real_smoke.rs",
+        "packages/dup-finder/tests/dup_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "real --final read-only: one duplicate search of this tree's docs/",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "light",
+      "readyOn": "2026-11-07",
+      "purpose": "dedupe skips .flick-quarantine; real smoke finds the tree root by docs and .git (M8 carry-over 1)",
+      "modelHint": "Duplicates: one name added to excluded; real smoke without ancestors().nth(4); new assertion beside the old list, old list unchanged.",
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/DUP-M35.md",
+          "sha256": "40e8295e0904e1c20bd218ac8c32e6ccea21482488fdc358fbaa204fb3117276"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "bundle": "A",
+      "issuedAt": "2026-11-07T06:43:02Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n7/2026-11-07T06-44-10.125Z-4904-baseline-result.json",
+      "acceptsTask": "WATER-W11-N7",
+      "acceptsHead": "a241611207ee11db3c3a34ba03db90abc42b6c49"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "A",
+      "name": "规则、扫描、项目声明、查重",
+      "tasks": [
+        "WATER-W11-N4",
+        "WATER-W11-N5",
+        "WATER-W11-N6",
+        "WATER-W11-N7"
+      ],
+      "order": "sequential",
+      "decidedAt": "2026-11-07",
+      "userRequest": "wave 11 plan section 3 (N4-N7 one executor in order), approved \"按计划出单\""
+    }
+  ],
+  "mergeOrder": [
+    "WATER-W11-N4",
+    "WATER-W11-N5",
+    "WATER-W11-N6",
+    "WATER-W11-N7",
+    "WATER-W11-N3",
+    "WATER-W11-N8",
+    "WATER-W11-N2",
+    "WATER-W11-N1"
+  ],
+  "preflight": {
+    "evidence": "docs/acceptance/wave11/controller/preflight-20261107/",
+    "note": "first run: N1 failed on a frozen hash taken from git bytes instead of checked-out bytes (mockup.html line endings), N6 and N7 on outputRootExists cloned from the new-package tickets; manifest regenerated, all seven rerun and passed"
+  }
+}

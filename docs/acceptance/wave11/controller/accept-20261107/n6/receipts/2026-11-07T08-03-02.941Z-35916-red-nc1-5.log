@@ -1,0 +1,31 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/cleanup-manifest/Cargo.toml","--test","manifest_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test manifest_git_link ... ok
+test manifest_parse_contract ... ok
+test manifest_read_files ... FAILED
+test manifest_targets_and_protect ... ok
+
+failures:
+
+---- manifest_read_files stdout ----
+
+thread 'manifest_read_files' (37336) panicked at tests\manifest_v1.rs:406:13:
+assertion `left == right` failed: MANIFEST_W11_NAMES: both names and mixed case yield the same loaded declaration
+  left: Loaded { path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n6\\.local\\water-w10-m3-27132-1794038591447628800\\.water-cleanup.json", dir: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n6\\.local\\water-w10-m3-27132-1794038591447628800", size: 0, hash: None, manifest: None, error: Some(Invalid { code: "MANIFEST_NOT_FILE", pointer: "" }) }
+ right: Loaded { path: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n6\\.local\\water-w10-m3-27132-1794038591447628800\\.water-cleanup.json", dir: "F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n6\\.local\\water-w10-m3-27132-1794038591447628800", size: 440, hash: Some("e42cb133e06c9d3e915e3e846f4a2ff9c90de8cfb136e40ae2bd47fa93b7cf6e"), manifest: Some(Manifest { schema: None, version: 1, project: Some("Water"), producer: Some("总控与执行器"), disposable: [Disposable { id: "worktree-builds", title: "工作树里的构建产物", paths: [".worktrees/*/.local/target", ".worktrees/*/.local/*-profile-*"], when: "older-than-3-days", kind: "build", keep_newest: 0, ask: true, producer: Some("cargo test 与界面冒烟"), fixed_in: None }], protected: [".offline-cache", "docs"], worktrees: [Worktree { path: ".worktrees/w10-m1", note: Some("第十波 M1") }] }), error: None }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    manifest_read_files
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+
+--- stderr ---
+   Compiling water-cleanup-manifest v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w11-n6\packages\cleanup-manifest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.00s
+     Running tests\manifest_v1.rs (.local\w2-target\cleanup-manifest\debug\deps\manifest_v1-c4bc829e26913465.exe)
+error: test failed, to rerun pass `--test manifest_v1`

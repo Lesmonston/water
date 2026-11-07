@@ -1,0 +1,49 @@
+import {add, el, heading, metric, card, button, iconButton, menu, row, toggle, tag, skipNotice} from './common.mjs';
+import {treemap, proportions} from './charts.mjs';
+import {formatBytes, relativeTime} from '../format.mjs';
+import {viewCards, cleanLabel} from '../model.mjs';
+export function results(s, a) {
+  const v = s.conclusion, p = v.plan, page = el('section', 'screen conclusion');
+  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}${v.status === 'partial' ? ' · 部分完成：有的位置没有权限，或时间到了' : ''}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));
+  if (v.stale) add(page, el('p', 'warning stale', '结果已过期 · 重新体检'));
+  add(page, proportions(p.categories.map(c => ({title:c.title_zh, bytes:c.bytes, kind:c.included ? 'sky' : 'neutral'}))));
+  const grid = el('div', 'results-grid'), main = card('这次清理', 'dark main-card', [iconButton('重新体检', 'refresh', a.chooseLocations, 'rescan')]);
+  add(main, metric(p.bytes), el('p', 'sub summary', p.summary_zh), el('h3', 'sub', '包含什么'));
+  for (const c of p.categories) add(main, row(c.title_zh, c.is_new ? '新' : '', el('span', 'sub', formatBytes(c.bytes)), toggle(c.title_zh, c.included, () => a.decide({category:c.category_id, include:!c.included}), `category-${c.category_id}`, a.busy() || v.stale)));
+  add(main, add(el('div', 'bottom action-stack'), skipNotice(p.expected_skip), BigInt(p.bytes) > 0n ? button(`${cleanLabel(p)} ${formatBytes(p.bytes)}`, a.prepare, 'btn primary', 'clean-prepare', a.busy() || v.stale) : null));
+  const content = el('div', 'result-content'), cards = el('div', 'judgments');
+  if (v.cards.length) cards.setAttribute('aria-label', '需要你看一眼');
+  for (const c of viewCards(v)) {
+    const entries = [];
+    if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);
+    const clue = v.clues.find(x => x.clue_id === c.clue_id);
+    if (c.menu.includes('copy_clue') && clue) entries.push(['复制线索给 agent', () => a.copy(clue.copy_text)]);
+    const node = card(c.title_zh, `judgment ${c.decision !== 'undecided' ? 'decided' : ''}`, [menu(`${c.title_zh}菜单`, entries, `card-menu-${c.group_id}`)]);
+    node.dataset.card = c.card_id; node.dataset.group = c.group_id; node.tabIndex = 0;
+    node.addEventListener('keydown', event => {
+      if (event.target !== node || a.busy() || v.stale) return;
+      if (event.key === 'Enter' || event.key === 'Delete') { event.preventDefault(); a.decide({group:c.group_id, choice:event.key === 'Enter' ? 'clean' : 'keep'}); }
+    });
+    if (c.decision === 'undecided') add(node, el('p', 'sub evidence', c.evidence_zh), metric(c.bytes), c.warning_zh && el('p', 'warning', c.warning_zh), c.decided_before_zh && el('p', 'sub', c.decided_before_zh), add(el('div', 'bottom pair'), button('保留', () => a.decide({group:c.group_id, choice:'keep'}), 'btn soft', `keep-${c.group_id}`, a.busy() || v.stale), button('清理', () => a.decide({group:c.group_id, choice:'clean'}), 'btn lime', `clean-${c.group_id}`, a.busy() || v.stale)));
+    else add(node, el('p', 'decided-text', c.decision === 'clean' ? `已加入清理 · ${formatBytes(c.bytes)}` : '已保留'), button('撤销', () => a.decide({group:c.group_id, choice:'undecided'}), 'btn soft', `undo-${c.group_id}`, a.busy() || v.stale));
+    add(cards, node);
+  }
+  add(content, cards);
+  for (const extra of [v.more_cards, v.kept_before]) if (extra) add(content, button(`${extra.text_zh} ›`, a.details, 'summary-link', extra === v.more_cards ? 'more-cards' : 'kept-before'));
+  const lower = el('div', 'result-lower');
+  if (p.categories.length || v.cards.length) add(lower, add(card('这次能清什么', 'treemap-card'), treemap([...p.categories.map(c => ({title:c.title_zh, bytes:c.bytes})), ...v.cards.map(c => ({title:c.title_zh, bytes:c.bytes, kind:c.decision === 'clean' ? 'selected' : 'look'}))])));
+  else add(lower, add(card('这次不用清理'), el('p', 'sub', '受保护的数据仍然保留，可以展开下方清单查看。')));
+  const clues = card('交给 agent', 'clues');
+  for (const clue of v.clues) add(clues, row(clue.text_zh, '', iconButton('复制线索', 'copy', () => a.copy(clue.copy_text), `copy-${clue.clue_id}`)));
+  if (v.more_clues) add(clues, button(`还有 ${v.more_clues} 条 ›`, () => a.navigate('trends'), 'summary-link', 'more-clues'));
+  if (v.clues.length || v.more_clues) add(lower, clues);
+  add(content, lower); add(grid, main, content); add(page, grid);
+  for (const fold of v.folds) {
+    const details = el('details', 'fold'); details.open = s.openFolds.has(fold.kind);
+    details.addEventListener('toggle', () => details.open ? s.openFolds.add(fold.kind) : s.openFolds.delete(fold.kind));
+    add(details, el('summary', '', fold.text_zh, {'data-key':`fold-${fold.kind}`}));
+    for (const item of fold.rows) add(details, row(item.title_zh, item.note_zh, item.bytes !== null && el('span', '', formatBytes(item.bytes)))); add(page, details);
+  }
+  add(page, button('查看全部明细', a.details, 'summary-link', 'details-open'));
+  return page;
+}

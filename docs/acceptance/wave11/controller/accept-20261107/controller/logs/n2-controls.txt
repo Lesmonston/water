@@ -1,0 +1,33 @@
+n2 nc1 mutated apps/water/host/src/data.rs: ticket control replayed from worker receipt 2026-11-07T07-09-18.368Z-8724-red-nc1-result.json (mutated sha cbbefd271a78f99cf281728540bc7666ed8b57ede1fcd16751ec5f9a5ee96d6e)
+n2 red-nc1 rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-26-14.995Z-37140-red-nc1-result.json"}
+n2 nc1 KILLED (expected HOST_W11_DATA_MOVE)
+n2 nc1 restored exact bytes=true sha b7aa5211f60491cde954b67398d3e6976f1ac676d542c07ac56c3ecc576e9ecc
+n2 test rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-31-02.260Z-5520-test-result.json"}
+n2 nc2 mutated apps/water/host/src/opener.rs: ticket control replayed from worker receipt 2026-11-07T07-10-32.118Z-28504-red-nc2-result.json (mutated sha 98bd9b2ba8c013636150676b1424d3fc20632aa383c539e27fb41b5de4101920)
+n2 red-nc2 rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-31-29.480Z-34436-red-nc2-result.json"}
+n2 nc2 KILLED (expected HOST_W11_REVEAL)
+n2 nc2 restored exact bytes=true sha 4f221b67e39cc7f7b712c9f6ce428b193c78e0217054019fe9e95be9e26a55f5
+n2 test rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-31-43.120Z-29688-test-result.json"}
+n2 nc3 mutated apps/water/host/src/lib.rs: ticket control replayed from worker receipt 2026-11-07T07-11-30.139Z-17876-red-nc3-result.json (mutated sha 751749b8f369d21c5b28980063710a98d86d7163b73fd979e83f559f3fb52241)
+n2 red-nc3 rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-32-06.730Z-33584-red-nc3-result.json"}
+n2 nc3 KILLED (expected HOST_W11_RENAME)
+n2 nc3 restored exact bytes=true sha d754f056b5da1cd585a6be1ea6100b63d17e54455ee8428a0fd9c67dc21fbbe8
+n2 test rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-32-32.294Z-30512-test-result.json"}
+n2 c1 mutated apps/water/host/src/data.rs: the one-time rename never happens (old directory used every time) (mutated sha 393f9c1afad561f593724848683ae6b842eae0241cc5994ccf6a8a30dcc2ff87)
+n2 test rc=1 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-32-56.620Z-27752-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-32-56.620Z-27752-test-result.json"}
+n2 c1 KILLED (expected HOST_W11_DATA_MOVE)
+n2 c1 restored exact bytes=true sha b7aa5211f60491cde954b67398d3e6976f1ac676d542c07ac56c3ecc576e9ecc
+n2 c2 mutated apps/water/host/src/data.rs: an old directory that is a junction counts as plain and is renamed (mutated sha 20e00146cda0170e7a2d84fbb645ab96a167ef0bd5800720ad15d29bb69fe9db)
+n2 test rc=1 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-33-20.014Z-432-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-33-20.014Z-432-test-result.json"}
+n2 c2 KILLED (expected HOST_W11_DATA_MOVE)
+n2 c2 restored exact bytes=true sha b7aa5211f60491cde954b67398d3e6976f1ac676d542c07ac56c3ecc576e9ecc
+n2 c3 mutated apps/water/host/src/opener.rs: reveal compares the new quarantine name case-sensitively (mutated sha 1c1b1465eee987bffd05686fe92f5cadb10233b06b03b91e64c4f5b5da3b4764)
+n2 test rc=1 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-33-43.788Z-33336-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-33-43.788Z-33336-test-result.json"}
+n2 c3 KILLED (expected HOST_W11_REVEAL)
+n2 c3 restored exact bytes=true sha 4f221b67e39cc7f7b712c9f6ce428b193c78e0217054019fe9e95be9e26a55f5
+n2 c4 mutated apps/water/host/src/policy.rs: config check also accepts productName Water (mutated sha 7bf85df8186e6271ded1678ab475a31cabafe2767cf8f02e98ae2f0000592664)
+n2 test rc=1 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-33-56.176Z-32872-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-33-56.176Z-32872-test-result.json"}
+n2 c4 KILLED (expected HOST_W11_RENAME)
+n2 c4 restored exact bytes=true sha 77bd4966eebc5a07f84cbcd1bc39944f5726fd039a0e680f72f2a0c4de2bc0ac
+n2 survived: none
+n2 test --final rc=0 {"task":"WATER-W11-ACCEPT-N2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n2\\.local\\checks\\WATER-W11-ACCEPT-N2\\2026-11-07T08-34-21.308Z-34160-test-result.json"}

@@ -1,0 +1,313 @@
+{
+ "n4": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "RULES_W11_RENAME",
+   "file": "packages/junk-rules/rules/windows.json",
+   "old": "      \"why_zh\": \"删了就没法接着聊，也难以找回当时的改动。Flick 不会清理这类数据。\",",
+   "new": "      \"why_zh\": \"删了就没法接着聊，也难以找回当时的改动。Water 不会清理这类数据。\",",
+   "why": "ticket control replayed from worker receipt 2026-11-07T06-53-40.188Z-36420-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "RULES_W11_RENAME",
+   "file": "packages/junk-rules/rules/windows.json",
+   "old": "      \"after_zh\": \"Flick 不会在应用内删除它，只提示占用和做法。\",",
+   "new": "      \"after_zh\": \"Water 不会在应用内删除它，只提示占用和做法。\",",
+   "why": "ticket control replayed from worker receipt 2026-11-07T06-54-00.203Z-22444-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "RULES_M35_VERSION",
+   "file": "packages/junk-rules/rules/windows.json",
+   "old": "  \"data_version\": \"2026-11-07.2\",",
+   "new": "  \"data_version\": \"2026-11-07.1\",",
+   "why": "ticket control replayed from worker receipt 2026-11-07T06-54-32.226Z-22764-red-nc3-result.json"
+  }
+ ],
+ "n6": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "MANIFEST_W11_NAMES",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": "                .is_some_and(|n| FILE_NAMES.iter().any(|name| n.eq_ignore_ascii_case(name)))",
+   "new": "                .is_some_and(|n| n.eq_ignore_ascii_case(FILE_NAME))",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-13-35.644Z-26436-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "MANIFEST_W11_NAMES",
+   "file": "packages/cleanup-manifest/src/lib.rs",
+   "old": "pub const FILE_NAMES: [&str; 2] = [FILE_NAME_FLICK, FILE_NAME];",
+   "new": "pub const FILE_NAMES: [&str; 2] = [FILE_NAME, FILE_NAME_FLICK];",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-14-01.812Z-26388-red-nc2-result.json"
+  }
+ ],
+ "n7": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "DUP_W11_RENAME",
+   "file": "packages/dup-finder/src/util.rs",
+   "old": "        \".flick-quarantine\",",
+   "new": "",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-19-43.602Z-16976-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "DUP_W11_RENAME",
+   "file": "packages/dup-finder/src/util.rs",
+   "old": "    .any(|n| name.eq_ignore_ascii_case(n))",
+   "new": "    .any(|n| if *n == \".flick-quarantine\" { name == *n } else { name.eq_ignore_ascii_case(n) })",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-20-38.988Z-20064-red-nc2-result.json"
+  }
+ ],
+ "n5": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "                        || c.name.eq_ignore_ascii_case(\".flick-quarantine\")))",
+   "new": "                        ))",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-03-18.414Z-31048-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        p.eq_ignore_ascii_case(\".water-quarantine\") || p.eq_ignore_ascii_case(\".flick-quarantine\")",
+   "new": "        p.eq_ignore_ascii_case(\".water-quarantine\") ",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-04-03.276Z-33312-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "                                    || c.name.eq_ignore_ascii_case(\".flick-cleanup.json\"))",
+   "new": "                                    )",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-04-27.655Z-22188-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "|| c.name.eq_ignore_ascii_case(\".flick-quarantine\")))",
+   "new": "|| c.name == \".flick-quarantine\"))",
+   "why": "listing filter compares the new quarantine name case-sensitively"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "|| p.eq_ignore_ascii_case(\".flick-quarantine\")",
+   "new": "|| p == \".flick-quarantine\"",
+   "why": "ignored_root compares the new quarantine name case-sensitively"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "                                || c.name.eq_ignore_ascii_case(\".flick-cleanup.json\"))\n                    });",
+   "new": "                                )\n                    });",
+   "why": "declared (cluster protection) ignores the new declaration name; location report kept"
+  },
+  {
+   "label": "c4",
+   "mode": "test",
+   "token": "SCAN_W11_RENAME",
+   "file": "packages/junk-scan/src/scan/streaming.rs",
+   "old": "                                    || c.name.eq_ignore_ascii_case(\".flick-cleanup.json\"))",
+   "new": "                                    || c.name == \".flick-cleanup.json\")",
+   "why": "declaration location report compares the new name case-sensitively"
+  }
+ ],
+ "n3": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "CLEAN_W11_RENAME",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "        p.eq_ignore_ascii_case(\".flick-quarantine\") || p.eq_ignore_ascii_case(\".water-quarantine\")",
+   "new": "        p.eq_ignore_ascii_case(\".water-quarantine\")",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-03-44.735Z-11048-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "CLEAN_W11_RENAME",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "                            p.eq_ignore_ascii_case(\".flick-quarantine\")\n                                || p.eq_ignore_ascii_case(\".water-quarantine\")",
+   "new": "                            p.eq_ignore_ascii_case(\".water-quarantine\")",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-10-31.467Z-37672-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "CLEAN_W11_NESTED",
+   "file": "packages/junk-clean/src/model.rs",
+   "old": "        if paths.windows(2).any(|pair| pair[1].starts_with(&pair[0])) {",
+   "new": "        if false && paths.windows(2).any(|pair| pair[1].starts_with(&pair[0])) {",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-16-15.538Z-33776-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "CLEAN_W11_NESTED",
+   "file": "packages/junk-clean/src/lib.rs",
+   "old": "    plan.validate_disjoint_items()?;\n",
+   "new": "",
+   "why": "execute call site skips the overlap check (quarantine keeps it)"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "CLEAN_W11_NESTED",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "        plan.validate_disjoint_items()?;\n",
+   "new": "",
+   "why": "quarantine call site skips the overlap check (execute keeps it)"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "CLEAN_W11_NESTED",
+   "file": "packages/junk-clean/src/model.rs",
+   "old": "\"{}\\\\\",",
+   "new": "\"{}\",",
+   "why": "overlap check compares raw string prefixes without the separator (cache vs cache-x)"
+  },
+  {
+   "label": "c4",
+   "mode": "test",
+   "token": "CLEAN_W11_NESTED",
+   "file": "packages/junk-clean/src/model.rs",
+   "old": "item.path.trim_end_matches('\\\\').to_ascii_lowercase()",
+   "new": "item.path.trim_end_matches('\\\\').to_string()",
+   "why": "overlap check becomes case-sensitive"
+  },
+  {
+   "label": "c5",
+   "mode": "test",
+   "token": "CLEAN_W11_RENAME",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "                            p.eq_ignore_ascii_case(\".flick-quarantine\")\n",
+   "new": "                            p == \".flick-quarantine\"\n",
+   "why": "source-path guard compares the new quarantine name case-sensitively"
+  },
+  {
+   "label": "c6",
+   "mode": "test",
+   "token": "CLEAN_W11_RENAME",
+   "file": "packages/junk-clean/src/quarantine.rs",
+   "old": "        p.eq_ignore_ascii_case(\".flick-quarantine\") || p.eq_ignore_ascii_case(\".water-quarantine\")",
+   "new": "        p == \".flick-quarantine\" || p.eq_ignore_ascii_case(\".water-quarantine\")",
+   "why": "validate_root compares the new quarantine name case-sensitively"
+  }
+ ],
+ "n2": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "HOST_W11_DATA_MOVE",
+   "file": "apps/water/host/src/data.rs",
+   "old": "                        check_directory(&old)?;\n                        (old, true)",
+   "new": "                        (new, false)",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-09-18.368Z-8724-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "HOST_W11_REVEAL",
+   "file": "apps/water/host/src/opener.rs",
+   "old": "        name.eq_ignore_ascii_case(\".flick-quarantine\")\n            || name.eq_ignore_ascii_case(\".water-quarantine\")",
+   "new": "        name.eq_ignore_ascii_case(\".water-quarantine\")",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-10-32.118Z-28504-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "HOST_W11_RENAME",
+   "file": "apps/water/host/src/lib.rs",
+   "old": "        .title(\"Flick\")",
+   "new": "        .title(\"Water\")",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-11-30.139Z-17876-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "HOST_W11_DATA_MOVE",
+   "file": "apps/water/host/src/data.rs",
+   "old": "if fs::rename(&old, &new).is_ok() || check_directory(&new).is_ok() {",
+   "new": "if false || check_directory(&new).is_ok() {",
+   "why": "the one-time rename never happens (old directory used every time)"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "HOST_W11_DATA_MOVE",
+   "file": "apps/water/host/src/data.rs",
+   "old": "NotFound && check_directory(&old).is_ok() =>",
+   "new": "NotFound && fs::symlink_metadata(&old).is_ok() =>",
+   "why": "an old directory that is a junction counts as plain and is renamed"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "HOST_W11_REVEAL",
+   "file": "apps/water/host/src/opener.rs",
+   "old": "        name.eq_ignore_ascii_case(\".flick-quarantine\")\n",
+   "new": "        name == \".flick-quarantine\"\n",
+   "why": "reveal compares the new quarantine name case-sensitively"
+  },
+  {
+   "label": "c4",
+   "mode": "test",
+   "token": "HOST_W11_RENAME",
+   "file": "apps/water/host/src/policy.rs",
+   "old": "if config.product_name != \"Flick\"\n",
+   "new": "if (config.product_name != \"Flick\" && config.product_name != \"Water\")\n",
+   "why": "config check also accepts productName Water"
+  }
+ ],
+ "n1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "UI_W11_ZERO",
+   "file": "apps/water/ui/format.mjs",
+   "old": "  if (n === 0n) return '0 MB';",
+   "new": "  if (n === 0n) return '<1 MB';",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-41-13.802Z-32612-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "UI_W11_BRAND",
+   "file": "apps/water/ui/app.mjs",
+   "old": "    add(header, add(el('div', 'brand'), icon('flick'), el('span', '', 'Flick')));",
+   "new": "    add(header, add(el('div', 'brand'), icon('flick'), el('span', '', 'Water')));",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-42-50.724Z-34880-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "UI_W11_PARTIAL",
+   "file": "apps/water/ui/views/results.mjs",
+   "old": "  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}${v.status === 'partial' ? ' · 部分完成：有的位置没有权限，或时间到了' : ''}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));",
+   "new": "  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));",
+   "why": "ticket control replayed from worker receipt 2026-11-07T07-44-27.866Z-30300-red-nc3-result.json"
+  }
+ ]
+}

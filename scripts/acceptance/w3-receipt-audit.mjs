@@ -52,7 +52,7 @@ function audit(id){
     // Wired hosts (F3) record several screenshots, their steps and a service-store check.
     const shots=Array.isArray(fn.screenshots)?fn.screenshots:[{file:n.screenshot??'-',sha256:fn.screenshotSha256}];
     out.native={title:n.title,systemWindows:n.systemWindows,rawWindows:n.rawWindows,eventTargets:n.eventTargets,pageAccepted:n.pageAccepted,backdropType:n.backdropType,exitCode:n.exitCode,children:(n.children??[]).length,remaining:fn.childClose?.remaining,privateWebviewObserved:n.privateWebviewObserved,wallMs:fn.nativeWallMs,screenshots:shots.map(s=>t.evidenceDir+'receipts/'+s.file),steps:n.steps?.map(s=>[s.index,s.kind,s.passed,s.ms]),store:fn.nativeStore};
-    if(n.title!=='Water'||n.systemWindows!==1||!n.pageAccepted||n.backdropType!==2||n.exitCode!==0||n.error!==null||!n.privateWebviewObserved)bad('native observation '+JSON.stringify(out.native));
+    if(n.title!==(t.windowTitle??'Water')||n.systemWindows!==1||!n.pageAccepted||n.backdropType!==2||n.exitCode!==0||n.error!==null||!n.privateWebviewObserved)bad('native observation '+JSON.stringify(out.native));
     if(!Array.isArray(fn.childClose?.remaining)||fn.childClose.remaining.length!==0)bad('webview children not closed');
     for(const s of shots){const p=join(rdir,s.file);if(!existsSync(p)||hash(readFileSync(p))!==s.sha256){bad('screenshot not archived '+s.file);continue;}
       // A minimized window prints only its caption; a page image is at least 800x600.

@@ -166,7 +166,7 @@
       "branch": "worker/water-w11-n1",
       "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
       "snapshotRef": "refs/tags/water-w11-n1-base-20261107",
-      "status": "READY",
+      "status": "ACCEPTED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "Flick rename in the UI (title, mark, visible text), 0 bytes shows 0 MB (R7), partial status line on the conclusion header (R9)",
@@ -268,7 +268,16 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n1/2026-11-07T06-43-45.873Z-12496-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n1/2026-11-07T06-43-45.873Z-12496-baseline-result.json",
+      "submittedHead": "0bb24797169b922e1636b1137605cd640e8fd287",
+      "implementationCommit": "5f392089d1205c3e9b8d077c964fea84e620b2e1",
+      "workerSelfReport": "Codex GPT-6 (took over a tree whose implementation was already committed; ran the checks and handed back)",
+      "mergeAfter": "WATER-W11-N2",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n1/",
+        "summary": "audit 0 problems; fresh tree check, test and browser finals; three ticket controls caught; screenshots show the Flick mark, 0 MB and the brand; the remaining visible Water text is service-owned (N8)"
+      }
     },
     {
       "kind": "host",
@@ -627,7 +636,7 @@
       "branch": "worker/water-w11-n2",
       "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
       "snapshotRef": "refs/tags/water-w11-n2-base-20261107",
-      "status": "READY",
+      "status": "ACCEPTED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "Flick rename in the host (productName, flick.exe, window title, icon, visible text), data directory move Water to Flick with keep-old-on-failure, reveal accepts both quarantine names",
@@ -722,7 +731,22 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n2/2026-11-07T06-43-48.058Z-32292-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n2/2026-11-07T06-43-48.058Z-32292-baseline-result.json",
+      "submittedHead": "6345f5a416796b670e42fc832535abb6718222d8",
+      "implementationCommit": "490c8e02d31e37dc2a3a04ccd09075a29d0ebbdf",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeAfter": "WATER-W11-N8",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n2/",
+        "summary": "audit 0 problems (after fixing the audit script title check); fresh tree lock, check, test and native finals (17/17 steps, window title Flick, no quarantine root left); three ticket controls and four controller mutations all caught; independent review found no high or medium issue in scope; out of scope: the picker title (fixed by the controller in f36975c9)"
+      },
+      "carryOverLater": [
+        "CompanyName in the exe version resource is \"water\" (no bundle.publisher; config check forbids adding it)",
+        "an old-folder metadata error other than NotFound is treated as not a plain folder, so an empty Flick folder is created and the old data stays in place",
+        "untested: rename fails while the new folder now exists; rename fails and the old folder no longer passes; new folder is a junction while the old one is plain",
+        "running an old water.exe after the move creates a fresh Water folder (tell users at release to stop using the old program)"
+      ]
     },
     {
       "kind": "rust",
@@ -813,7 +837,7 @@
       "branch": "worker/water-w11-n3",
       "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
       "snapshotRef": "refs/tags/water-w11-n3-base-20261107",
-      "status": "READY",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "default quarantine root .flick-quarantine, both names accepted and guarded; nested plan items rejected (M4 carry-over 5); product-path tests for M10 carry-overs 1-3",
@@ -882,7 +906,22 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n3/2026-11-07T06-43-51.668Z-32868-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n3/2026-11-07T06-43-51.668Z-32868-baseline-result.json",
+      "submittedHead": "c12b1610eab9ade8582ac8b053be443f2208c18c",
+      "implementationCommit": "0743dab9dfa2d571235c8fe4fb63ea24162932c0",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "4e4118966b98f9ce20c560ca10f89b239847686c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n3/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls and six controller mutations at the product call sites all caught; independent review: the ticket premise (the scan never nests eligible items) was wrong, so nested selections are rejected until N8 section 1.8 lands; main is not released before N8"
+      },
+      "carryOverLater": [
+        "default root .flick-quarantine is not caught by any test (no drive-root quarantine in tests); N8 asserts the root the service passes",
+        "c12, c13, c4, c5, c7 still have no product-path coverage (written reasons accepted by the independent review)",
+        "real_smoke starts a hidden powershell.exe by relative name to list fixed drives (accepted low deviation; use the absolute path when next touched)",
+        "overlap check is ASCII case only (no non-ASCII case, 8.3 names or junction aliases; identity checks back it up)"
+      ]
     },
     {
       "kind": "rust",
@@ -936,7 +975,7 @@
       "branch": "worker/water-w11-n4",
       "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
       "snapshotRef": "refs/tags/water-w11-n4-base-20261107",
-      "status": "READY",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "Flick rename in user-visible rule text (23 *_zh occurrences), data_version 2026-11-07.2",
@@ -1009,12 +1048,21 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n4/2026-11-07T06-43-56.139Z-3184-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n4/2026-11-07T06-43-56.139Z-3184-baseline-result.json",
+      "submittedHead": "7a05a4342482cc333c0058055153a91f3784f24a",
+      "implementationCommit": "1c427953e9470fe98c2c64b9042e5b72190d885e",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "ed3b426167223f9f74f093f89e6a1766200aad0c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n4/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls replayed and caught; independent review found no high or medium issue"
+      }
     },
     {
       "id": "WATER-W11-N5",
       "title": "扫描：认新隔离区名与新声明名",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "w11-n5",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w11-n5",
@@ -1146,12 +1194,26 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n5/2026-11-07T06-44-00.871Z-10392-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n5/2026-11-07T06-44-00.871Z-10392-baseline-result.json",
+      "submittedHead": "b5c8bcb30fce162e47c97c9d79bd100902a76aaf",
+      "implementationCommit": "46fc5b5bfd51fb6e656cd6717430668fd1237633",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "3223b0ece887947b83753b251ce9bc14cfb81253",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n5/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls and four controller mutations all caught; independent review found no high or medium issue"
+      },
+      "carryOverLater": [
+        "Flick-before-Water declaration order relies on the lowercase path sort, uncommented",
+        "the two name checks are duplicated in two places each",
+        "new tests reach scans through helpers that unwrap()"
+      ]
     },
     {
       "id": "WATER-W11-N6",
       "title": "项目声明：认两个文件名、真实冒烟找根",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "w11-n6",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w11-n6",
@@ -1255,12 +1317,24 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n6/2026-11-07T06-44-05.334Z-27140-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n6/2026-11-07T06-44-05.334Z-27140-baseline-result.json",
+      "submittedHead": "d66e9f26ae410cf9ce86f91c50247ff596a076d4",
+      "implementationCommit": "533f4be64b8544de226bd4bb75b9fce74ea29309",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "e34c3c0e3bf224d7c5cbfb2be60801d0b53f2774",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n6/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals; two ticket controls caught; independent review found no high or medium issue"
+      },
+      "carryOverLater": [
+        "real_smoke zips fixed key names with FILE_NAMES order"
+      ]
     },
     {
       "id": "WATER-W11-N7",
       "title": "查重：跳过新隔离区名、真实冒烟找根",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "w11-n7",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w11-n7",
@@ -1363,7 +1437,16 @@
       "issuedAt": "2026-11-07T06:43:02Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave11/PLAN.md",
-      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n7/2026-11-07T06-44-10.125Z-4904-baseline-result.json"
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n7/2026-11-07T06-44-10.125Z-4904-baseline-result.json",
+      "submittedHead": "a241611207ee11db3c3a34ba03db90abc42b6c49",
+      "implementationCommit": "2c234d6aaf80ce7824eb11fd0954c729506c6225",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "4f448d17c03ed2f1dc1e8bf3bc050f93756481f1",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n7/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals; two ticket controls caught; independent review found no high or medium issue"
+      }
     },
     {
       "kind": "service",

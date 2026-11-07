@@ -1,0 +1,6477 @@
+{
+  "rules_version": "water.junk-rules.v1",
+  "data_version": "2026-11-07.2",
+  "rules": [
+    {
+      "rule_id": "codex-marketplace-staging",
+      "title_zh": "Codex 插件市场升级残留",
+      "owner_zh": "Codex",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codex*",
+            ".tmp",
+            "marketplaces",
+            ".staging",
+            "marketplace-upgrade-*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "leak_prone",
+      "what_zh": "Codex 升级插件市场时，先把新版本解包到这个临时目录。升级失败后，这些目录不会被自动回收。",
+      "why_zh": "都是升级用的临时副本，正在使用的插件不在这里。最近 1 小时内有改动的目录会自动跳过。",
+      "after_zh": "不影响 Codex 使用；下次升级会重新下载。",
+      "fix_hint_zh": "这是 Codex 自身的问题。可以反馈给 Codex：插件市场升级失败时，删除本次在临时目录里创建的升级副本。",
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "git_is_copy": true
+    },
+    {
+      "rule_id": "codex-runtimes",
+      "title_zh": "Codex 运行时副本",
+      "owner_zh": "Codex",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cache",
+            "codex-runtimes",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Codex 为不同版本留下的运行时目录，方便切换时不用重新下载。",
+      "why_zh": "旧副本通常可以清，但会保留最新一份，以免正在用的版本被拿走。",
+      "after_zh": "当前这份还能用。以后换版本时，缺的运行时会再下载。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Codex 后可清"
+    },
+    {
+      "rule_id": "claude-desktop-old-versions",
+      "title_zh": "Claude 桌面版旧版本",
+      "owner_zh": "Claude",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "AnthropicClaude",
+            "app-*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "claude.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Claude 桌面版升级后仍留在本机的旧程序目录，每个版本都占一份空间。",
+      "why_zh": "会留下最新一份，并跳过正在运行的版本。超过一天的旧目录一般可以清。",
+      "after_zh": "当前安装的版本还能打开。若要回退到更早版本，需要重新安装。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Claude 后可清"
+    },
+    {
+      "rule_id": "claude-desktop-packages",
+      "title_zh": "Claude 桌面版安装包",
+      "owner_zh": "Claude",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "AnthropicClaude",
+            "packages"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Claude 桌面版更新时下载的安装包缓存，方便再次安装同一版本。",
+      "why_zh": "不是正在运行的程序本身。需要确认后再清，以免你还想重装这一版。",
+      "after_zh": "已安装的程序还能用。下次更新会重新下载安装包。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "claude-code-scratchpad",
+      "title_zh": "Claude Code 会话临时目录",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "claude",
+            "*",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 72,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 会话里放下的截图、导出物和工作草稿，会话结束后常常还留着。",
+      "why_zh": "三天没再改动的目录多半已经用完，但仍可能有你想留下的材料，所以需要确认。",
+      "after_zh": "进行中的会话不受影响。若里面还有未另存的材料，将无法再从这里找回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "grok-downloads",
+      "title_zh": "Grok 下载缓存",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok",
+            "downloads",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "Grok 命令行下载工具或更新包时留下的文件。",
+      "why_zh": "超过一天的下载件通常已经装完，再清只会让下次重新取一次。",
+      "after_zh": "已安装的 Grok 还能用。以后更新会重新下载需要的文件。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "headless-browser-profiles",
+      "title_zh": "无头浏览临时配置",
+      "owner_zh": "测试工具",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "rb#*-chrome-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "hrender-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "playwright_chromiumdev_profile-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "puppeteer_dev_profile-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "rb#*-chrome-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "hrender-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "playwright_chromiumdev_profile-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "puppeteer_dev_profile-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "scoped_dir*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "*chrome_profile*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "scoped_dir*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "*chrome_profile*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "chrome.exe",
+          "msedge.exe",
+          "chrome-headless-shell.exe"
+        ]
+      },
+      "growth": "leak_prone",
+      "what_zh": "自动化测试或渲染时新建的一次性浏览器配置，用完后经常没有被删除。",
+      "why_zh": "每个目录只服务一次运行。正在被进程用到的会跳过，一小时内刚写过的也会跳过。",
+      "after_zh": "不影响日常上网。下次测试会再新建自己的临时配置。",
+      "fix_hint_zh": "在启动无头浏览的项目里，关闭浏览器后删除本次新建的那一个临时目录，只删自己建的，并核对其父目录和名字前缀。",
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "测试结束、浏览器关掉后可清"
+    },
+    {
+      "rule_id": "claude-code-sessions",
+      "title_zh": "Claude Code 会话记录",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "projects"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 保存的对话正文，用来续接上次工作和找回改过的内容。",
+      "why_zh": "删了就没法接着聊，也难以找回当时的改动。Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "retention_zh": "Claude Code 默认删除 30 天前的会话"
+    },
+    {
+      "rule_id": "claude-code-file-history",
+      "title_zh": "Claude Code 文件历史",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "file-history"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 在改文件前留下的快照，用来对照或找回旧内容。",
+      "why_zh": "这是你的工作痕迹，不是临时缓存。Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "cursor-chats",
+      "title_zh": "Cursor 聊天记录",
+      "owner_zh": "Cursor",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cursor",
+            "chats"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Cursor 保存在本机的聊天记录，用来回顾对话和继续未完成的工作。",
+      "why_zh": "清掉就无法从这里找回这些对话。Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "codex-sessions",
+      "title_zh": "Codex 会话记录",
+      "owner_zh": "Codex",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codex*",
+            "sessions"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Codex 各配置目录里保存的会话记录。",
+      "why_zh": "这是对话历史，不是升级残留。Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "grok-sessions",
+      "title_zh": "Grok 会话记录",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok",
+            "sessions"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 保存在本机的会话记录。",
+      "why_zh": "清掉就无法从这里续接这些对话。Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "chrome-cache",
+      "title_zh": "Chrome 网页缓存",
+      "owner_zh": "Google Chrome",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "Media Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "chrome.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Google Chrome 打开网页时留下的临时图片、脚本和媒体片断。",
+      "why_zh": "这些只是浏览过程中的临时副本，登录信息和网站自己保存的数据不在这里。",
+      "after_zh": "不会退出登录。下次打开网页会重新拉取一部分内容，前几秒可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Chrome 后可清"
+    },
+    {
+      "rule_id": "edge-cache",
+      "title_zh": "Edge 网页缓存",
+      "owner_zh": "Microsoft Edge",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "Media Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "msedge.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Microsoft Edge 打开网页时留下的临时图片、脚本和媒体片断。",
+      "why_zh": "这些只是浏览过程中的临时副本，登录信息和网站自己保存的数据不在这里。",
+      "after_zh": "不会退出登录。下次打开网页会重新拉取一部分内容，前几秒可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Edge 后可清"
+    },
+    {
+      "rule_id": "brave-cache",
+      "title_zh": "Brave 网页缓存",
+      "owner_zh": "Brave",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "Media Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "brave.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Brave 打开网页时留下的临时图片、脚本和媒体片断。",
+      "why_zh": "这些只是浏览过程中的临时副本，登录信息和网站自己保存的数据不在这里。",
+      "after_zh": "不会退出登录。下次打开网页会重新拉取一部分内容，前几秒可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Brave 后可清"
+    },
+    {
+      "rule_id": "chrome-code-gpu-cache",
+      "title_zh": "Chrome 代码与显卡缓存",
+      "owner_zh": "Google Chrome",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "GPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "DawnCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "ShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "GraphiteDawnCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "chrome.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Google Chrome 为加快网页脚本和画面显示而保存的编译结果和显卡缓存。",
+      "why_zh": "都是加速用的副本，清掉不会改收藏、密码或扩展。正在运行时会自动跳过占用的项。",
+      "after_zh": "不会退出登录。之后几天里，部分页面和动画可能重新编译，会稍慢一会儿。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Chrome 后可清"
+    },
+    {
+      "rule_id": "edge-code-gpu-cache",
+      "title_zh": "Edge 代码与显卡缓存",
+      "owner_zh": "Microsoft Edge",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "GPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "DawnCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "ShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "GraphiteDawnCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "msedge.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Microsoft Edge 为加快网页脚本和画面显示而保存的编译结果和显卡缓存。",
+      "why_zh": "都是加速用的副本，清掉不会改收藏、密码或扩展。正在运行时会自动跳过占用的项。",
+      "after_zh": "不会退出登录。之后几天里，部分页面和动画可能重新编译，会稍慢一会儿。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Edge 后可清"
+    },
+    {
+      "rule_id": "brave-code-gpu-cache",
+      "title_zh": "Brave 代码与显卡缓存",
+      "owner_zh": "Brave",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "GPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "DawnCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "ShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "GraphiteDawnCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "brave.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Brave 为加快网页脚本和画面显示而保存的编译结果和显卡缓存。",
+      "why_zh": "都是加速用的副本，清掉不会改收藏、密码或扩展。正在运行时会自动跳过占用的项。",
+      "after_zh": "不会退出登录。之后几天里，部分页面和动画可能重新编译，会稍慢一会儿。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Brave 后可清"
+    },
+    {
+      "rule_id": "chrome-service-worker-cache",
+      "title_zh": "Chrome 后台脚本缓存",
+      "owner_zh": "Google Chrome",
+      "category": "browser",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "Service Worker",
+            "CacheStorage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "*",
+            "Service Worker",
+            "ScriptCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "chrome.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Google Chrome 给一些网站留下的离线脚本和后台缓存，方便下次打开更快。",
+      "why_zh": "不是登录态本身，但个别网站会靠它记住离线内容。需要你确认后再清。",
+      "after_zh": "不会退出登录。依赖离线缓存的网站会重新下载自己的材料。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Chrome 后可清"
+    },
+    {
+      "rule_id": "edge-service-worker-cache",
+      "title_zh": "Edge 后台脚本缓存",
+      "owner_zh": "Microsoft Edge",
+      "category": "browser",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "Service Worker",
+            "CacheStorage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "*",
+            "Service Worker",
+            "ScriptCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "msedge.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Microsoft Edge 给一些网站留下的离线脚本和后台缓存，方便下次打开更快。",
+      "why_zh": "不是登录态本身，但个别网站会靠它记住离线内容。需要你确认后再清。",
+      "after_zh": "不会退出登录。依赖离线缓存的网站会重新下载自己的材料。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Edge 后可清"
+    },
+    {
+      "rule_id": "brave-service-worker-cache",
+      "title_zh": "Brave 后台脚本缓存",
+      "owner_zh": "Brave",
+      "category": "browser",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "Service Worker",
+            "CacheStorage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "*",
+            "Service Worker",
+            "ScriptCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "brave.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Brave 给一些网站留下的离线脚本和后台缓存，方便下次打开更快。",
+      "why_zh": "不是登录态本身，但个别网站会靠它记住离线内容。需要你确认后再清。",
+      "after_zh": "不会退出登录。依赖离线缓存的网站会重新下载自己的材料。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Brave 后可清"
+    },
+    {
+      "rule_id": "chrome-crash-reports",
+      "title_zh": "Chrome 崩溃报告",
+      "owner_zh": "Google Chrome",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Crashpad",
+            "reports"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Google Chrome 崩溃后留下的报告文件，用来给厂商排查问题。",
+      "why_zh": "超过一天的报告通常已经用不上，也不含你的登录信息。",
+      "after_zh": "不影响正常上网。若之后再次崩溃，会生成新的报告。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "edge-crash-reports",
+      "title_zh": "Edge 崩溃报告",
+      "owner_zh": "Microsoft Edge",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Crashpad",
+            "reports"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Microsoft Edge 崩溃后留下的报告文件，用来给厂商排查问题。",
+      "why_zh": "超过一天的报告通常已经用不上，也不含你的登录信息。",
+      "after_zh": "不影响正常上网。若之后再次崩溃，会生成新的报告。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "brave-crash-reports",
+      "title_zh": "Brave 崩溃报告",
+      "owner_zh": "Brave",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Crashpad",
+            "reports"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Brave 崩溃后留下的报告文件，用来给厂商排查问题。",
+      "why_zh": "超过一天的报告通常已经用不上，也不含你的登录信息。",
+      "after_zh": "不影响正常上网。若之后再次崩溃，会生成新的报告。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "chrome-login-and-site-data",
+      "title_zh": "Chrome 登录信息与网站数据",
+      "owner_zh": "Google Chrome",
+      "category": "browser",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Profile *",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "Guest Profile",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "System Profile",
+            "Web Data"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Google Chrome 保存的登录状态、网站本地数据和自动填充信息。",
+      "why_zh": "清掉之后需要重新登录许多网站，Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "edge-login-and-site-data",
+      "title_zh": "Edge 登录信息与网站数据",
+      "owner_zh": "Microsoft Edge",
+      "category": "browser",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Default",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Profile *",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "Guest Profile",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Edge",
+            "User Data",
+            "System Profile",
+            "Web Data"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Microsoft Edge 保存的登录状态、网站本地数据和自动填充信息。",
+      "why_zh": "清掉之后需要重新登录许多网站，Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "brave-login-and-site-data",
+      "title_zh": "Brave 登录信息与网站数据",
+      "owner_zh": "Brave",
+      "category": "browser",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Default",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Profile *",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "Guest Profile",
+            "Web Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Network"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Cookies"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Login Data"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Local Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "IndexedDB"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Session Storage"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "BraveSoftware",
+            "Brave-Browser",
+            "User Data",
+            "System Profile",
+            "Web Data"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Brave 保存的登录状态、网站本地数据和自动填充信息。",
+      "why_zh": "清掉之后需要重新登录许多网站，Flick 不会清理这类数据。",
+      "after_zh": "这里只统计占用，不会进入清理计划。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "chrome-on-device-model",
+      "title_zh": "Chrome 端侧模型",
+      "owner_zh": "Google Chrome",
+      "category": "browser",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Google",
+            "Chrome",
+            "User Data",
+            "OptGuideOnDeviceModel"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "Chrome 下载到本机的端侧模型，用来在电脑上做部分智能功能。",
+      "why_zh": "直接删除后，Chrome 往往会再下载回来。若要停用，需要先在浏览器设置里关掉相关功能。",
+      "after_zh": "Water 不会在应用内删除它，只提示占用和做法。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "advice_zh": "Chrome 设置 › 系统 › 关掉“设备端 AI”，Chrome 会自己删掉它。"
+    },
+    {
+      "rule_id": "firefox-cache",
+      "title_zh": "Firefox 网页缓存",
+      "owner_zh": "Mozilla Firefox",
+      "category": "browser",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Mozilla",
+            "Firefox",
+            "Profiles",
+            "*",
+            "cache2"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "firefox.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Firefox 打开网页时留下的临时文件。",
+      "why_zh": "不是书签、密码或登录状态。正在运行时会跳过占用的配置。",
+      "after_zh": "不会退出登录。下次打开网页会重新拉取一部分内容。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉 Firefox 后可清"
+    },
+    {
+      "rule_id": "electron-app-cache",
+      "title_zh": "桌面应用网页缓存",
+      "owner_zh": "桌面应用",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "GPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "DawnCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "GPUCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
+      },
+      "growth": "slow",
+      "what_zh": "许多桌面应用内嵌的网页引擎留下的缓存目录。",
+      "why_zh": "只针对缓存目录名。账号数据和系统联接不在清理范围内，扫描时会跳过联接。",
+      "after_zh": "应用还能打开。首次进入部分页面可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
+    },
+    {
+      "rule_id": "app-logs",
+      "title_zh": "应用日志目录",
+      "owner_zh": "桌面应用",
+      "category": "crash_log",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "logs"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "logs"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "各类桌面应用写下的日志目录，方便厂商或自己排查问题。",
+      "why_zh": "超过一周没再更新的日志多半已经看完。若你正在查某次故障，可以先留着。",
+      "after_zh": "应用还能用。以后出问题会再写新的日志。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "installer-unpack-temp",
+      "title_zh": "安装程序解包残留",
+      "owner_zh": "安装程序",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "vscode-stable-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "vscode-user-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "sand-update*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "workbuddy-update-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "codebuddy-marketplace-install*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "编辑器和相关工具更新时解包留下的临时目录，装完常常没收拾。",
+      "why_zh": "超过一天的解包目录通常已经安装完毕，正在用的程序不在这里。",
+      "after_zh": "已装好的软件还能用。下次更新会再解包一份新的。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "downloads-installers",
+      "title_zh": "下载的安装包",
+      "owner_zh": "下载目录",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "downloads",
+          "segments": [
+            "*.exe"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "downloads",
+          "segments": [
+            "*.msi"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "downloads",
+          "segments": [
+            "*.msix"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "downloads",
+          "segments": [
+            "*.msixbundle"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "downloads",
+          "segments": [
+            "*.appx"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "下载文件夹里超过一周的安装包，装完后常常还躺在那里。",
+      "why_zh": "可能你还想留着重装，所以默认不勾选，需要你确认。",
+      "after_zh": "已安装的软件不受影响。以后若要重装，需要重新下载安装包。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "squirrel-packages",
+      "title_zh": "应用更新包缓存",
+      "owner_zh": "桌面应用",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "packages"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "不少桌面应用用同一套更新机制，把安装包缓存在 packages 目录。",
+      "why_zh": "不是正在运行的程序。系统联接会在扫描时跳过。需要确认后再清。",
+      "after_zh": "已安装的应用还能用。下次更新会重新下载安装包。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "windows-delivery-optimization",
+      "title_zh": "传递优化缓存",
+      "owner_zh": "Windows",
+      "category": "app_leftover",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "windows",
+          "segments": [
+            "ServiceProfiles",
+            "NetworkService",
+            "AppData",
+            "Local",
+            "Microsoft",
+            "Windows",
+            "DeliveryOptimization"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Windows 用来在设备之间共享更新和商店内容的缓存。",
+      "why_zh": "清理通常需要系统自己的磁盘清理或管理员权限，Flick 只提示占用。",
+      "after_zh": "可在系统磁盘清理里勾选传递优化文件。应用内不会删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://learn.microsoft.com/windows/deployment/do/delivery-optimization-workflow",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "advice_zh": "设置 › 系统 › 存储 › 临时文件，勾选“传递优化文件”后删除。"
+    },
+    {
+      "rule_id": "windows-update-download",
+      "title_zh": "Windows 更新下载",
+      "owner_zh": "Windows",
+      "category": "app_leftover",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "windows",
+          "segments": [
+            "SoftwareDistribution",
+            "Download"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Windows 更新已经下载、等待安装或安装后留下的文件。",
+      "why_zh": "正在更新时不要动。清理通常要系统工具或管理员权限，Flick 只提示占用。",
+      "after_zh": "应用内不会删除。需要时请用系统自带的更新或磁盘清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "system-temp-old",
+      "title_zh": "系统临时目录旧文件",
+      "owner_zh": "Windows",
+      "category": "system_temp",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "discovery",
+          "base": "system_temp"
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "系统临时目录里超过一周没有再改动、也没被其它规则认领的文件和文件夹。",
+      "why_zh": "这些是过期的临时项。刚写过的、正在用的或已被专门规则覆盖的不会算进来。",
+      "after_zh": "正在运行的程序不受影响。个别安装程序可能下次再解包一次。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "age_basis": "latest_created_or_modified"
+    },
+    {
+      "rule_id": "user-temp-old",
+      "title_zh": "用户临时目录旧文件",
+      "owner_zh": "Windows",
+      "category": "system_temp",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "discovery",
+          "base": "user_temp"
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "你的用户临时目录里超过一周没有再改动、也没被其它规则认领的内容。",
+      "why_zh": "过期临时项可以清。被专门规则认走的目录不会重复计算。",
+      "after_zh": "正在用的程序不受影响。个别软件会在下次启动时重建临时文件。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "age_basis": "latest_created_or_modified"
+    },
+    {
+      "rule_id": "npm-cache",
+      "title_zh": "npm 下载缓存",
+      "owner_zh": "npm",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "npm-cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "npm 下载过的软件包缓存，用来加快下次安装。",
+      "why_zh": "清掉只会让下次安装重新下载。项目源码和登录配置不在这里。",
+      "after_zh": "已安装的项目还能运行。下一次安装会重新取包，速度会慢一些。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://docs.npmjs.com/cli/v11/commands/npm-cache/",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "pip-cache",
+      "title_zh": "pip 下载缓存",
+      "owner_zh": "pip",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "pip",
+            "cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "pip 保存的下载和构建缓存。",
+      "why_zh": "不是虚拟环境本身。清掉后下次安装会重新下载和构建。",
+      "after_zh": "已建好的环境还能用。之后安装同样的包会再花一次时间。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://pip.pypa.io/en/stable/topics/caching/",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "yarn-cache",
+      "title_zh": "Yarn 下载缓存",
+      "owner_zh": "Yarn",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Yarn",
+            "Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Yarn 下载过的软件包缓存。",
+      "why_zh": "清掉只会让下次安装重新下载，不会改项目文件。",
+      "after_zh": "已安装的项目还能运行。下一次安装会慢一些。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "uv-cache",
+      "title_zh": "uv 缓存目录",
+      "owner_zh": "uv",
+      "category": "dev_cache",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "uv",
+            "cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "uv 的版本化缓存，里面还有锁和可能被多个环境共用的内容。",
+      "why_zh": "官方不允许直接改这个目录。若要清理，请自己运行 uv 提供的缓存命令。",
+      "after_zh": "Flick 只提示占用，不会在应用内删除。按官方命令清理后，下次会重新填充需要的缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://docs.astral.sh/uv/concepts/cache/",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "pnpm-store",
+      "title_zh": "pnpm 共享仓库",
+      "owner_zh": "pnpm",
+      "category": "dev_cache",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "pnpm",
+            "store"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "pnpm 给多个项目共用的软件包仓库，项目里的依赖常常以链接指向这里。",
+      "why_zh": "直接删除会打断这些链接。若要瘦身，请自己运行 pnpm 的仓库清理命令。",
+      "after_zh": "Flick 只提示占用，不会在应用内删除。按官方命令清理后，未再引用的内容才会被收走。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://pnpm.io/cli/store",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "cargo-registry-cache",
+      "title_zh": "Cargo 注册表缓存",
+      "owner_zh": "Cargo",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cargo",
+            "registry",
+            "cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cargo",
+            "registry",
+            "src"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Cargo 下载过的注册表压缩包和解开的源码缓存。",
+      "why_zh": "不是你的项目源码，也不是已编译的程序。清掉后下次构建会重新取这些包。",
+      "after_zh": "已经编好的程序还能运行。下一次编译会重新下载需要的包。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://doc.rust-lang.org/cargo/guide/cargo-home.html",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "gradle-caches",
+      "title_zh": "Gradle 缓存",
+      "owner_zh": "Gradle",
+      "category": "dev_cache",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".gradle",
+            "caches"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Gradle 为构建下载和保存的依赖缓存，体积常常很大。",
+      "why_zh": "清掉后下次构建会重新下载，可能要很久，所以需要确认。",
+      "after_zh": "已安装的开发环境还在。下一次构建会重新取依赖。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "playwright-browsers",
+      "title_zh": "Playwright 浏览器",
+      "owner_zh": "Playwright",
+      "category": "dev_cache",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "ms-playwright"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "Playwright 下载到本机的测试用浏览器，一份就能占不少空间。",
+      "why_zh": "不是你日常用的浏览器。清掉后，下次跑相关测试会重新下载。",
+      "after_zh": "日常上网不受影响。再次运行 Playwright 时会重新安装这些浏览器。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "node-gyp-cache",
+      "title_zh": "node-gyp 构建缓存",
+      "owner_zh": "node-gyp",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "node-gyp",
+            "Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "编译原生 Node 模块时留下的头文件和构建缓存。",
+      "why_zh": "不是项目源码。清掉后，下次编译同类模块会重新准备这些材料。",
+      "after_zh": "已经装好的模块还能用。再次从源码编译时会多花一些时间。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "electron-build-cache",
+      "title_zh": "Electron 构建缓存",
+      "owner_zh": "Electron",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "electron-builder",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "electron",
+            "Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "打包 Electron 应用时下载的运行时和构建缓存。",
+      "why_zh": "不是已经发布的应用。清掉后，下次打包会重新下载这些材料。",
+      "after_zh": "已经打好的安装包还在。下一次打包会慢一些。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "jest-cache",
+      "title_zh": "Jest 转换缓存",
+      "owner_zh": "Jest",
+      "category": "dev_cache",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "jest",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "haste-map-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "system_temp",
+          "segments": [
+            "metro-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "jest",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "haste-map-*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_temp",
+          "segments": [
+            "metro-*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "node.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Jest 为加快测试而留下的转换缓存，每个工作区都可能有一份。",
+      "why_zh": "可以重建。正在跑测试时请先停掉，避免写到一半的目录被清走。缓存有时是源码的唯一副本，一周内用过的不清。",
+      "after_zh": "测试还能跑，只是下一次会重新转换，开始会慢一些。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "测试跑完后可清"
+    },
+    {
+      "rule_id": "huggingface-models",
+      "title_zh": "Hugging Face 模型",
+      "owner_zh": "Hugging Face",
+      "category": "dev_cache",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cache",
+            "huggingface"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "本机缓存的模型文件，体积往往很大，重新下载也要很久。",
+      "why_zh": "不是临时文件。Flick 只提示占用，不在应用内删除。",
+      "after_zh": "若你在对应工具里清理，下次使用同一模型会重新下载。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "ollama-models",
+      "title_zh": "Ollama 模型",
+      "owner_zh": "Ollama",
+      "category": "dev_cache",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".ollama",
+            "models"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "Ollama 下载到本机的模型权重。",
+      "why_zh": "重新下载耗时很长。Flick 只提示占用，不在应用内删除。",
+      "after_zh": "若你用 Ollama 自己的命令移除模型，下次还要用时需要重新拉取。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "crash-dumps",
+      "title_zh": "程序崩溃转储",
+      "owner_zh": "Windows",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "CrashDumps",
+            "*.dmp"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "程序崩溃后留下的转储文件，用来给开发者排查。",
+      "why_zh": "超过一天的转储通常已经用不上，也不包含你的登录信息。",
+      "after_zh": "日常使用不受影响。若之后再次崩溃，会生成新的转储。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "wer-user-reports",
+      "title_zh": "用户错误报告",
+      "owner_zh": "Windows",
+      "category": "crash_log",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Windows",
+            "WER",
+            "ReportArchive",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Windows",
+            "WER",
+            "ReportQueue",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Windows 为你的账户收集的错误报告，排队或归档后常常还留着。",
+      "why_zh": "超过一天的报告多半已经提交或不再需要。",
+      "after_zh": "系统还能收集新的错误报告。不影响已安装的软件。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "wer-system-reports",
+      "title_zh": "系统错误报告",
+      "owner_zh": "Windows",
+      "category": "crash_log",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "program_data",
+          "segments": [
+            "Microsoft",
+            "Windows",
+            "WER"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Windows 在系统范围内保存的错误报告目录。",
+      "why_zh": "清理往往需要管理员权限，Flick 只提示占用。",
+      "after_zh": "应用内不会删除。可用系统自带的磁盘清理处理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "gpu-shader-cache",
+      "title_zh": "显卡着色器缓存",
+      "owner_zh": "显卡驱动",
+      "category": "gpu_system",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "NVIDIA",
+            "DXCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "NVIDIA",
+            "GLCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "D3DSCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "AMD",
+            "DxCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "AMD",
+            "GLCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Intel",
+            "ShaderCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "显卡驱动为加快游戏和界面绘制而保存的着色器缓存。",
+      "why_zh": "可以重建。清掉不会改游戏存档或账号。",
+      "after_zh": "下次打开相关程序时会重新编译一部分画面效果，开始可能稍卡。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "explorer-thumbnail-cache",
+      "title_zh": "资源管理器缩略图",
+      "owner_zh": "Windows",
+      "category": "gpu_system",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Microsoft",
+            "Windows",
+            "Explorer"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "资源管理器用来记住文件夹图标和缩略图的目录。",
+      "why_zh": "这个位置还可能夹着其它资源管理器状态。Flick 只提示占用，不在应用内删除。",
+      "after_zh": "若用系统工具重建缩略图，浏览文件夹时会重新生成预览。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "cachedir-tagged",
+      "title_zh": "带缓存标记的目录",
+      "owner_zh": "项目目录",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file",
+            "name": "CACHEDIR.TAG",
+            "min_bytes": 43,
+            "max_bytes": 1024
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "项目里按约定放了缓存标记文件的目录，表示这里是可以重建的缓存。",
+      "why_zh": "标记本身说明作者允许把这里当成缓存。只在你添加的文件夹里查找。",
+      "after_zh": "项目源码还在。下次构建或运行会重新生成这些缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://bford.info/cachedir/",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "python-tool-caches",
+      "title_zh": "Python 工具缓存",
+      "owner_zh": "Python",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "__pycache__",
+              ".pytest_cache",
+              ".mypy_cache",
+              ".ruff_cache"
+            ]
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Python 及其检查工具在项目里留下的缓存目录。",
+      "why_zh": "都可以重新生成。只在你添加的文件夹里按目录名查找。",
+      "after_zh": "源码不受影响。下次运行测试或检查时会再写出这些目录。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "test-browser-profiles",
+      "title_zh": "测试用浏览器配置",
+      "owner_zh": "测试工具",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "children_all",
+            "names": [
+              "Local State",
+              "Default"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                "ms-playwright",
+                "playwright",
+                "puppeteer",
+                "selenium",
+                "webdriver",
+                "chromedriver",
+                "cypress"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "chrome.exe",
+          "msedge.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "你添加的文件夹里，看起来像完整浏览器配置的目录，常见于自动化测试。",
+      "why_zh": "日常使用的个人配置不在这些自选文件夹里。仍需要确认，以免误伤还想留的测试环境。",
+      "after_zh": "日常浏览器不受影响。下次测试会再创建自己的配置。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        },
+        {
+          "kind": "skill",
+          "ref": "agent-era-disk-junk-cleanup",
+          "checked_on": "2026-10-26"
+        }
+      ],
+      "in_use_zh": "关掉无头浏览器后可清"
+    },
+    {
+      "rule_id": "node-modules",
+      "title_zh": "项目依赖目录",
+      "owner_zh": "Node.js",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "node_modules"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "parent_has_file",
+              "name": "package.json"
+            },
+            {
+              "kind": "parent_has_other_entries",
+              "except": [
+                "package.json",
+                "package-lock.json",
+                "npm-shrinkwrap.json",
+                "yarn.lock",
+                "pnpm-lock.yaml",
+                "bun.lock",
+                "bun.lockb",
+                "node_modules"
+              ]
+            },
+            {
+              "kind": "no_ancestor_suffix",
+              "suffixes": [
+                ".asar.unpacked"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "你添加的文件夹里超过一周没再改动的项目依赖目录。",
+      "why_zh": "可以重新安装，但下次会花时间。只在你添加的文件夹里查找，默认需要确认。",
+      "after_zh": "项目源码还在。若要继续开发，需要重新安装依赖。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-26 总控本机只读摸底",
+          "checked_on": "2026-10-26"
+        }
+      ]
+    },
+    {
+      "rule_id": "rust-build-dirs",
+      "title_zh": "Rust 构建目录",
+      "owner_zh": "Rust 工具链",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file",
+            "name": ".rustc_info.json",
+            "min_bytes": 2,
+            "max_bytes": 65536
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "你添加的文件夹里，Rust 项目编译时生成的构建目录（根下有 Cargo 写的 .rustc_info.json）。",
+      "why_zh": "只含编译产物，可以完整重建。只在你添加的文件夹里查找。",
+      "after_zh": "项目源码还在。下次编译会重新生成，第一次会慢一些。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-27 总控本机只读核查：Water 各工作树的 CARGO_TARGET_DIR 构建目录根下都有 .rustc_info.json",
+          "checked_on": "2026-10-27"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://doc.rust-lang.org/cargo/reference/build-cache.html",
+          "checked_on": "2026-10-27"
+        }
+      ]
+    },
+    {
+      "rule_id": "git-worktrees",
+      "title_zh": "Git 工作树或子模块",
+      "owner_zh": "Git",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file",
+            "name": ".git",
+            "min_bytes": 1,
+            "max_bytes": 4096
+          },
+          "max_depth": 8
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
+      "why_zh": "里面可能有还没提交的改动，Flick 不读文件内容，无法确认，所以只列出、不提供清理。",
+      "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "F 盘清理记录 docs/maintenance/F-CLEANUP-20261029.md：130 棵已合并的旧工作树共 56 GB",
+          "checked_on": "2026-10-29"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://git-scm.com/docs/git-worktree",
+          "checked_on": "2026-10-31"
+        }
+      ]
+    },
+    {
+      "rule_id": "bundled-node-modules",
+      "title_zh": "程序或工具自带的依赖",
+      "owner_zh": "Node.js",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "node_modules"
+            ]
+          },
+          "max_depth": 6,
+          "fallback_for": "node-modules"
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "名字叫 node_modules，但旁边没有像项目的文件，多半是全局安装的命令行工具、桌面程序解包出的文件，或某个程序自带的依赖。",
+      "why_zh": "删掉可能让对应的工具或程序打不开。Flick 无法确认它属于谁，所以不提供清理，仅供参考。",
+      "after_zh": "确认是不再用的工具后，用安装它的方式卸载，例如 npm uninstall -g。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：npm 全局目录、Electron 解包目录、Mirasim 程序目录被认成项目依赖",
+          "checked_on": "2026-11-01"
+        }
+      ]
+    },
+    {
+      "rule_id": "browser-data-dirs",
+      "title_zh": "浏览器数据目录",
+      "owner_zh": "内嵌浏览器",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "children_all",
+            "names": [
+              "Local State",
+              "Default"
+            ]
+          },
+          "max_depth": 8,
+          "fallback_for": "test-browser-profiles"
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "看起来像完整的浏览器配置，但路径里没有自动化测试工具的名字，多半是某个桌面程序内嵌浏览器（Chromium、WebView2、CEF）的数据。",
+      "why_zh": "里面可能有登录状态和程序数据，删掉可能要重新登录或让程序出错，所以不提供清理，仅供参考。",
+      "after_zh": "要清理，请在对应程序里退出登录或卸载程序。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：内嵌浏览器的数据目录被认成测试用浏览器配置",
+          "checked_on": "2026-11-01"
+        }
+      ]
+    },
+    {
+      "rule_id": "desktop-updater-residue",
+      "title_zh": "桌面应用更新包残留",
+      "owner_zh": "Electron 应用",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*-updater",
+            "pending"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*-updater",
+            "installer.exe"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "桌面应用自动更新时下载的安装包，安装完成后常留在原处。",
+      "why_zh": "只清超过一天的更新包残留；正在使用的文件删不掉时会原样留下。",
+      "after_zh": "应用仍可使用；以后需要这些安装包时，会重新下载。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：Antigravity 更新包 166 MB 与 installer.exe 159 MB，ZCode 163 MB 与 156 MB，WorkBuddy 450 MB，OpenCode 两代 126 MB 与 237 MB，合计约 1.5 GB。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://github.com/electron-userland/electron-builder/blob/master/packages/electron-updater/src/DownloadedUpdateHelper.ts",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://github.com/electron-userland/electron-builder/issues/8730",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "agent-cli-old-binaries",
+      "title_zh": "命令行工具旧版本备份",
+      "owner_zh": "Grok、Kimi Code",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok",
+            "bin",
+            "*.old"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "bin",
+            "*.bak"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "one_off",
+      "what_zh": "命令行工具自更新后留下的旧程序备份，文件名以 .old 或 .bak 结尾。",
+      "why_zh": "只清超过一天、以 .old 或 .bak 结尾的备份，当前程序不在清理范围内；正在使用的备份删不掉时会原样留下。",
+      "after_zh": "当前程序仍可运行；若要回到旧版本，需要重新安装。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.grok/bin/grok.exe.old 为 154 MB；.kimi-code/bin/kimi.exe.bak 为 152 MB，当前 kimi.exe 为 147 MB。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "claude-code-old-versions",
+      "title_zh": "Claude Code 旧版本",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "claude",
+            "versions",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "claude.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 原生安装目录里并排保留的旧版本程序。",
+      "why_zh": "保留最新的一个版本，只清超过一天的旧版本。",
+      "after_zh": "当前版本仍可使用；被清掉的旧版本需要重新安装才能使用。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.local/share/claude 共 718 MB，versions 下有 2.1.285、2.1.287、2.1.296，各约 245 MB。",
+          "checked_on": "2026-10-28"
+        }
+      ],
+      "in_use_zh": "关掉 Claude 后可清"
+    },
+    {
+      "rule_id": "cursor-compile-cache",
+      "title_zh": "Cursor 编译缓存",
+      "owner_zh": "Cursor",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "cursor-compile-cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Cursor 在运行时生成的编译缓存，帮助后续启动更快。",
+      "why_zh": "只清一周以前的缓存；这些内容可以由程序重新生成。",
+      "after_zh": "下次启动会重新生成缓存，首次启动可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：M3 计划第 1 节的本机只读摸底记录 cursor-compile-cache 约 0.14 GB；VERIFY 未单列此目录。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "qoder-workspace-temp",
+      "title_zh": "QoderWork 临时文件",
+      "owner_zh": "QoderWork",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".qoderworkcn",
+            "tmp",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".qoderwork",
+            "tmp",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "QoderWork 按工作区留下的临时目录。",
+      "why_zh": "无法确定这些临时文件是否还要使用，需要你确认；只清超过一天的目录。",
+      "after_zh": "清理后临时文件无法找回；确认工作区已不再需要它们后再清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.qoderworkcn/tmp 下有两个按工作区命名的临时目录，时间为 7 月。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "agent-tool-logs",
+      "title_zh": "Agent 工具日志",
+      "owner_zh": "多个 Agent 工具",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "opencode",
+            "log",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".copilot",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".workbuddy*",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".qoderwork*",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".antigravity_cockpit",
+            "logs",
+            "*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codebuddy",
+            "logs",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 2
+      },
+      "growth": "slow",
+      "what_zh": "各个 Agent 工具自己的运行日志。",
+      "why_zh": "只清一周以前的日志；旧日志通常可以清理，但排查过去的问题时可能用得上。",
+      "after_zh": "工具会继续写新日志；被清理的旧日志无法找回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 的 logs 分别为 12 MB、9 MB；.local/share/opencode/log 为 5 MB。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://opencode.ai/docs/troubleshooting/",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+          "checked_on": "2026-10-28"
+        }
+      ],
+      "in_use_zh": "关掉对应的工具后可清"
+    },
+    {
+      "rule_id": "electron-gpu-caches",
+      "title_zh": "应用的显卡着色器缓存",
+      "owner_zh": "Electron 应用",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "GPUPersistentCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "DawnGraphiteCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "DawnWebGPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "GrShaderCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "GPUPersistentCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
+      },
+      "growth": "slow",
+      "what_zh": "桌面应用网页引擎生成的显卡着色器缓存，用来加快画面显示。",
+      "why_zh": "这些内容可以自动重建，只清超过一小时的缓存目录。",
+      "after_zh": "应用会重新生成缓存，首次显示部分画面时可能稍慢。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读体检：应用的显卡着色器缓存目录共 41 个，约 45 MB，其中可清的 34 个。",
+          "checked_on": "2026-10-28"
+        }
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
+    },
+    {
+      "rule_id": "grok-other-homes",
+      "title_zh": "Grok 其它账号目录",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok#"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grokbot"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 其它账号的独立目录，可能保存会话、账号配置与登录信息。",
+      "why_zh": "这些内容用于续接对话和登录，停用账号也不代表可以删除。",
+      "after_zh": "只统计占用，不提供清理，原有会话与账号数据会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.grokbot 中有 .grok、AppData、守护进程状态、346 KB 日志与 attachment-staging，是另一个机器人家目录。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "antigravity-cockpit-profiles",
+      "title_zh": "Antigravity 独立配置",
+      "owner_zh": "Antigravity Cockpit",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".antigravity_cockpit",
+            "instances"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Antigravity Cockpit 为工具保存的独立配置，包含会话和账号登录信息。",
+      "why_zh": "删除独立配置可能丢失对话或登录状态，需要完整保留。",
+      "after_zh": "只统计占用，不提供清理，独立配置保持原样。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.antigravity_cockpit/instances 下只有 codex 实例，是独立的 Codex 配置。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "opencode-sessions",
+      "title_zh": "OpenCode 会话与快照",
+      "owner_zh": "OpenCode",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "opencode",
+            "opencode.db*"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".local",
+            "share",
+            "opencode",
+            "snapshot"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "OpenCode 保存对话的数据库和用于找回改动的快照。",
+      "why_zh": "这些内容用于续接会话与恢复改动，不能当作缓存清理。",
+      "after_zh": "只统计占用，不提供清理，会话数据库和快照都会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.local/share/opencode 的 opencode.db 为 721 MB，snapshot 为 24 MB，数据库与快照受保护。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://opencode.ai/docs/troubleshooting/",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "kimi-code-sessions",
+      "title_zh": "Kimi Code 会话",
+      "owner_zh": "Kimi Code",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "file-history"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Kimi Code 的对话记录与编辑文件的历史副本。",
+      "why_zh": "这些记录用于续接对话和找回改动，不能作为运行日志清理。",
+      "after_zh": "只统计占用，不提供清理，会话与文件历史继续保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读体检：.kimi-code 的 sessions 与 file-history 共约 351 MB，受保护。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://moonshotai.github.io/kimi-code/en/configuration/data-locations.html",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "kiro-sessions",
+      "title_zh": "Kiro 会话",
+      "owner_zh": "Kiro",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kiro",
+            "sessions"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Kiro 保存的对话会话记录。",
+      "why_zh": "续接先前的对话需要这些记录，不能因为时间久就清理。",
+      "after_zh": "只统计占用，不提供清理，已有对话记录会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：M3 计划第 1 节的本机只读摸底记录 .kiro/sessions 约 0.24 GB；VERIFY 未单列此目录。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://kiro.dev/docs/cli/chat/session-management/",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "workbuddy-memory-sessions",
+      "title_zh": "WorkBuddy 记忆与会话",
+      "owner_zh": "WorkBuddy、CodeBuddy",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".workbuddy*",
+            "memory"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".workbuddy*",
+            "sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codebuddy",
+            "sessions"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codebuddy",
+            "file-history"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "WorkBuddy 的长期记忆、对话，以及 CodeBuddy 的会话与文件历史。",
+      "why_zh": "这些内容用于保留工具记忆、续接对话和找回改动，需要保护。",
+      "after_zh": "只统计占用，不提供清理，记忆、会话和文件历史都会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.workbuddy 与 .workbuddy-ai 内有 memory、sessions、plans、plugins 等目录，其中 memory 与 sessions 受保护。",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "other-agent-sessions",
+      "title_zh": "其它 Agent 工具会话",
+      "owner_zh": "Gemini、Copilot、dsh",
+      "category": "agent_tool",
+      "level": "protected",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".gemini",
+            "tmp",
+            "*",
+            "chats"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".copilot",
+            "session-state"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".dsh",
+            "sessions"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Gemini、Copilot 和 DeepSeek Harness 保存的对话会话记录。",
+      "why_zh": "这些记录用于续接对话，临时目录里的会话也不能当作缓存清理。",
+      "after_zh": "只统计占用，不提供清理，已有会话记录会保留。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "2026-10-28 总控本机只读核查：.dsh 共约 3 MB，内有 profiles、sessions、storages 与 settings.yaml，其中 sessions 受保护。",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://geminicli.com/docs/cli/session-management/",
+          "checked_on": "2026-10-28"
+        },
+        {
+          "kind": "official_doc",
+          "ref": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference",
+          "checked_on": "2026-10-28"
+        }
+      ]
+    },
+    {
+      "rule_id": "chromium-partition-cache",
+      "title_zh": "桌面程序的分区网页缓存",
+      "owner_zh": "桌面程序",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "GPUCache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "*",
+            "Partitions",
+            "*",
+            "GPUCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 3
+      },
+      "growth": "slow",
+      "what_zh": "微信开发者工具、QQ 等桌面程序在各个分区里存下的网页缓存。",
+      "why_zh": "只认网页、代码和图形缓存；登录信息与网站存储不在这里。对应程序在运行时跳过。",
+      "after_zh": "下次打开网页可能慢一点，程序会重新生成缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C7、C13（微信开发者工具 68 个 4.12 GB，QQ）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
+    },
+    {
+      "rule_id": "steam-html-cache",
+      "title_zh": "Steam 内置网页缓存",
+      "owner_zh": "Steam",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Steam",
+            "htmlcache",
+            "Default",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Steam",
+            "htmlcache",
+            "Default",
+            "Code Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "Steam",
+            "htmlcache",
+            "Default",
+            "GPUCache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "steam.exe",
+          "steamwebhelper.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Steam 内置网页留下的网页、代码与图形缓存。",
+      "why_zh": "超过一小时的缓存可以重新生成；Steam 或它的网页程序运行时跳过。",
+      "after_zh": "下次打开商店等页面可能慢一点，登录数据不在清理范围内。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C13",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 Steam 后可清"
+    },
+    {
+      "rule_id": "wegame-browser-cache",
+      "title_zh": "WeGame 内置网页缓存",
+      "owner_zh": "WeGame",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "Tencent",
+            "WeGame",
+            "qbcore*",
+            "cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "wegame.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "WeGame 内置浏览器留下的网页缓存。",
+      "why_zh": "只清一小时以前的缓存，不包含登录信息；程序运行时跳过。",
+      "after_zh": "下次打开页面会重新生成缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C13",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 WeGame 后可清"
+    },
+    {
+      "rule_id": "jianying-cache",
+      "title_zh": "剪映缓存",
+      "owner_zh": "剪映",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "JianyingPro",
+            "User Data",
+            "Cache"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "JianyingPro",
+            "User Data",
+            "CEF",
+            "Cache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "jianyingpro.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "剪映程序的数据目录里留下的网页缓存。",
+      "why_zh": "只清超过一小时的这两个缓存目录，程序运行时跳过。",
+      "after_zh": "下次打开程序可能慢一点，不涉及你的工程文件。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C13",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉剪映后可清"
+    },
+    {
+      "rule_id": "jianying-update-download",
+      "title_zh": "剪映旧更新包",
+      "owner_zh": "剪映",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "local_app_data",
+          "segments": [
+            "JianyingPro",
+            "User Data",
+            "Download",
+            "*.exe"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "jianyingpro.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "剪映下载目录中一周以前的程序更新包。",
+      "why_zh": "更新包可以重新下载；程序运行时跳过，只认这个固定下载位置。",
+      "after_zh": "需要旧更新包时要重新下载，不会删除工程。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C14",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉剪映后可清"
+    },
+    {
+      "rule_id": "ubisoft-patch-staging",
+      "title_zh": "Ubisoft 补丁暂存",
+      "owner_zh": "Ubisoft",
+      "category": "app_leftover",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "program_data",
+          "segments": [
+            "Ubisoft",
+            "Ubisoft Game Launcher",
+            "patch"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "upc.exe",
+          "ubisoftconnect.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "Ubisoft 启动器留下的补丁暂存目录。",
+      "why_zh": "只清一天以前的暂存，启动器运行时跳过；被占用的文件会留下并报告原因。",
+      "after_zh": "下次更新可能需要重新下载补丁。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C21",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 Ubisoft 启动器后可清"
+    },
+    {
+      "rule_id": "app-backups",
+      "title_zh": "程序留下的旧备份",
+      "owner_zh": "桌面程序",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "*",
+            "*.bak-########"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "程序数据目录中名字带备份日期的旧副本。",
+      "why_zh": "同一系列可能只有这一份，不自动保留一份；需要你确认是否还要用。",
+      "after_zh": "先放进隔离区，确认无用后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C17（@mirasim\\desktop.bak-20261009）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "custom-app-backups",
+      "title_zh": "程序留下的旧备份",
+      "owner_zh": "桌面程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "*.bak-########",
+              "*-backup-########",
+              "*_backup_########"
+            ]
+          },
+          "max_depth": 3
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "自选位置中三层以内、名字带备份日期的程序旧副本。",
+      "why_zh": "同系列可能只有一份，不自动保留最新；一周没动也要由你确认。",
+      "after_zh": "先放进隔离区，核对是否仍需恢复后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D10（claude-full-backup-20260820 等）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "android-avd-snapshots",
+      "title_zh": "安卓模拟器快照",
+      "owner_zh": "安卓模拟器",
+      "category": "dev_cache",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".android",
+            "avd",
+            "*.avd",
+            "snapshots"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "emulator.exe",
+          "qemu-system-x86_64.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "安卓模拟器为恢复运行状态保存的快照。",
+      "why_zh": "只列一天以前的快照，模拟器运行时跳过；请确认不再需要恢复这些状态。",
+      "after_zh": "清理时先进隔离区；模拟器退出时可能再存，可用 -no-snapshot 启动。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "denglou A4、回执 3.6",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉安卓模拟器后可清"
+    },
+    {
+      "rule_id": "custom-avd-snapshots",
+      "title_zh": "安卓模拟器快照",
+      "owner_zh": "安卓模拟器",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "snapshots"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                ".avd"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "emulator.exe",
+          "qemu-system-x86_64.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "安卓模拟器为恢复运行状态保存的快照。",
+      "why_zh": "只列一天以前的快照，模拟器运行时跳过；请确认不再需要恢复这些状态。",
+      "after_zh": "清理时先进隔离区；模拟器退出时可能再存，可用 -no-snapshot 启动。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "denglou A4、回执 3.6（F:\\cdisk-cache\\android-avd）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉安卓模拟器后可清"
+    },
+    {
+      "rule_id": "embedded-browser-cache",
+      "title_zh": "内置浏览器的网页缓存",
+      "owner_zh": "内置浏览器",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "Cache",
+              "Code Cache",
+              "GPUCache"
+            ]
+          },
+          "max_depth": 10,
+          "conditions": [
+            {
+              "kind": "parent_has_file",
+              "name": "Preferences"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 2
+      },
+      "growth": "slow",
+      "what_zh": "企业微信等程序的内置浏览器中，旁边有 Preferences 的标准网页缓存目录。",
+      "why_zh": "只认网页、代码与图形缓存；登录数据和网站存储不在这三个目录内，程序运行时跳过。",
+      "after_zh": "下次打开页面可能慢一点，不需要清掉登录状态。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D5（企业微信 12 个）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉对应的程序后可清"
+    },
+    {
+      "rule_id": "quark-video-cache",
+      "title_zh": "夸克视频缓存",
+      "owner_zh": "夸克",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "videoCache"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                "quark"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "process_running",
+        "processes": [
+          "quark.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "夸克路径里的视频播放缓存，可能包含稀疏文件。",
+      "why_zh": "只清一天以前的缓存；夸克运行时跳过，不涉及你另存的视频文件。",
+      "after_zh": "下次播放可能重新加载视频缓存。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D2（D:\\ProgramData\\Quark\\videoCache）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉夸克后可清"
+    },
+    {
+      "rule_id": "app-old-versions",
+      "title_zh": "软件旧版本",
+      "owner_zh": "桌面程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "#.#*"
+            ]
+          },
+          "max_depth": 4,
+          "conditions": [
+            {
+              "kind": "parent_has_other_match"
+            },
+            {
+              "kind": "parent_has_file_matching",
+              "pattern": "*.exe"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 168,
+      "keep_newest": 1,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "程序旁边存在多个版本号目录时，一周以前的旧版本。",
+      "why_zh": "同一父目录留名字里版本号最大的一个；名字无法证明哪个版本在用，所以需要确认，运行中的会跳过。",
+      "after_zh": "先放进隔离区，核对程序能正常运行后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D4（D:\\quark\\7.1.0.949）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "keep_by": "version_name",
+      "in_use_zh": "关掉使用这个版本的程序后可清"
+    },
+    {
+      "rule_id": "app-update-archives",
+      "title_zh": "没装上的更新包",
+      "owner_zh": "桌面程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "#.#*.zip"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "path_has_any",
+              "names": [
+                "versions"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "版本目录里按版本号命名、一个月没动的压缩包，可能是没装上的更新。",
+      "why_zh": "QQ 等程序最新下载的包不一定已经装上；只看名字无法确认，需由你判断。",
+      "after_zh": "先放进隔离区，需要这个更新包时可在永久删除前取回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D3（QQ versions\\9.9.33-51802.zip）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "game-logs",
+      "title_zh": "游戏日志",
+      "owner_zh": "英雄联盟",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "Logs"
+            ]
+          },
+          "max_depth": 6,
+          "conditions": [
+            {
+              "kind": "parent_has_file_matching",
+              "pattern": "League*Legends.exe"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
+      },
+      "growth": "slow",
+      "what_zh": "英雄联盟游戏程序旁边生成的运行日志。",
+      "why_zh": "一天以前的日志通常可以清；游戏目录里有程序运行时跳过。",
+      "after_zh": "无法再用这些旧日志排查历史问题，新日志会继续生成。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "F10（F:\\WeGameApps\\lol\\Game\\Logs）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉英雄联盟后可清"
+    },
+    {
+      "rule_id": "steam-logs",
+      "title_zh": "Steam 日志",
+      "owner_zh": "Steam",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "logs"
+            ]
+          },
+          "max_depth": 4,
+          "conditions": [
+            {
+              "kind": "parent_has_file",
+              "name": "steam.exe"
+            }
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": [],
+        "root_levels": 1
+      },
+      "growth": "slow",
+      "what_zh": "Steam 程序目录旁边生成的运行日志。",
+      "why_zh": "一天以前的日志通常可以清；程序运行或网页子进程引用 Steam 目录时跳过。",
+      "after_zh": "历史排查记录会消失，之后的新日志仍会生成。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "D6（D:\\steam\\logs，steamwebhelper.exe 引用时跳过）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "关掉 Steam 及网页子进程后可清"
+    },
+    {
+      "rule_id": "partial-downloads",
+      "title_zh": "已下载完的分段文件",
+      "owner_zh": "下载工具",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.part",
+              "*.crdownload",
+              "*.temp"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "sibling_without_suffix",
+              "suffixes": [
+                ".part",
+                ".crdownload",
+                ".temp"
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "*.parts"
+            ]
+          },
+          "max_depth": 8,
+          "conditions": [
+            {
+              "kind": "sibling_without_suffix",
+              "suffixes": [
+                ".parts"
+              ]
+            }
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "下载工具留下的分段文件或分段目录。",
+      "why_zh": "旁边有去掉后缀的同名完整文件，且它不小于分段体量，超过一天才可清。",
+      "after_zh": "保留同名完整文件，分段副本清掉后不能再用来续传。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "denglou A2",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "unfinished-downloads",
+      "title_zh": "没下载完的文件",
+      "owner_zh": "下载工具",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.part",
+              "*.crdownload",
+              "*.temp"
+            ]
+          },
+          "max_depth": 8,
+          "fallback_for": "partial-downloads"
+        },
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name_pattern",
+            "patterns": [
+              "*.parts"
+            ]
+          },
+          "max_depth": 8,
+          "fallback_for": "partial-downloads"
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "名字像下载分段，但没有足够大的同名完整文件作对照。",
+      "why_zh": "可能还没下完或仍需续传，Flick 无法仅凭名字确认，所以不提供清理。",
+      "after_zh": "请在下载工具中核对任务状态后决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E2（3 个 .temp）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "installer-files",
+      "title_zh": "安装包",
+      "owner_zh": "软件安装程序",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.msi",
+              "*.msix",
+              "*.msixbundle",
+              "*.appx",
+              "*setup*.zip",
+              "*setup*.rar",
+              "*setup*.7z"
+            ]
+          },
+          "max_depth": 3
+        },
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*setup*.exe",
+              "*installer*.exe",
+              "*#.#*.exe"
+            ]
+          },
+          "max_depth": 3,
+          "conditions": [
+            {
+              "kind": "parent_lacks_file_matching",
+              "pattern": "*.dll"
+            }
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "自选位置前三层里一周没动的安装包或安装程序压缩包。",
+      "why_zh": "程序文件名要带 setup、installer 或版本号（如 5.1.0），且旁边没有动态库；卸载程序和程序自带的小工具不算。",
+      "after_zh": "先放进隔离区，若仍需安装或使用，可在永久删除前取回。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E2（WorkBuddy、CC-Switch、marvis）、D7、D8",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "audition-peak-files",
+      "title_zh": "Audition 波形缓存",
+      "owner_zh": "Adobe Audition",
+      "category": "custom",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "file_name",
+            "patterns": [
+              "*.pkf"
+            ]
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Audition 为音频显示生成的波形缓存文件。",
+      "why_zh": "一天以前的波形缓存可重新生成；被程序占用的文件会留下并报告原因。",
+      "after_zh": "下次查看波形时可能等待重新生成，原音频不在清理范围内。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E1",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "audition-conformed",
+      "title_zh": "Audition 转换副本",
+      "owner_zh": "Adobe Audition",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "Conformed Files"
+            ]
+          },
+          "max_depth": 12
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Audition 生成的转换音频副本，工程可能直接引用其中的文件。",
+      "why_zh": "本次清理曾发现工程引用其中五个；Flick 不读工程内容，不能断定可删。",
+      "after_zh": "请在工程内核对媒体引用，不提供应用内清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "E1（工程直接引用其中 5 个）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "media-render-caches",
+      "title_zh": "视频软件的缓存与代理",
+      "owner_zh": "视频软件",
+      "category": "custom",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "marker",
+          "marker": {
+            "kind": "dir_name",
+            "names": [
+              "CacheClip",
+              "ProxyMedia",
+              "OptimizedMedia"
+            ]
+          },
+          "max_depth": 8
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "达芬奇等视频软件的渲染缓存、代理或优化媒体。",
+      "why_zh": "这些文件可能被工程直接引用；Flick 不读工程内容，无法确认可删。",
+      "after_zh": "请从对应软件中管理缓存或代理媒体，不提供应用内清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "10-29 第 22～27 项（达芬奇）",
+          "checked_on": "2026-11-02"
+        }
+      ]
+    },
+    {
+      "rule_id": "custom-temp-old",
+      "title_zh": "临时文件夹里的旧东西",
+      "owner_zh": "临时文件夹",
+      "category": "custom",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "custom_discovery",
+          "root_names": [
+            "tmp",
+            "temp"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 168,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "你选的文件夹最后一级名为 tmp 或 temp，其中未被其它规则识别的旧条目。",
+      "why_zh": "修改与创建时间取较晚的一个，一周没动也可能有用，需由你确认。",
+      "after_zh": "先放进隔离区，核对不再需要后再永久删除。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "F8（F:\\tmp）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "age_basis": "latest_created_or_modified"
+    },
+    {
+      "rule_id": "pagefile",
+      "title_zh": "页面文件",
+      "owner_zh": "Windows",
+      "category": "gpu_system",
+      "level": "advisory",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_drive",
+          "segments": [
+            "pagefile.sys"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 0,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Windows 在系统盘上用于虚拟内存的页面文件。",
+      "why_zh": "这是系统正在管理的文件，Flick 不删除也不替你修改设置。",
+      "after_zh": "按实际内存用量调整上限后需要重启，设置过小可能影响程序。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C22",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "advice_zh": "设置 › 系统 › 关于 › 高级系统设置 › 虚拟内存，按实际用量设上限；要重启。"
+    },
+    {
+      "rule_id": "grok-home-caches",
+      "title_zh": "Grok 账号目录里的 npm 缓存",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "recommended",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok#",
+            "AppData",
+            "Local",
+            "npm-cache",
+            "_cacache"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 1,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 各账号主目录中 npm 下载内容留下的缓存。",
+      "why_zh": "只认账号目录里的这个缓存子目录；账号的会话、登录配置仍受保护。",
+      "after_zh": "下次安装依赖可能重新下载，缓存重新下载不等于能撤销清理。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H5（~\\.grok2\\AppData\\Local\\npm-cache，四个账号 1.46 GB）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "unlocks": "grok-other-homes"
+    },
+    {
+      "rule_id": "claude-code-old-sessions",
+      "title_zh": "Claude Code 旧会话",
+      "owner_zh": "Claude Code",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "projects",
+            "*",
+            "*.jsonl"
+          ]
+        },
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".claude",
+            "projects",
+            "*",
+            "????????-????-????-????-????????????"
+          ]
+        }
+      ],
+      "item_type": "any",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Claude Code 保存的旧对话及以会话编号命名的附带目录，不包括记忆目录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "ADR-019 第 5 节、H1",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "claude-code",
+      "unlocks": "claude-code-sessions",
+      "in_use_zh": "关掉 Claude Code 后可清",
+      "retention_zh": "Claude Code 默认删除 30 天前的会话"
+    },
+    {
+      "rule_id": "codex-old-sessions",
+      "title_zh": "Codex 旧会话",
+      "owner_zh": "Codex",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".codex*",
+            "sessions",
+            "#",
+            "#",
+            "#",
+            "rollout-*"
+          ]
+        }
+      ],
+      "item_type": "file",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Codex 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "ADR-019 第 5 节、H1",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "codex",
+      "unlocks": "codex-sessions",
+      "in_use_zh": "关掉 Codex 后可清"
+    },
+    {
+      "rule_id": "cursor-old-chats",
+      "title_zh": "Cursor 旧聊天",
+      "owner_zh": "Cursor",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".cursor",
+            "chats",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Cursor 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H4",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "cursor",
+      "unlocks": "cursor-chats",
+      "in_use_zh": "关掉 Cursor 后可清"
+    },
+    {
+      "rule_id": "grok-old-sessions",
+      "title_zh": "Grok 旧会话",
+      "owner_zh": "Grok",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".grok",
+            "sessions",
+            "*",
+            "*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Grok 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H6",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "grok",
+      "unlocks": "grok-sessions",
+      "in_use_zh": "关掉 Grok 后可清"
+    },
+    {
+      "rule_id": "kimi-code-old-sessions",
+      "title_zh": "Kimi Code 旧会话",
+      "owner_zh": "Kimi Code",
+      "category": "agent_tool",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "user_profile",
+          "segments": [
+            ".kimi-code",
+            "sessions",
+            "wd_*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "runs_from_or_references_item",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "Kimi Code 保存的旧对话记录。",
+      "why_zh": "只有打开本工具的会话清理开关才会列出；近期写入按年龄门槛保留，从条目内运行或引用它时跳过。",
+      "after_zh": "清掉后这些对话不能再续接或回看；可选择直接删除，或先隔离并试着继续对话后再决定。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "Kimi 试验",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "session_tool": "kimi-code",
+      "unlocks": "kimi-code-sessions",
+      "in_use_zh": "关掉 Kimi Code 后可清"
+    },
+    {
+      "rule_id": "minimax-hub-leftover",
+      "title_zh": "卸载后留下的应用数据",
+      "owner_zh": "MiniMax Hub",
+      "category": "app_leftover",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "roaming_app_data",
+          "segments": [
+            "@hilo"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 720,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "none",
+        "processes": []
+      },
+      "growth": "slow",
+      "what_zh": "MiniMax Hub 在应用数据目录中留下的数据，包括它的全局数据。",
+      "why_zh": "安装列表里仍有 MiniMax Hub 时不可清；找不到只说明似乎已卸载，仍需你确认。",
+      "after_zh": "先放进隔离区；其中可能有独有数据，永久删除前请核对。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "H8（%APPDATA%\\@hilo，内有 MiniMax Hub Global，1.21 GB；11-01 注册表里已没有它的安装记录）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "installed_names": [
+        "MiniMax Hub"
+      ]
+    },
+    {
+      "rule_id": "system-tmp-chrome-profiles",
+      "title_zh": "系统盘 tmp 里的无头浏览器配置",
+      "owner_zh": "无头浏览器",
+      "category": "system_temp",
+      "level": "confirm",
+      "locate": [
+        {
+          "kind": "pattern",
+          "base": "system_drive",
+          "segments": [
+            "tmp",
+            "chrome_*"
+          ]
+        }
+      ],
+      "item_type": "dir",
+      "min_age_hours": 24,
+      "keep_newest": 0,
+      "in_use": {
+        "mode": "cmdline_references_item",
+        "processes": [
+          "chrome.exe",
+          "msedge.exe"
+        ]
+      },
+      "growth": "slow",
+      "what_zh": "系统盘 tmp 目录里按固定前缀命名的无头浏览器临时配置。",
+      "why_zh": "只认这个精确位置，一天以前且没有浏览器进程引用时才可清，不扩展到其它名字相似的目录。",
+      "after_zh": "先放进隔离区，清掉后这些测试配置中的登录状态也会消失。",
+      "fix_hint_zh": null,
+      "sources": [
+        {
+          "kind": "local_observation",
+          "ref": "C18（C:\\tmp 里 9 个 chrome_*）",
+          "checked_on": "2026-11-02"
+        }
+      ],
+      "in_use_zh": "测试结束、浏览器关掉后可清"
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+#![forbid(unsafe_code)]
+use crate::{DupCopy, DupError, DupOptions};
+use std::path::{Component, Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+pub(crate) fn normalized(s: &str) -> Option<PathBuf> {
+    if s.chars().any(char::is_control) {
+        return None;
+    }
+    let s = s.replace('/', "\\");
+    let s = if s
+        .get(..8)
+        .is_some_and(|p| p.eq_ignore_ascii_case(r"\\?\UNC\"))
+    {
+        format!(r"\\{}", &s[8..])
+    } else if let Some(s) = s.strip_prefix(r"\\?\") {
+        s.to_owned()
+    } else {
+        s
+    };
+    let path = Path::new(&s);
+    if !path.is_absolute() {
+        return None;
+    }
+    #[cfg(windows)]
+    if !matches!(path.components().next(),Some(Component::Prefix(p)) if matches!(p.kind(),std::path::Prefix::Disk(_)|std::path::Prefix::UNC(..)))
+    {
+        return None;
+    }
+    let mut out = PathBuf::new();
+    for c in path.components() {
+        match c {
+            Component::ParentDir => {
+                if !out.pop() {
+                    return None;
+                }
+            }
+            Component::CurDir => {}
+            _ => out.push(c.as_os_str()),
+        }
+    }
+    Some(out)
+}
+pub(crate) fn within(path: &str, dir: &str) -> bool {
+    let Some(path) = normalized(path) else {
+        return false;
+    };
+    let Some(dir) = normalized(dir) else {
+        return false;
+    };
+    let p: Vec<_> = path
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy().to_lowercase())
+        .collect();
+    let d: Vec<_> = dir
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy().to_lowercase())
+        .collect();
+    p.starts_with(&d)
+}
+pub(crate) fn validate(id: &str, o: &DupOptions) -> Result<(), DupError> {
+    if id.is_empty()
+        || id.chars().count() > 64
+        || !(1..=8).contains(&o.roots.len())
+        || o.prefer.len() > 8
+        || o.protected.len() > 1024
+        || o.roots
+            .iter()
+            .chain(&o.prefer)
+            .chain(&o.protected)
+            .any(|s| normalized(s).is_none())
+    {
+        return Err(DupError::InvalidOptions);
+    }
+    for (i, a) in o.roots.iter().enumerate() {
+        for b in &o.roots[i + 1..] {
+            if within(a, b) || within(b, a) {
+                return Err(DupError::InvalidOptions);
+            }
+        }
+    }
+    Ok(())
+}
+pub(crate) fn excluded(name: &str) -> bool {
+    [
+        ".git",
+        ".water-quarantine",
+        ".flick-quarantine",
+        "$Recycle.Bin",
+        "System Volume Information",
+    ]
+    .iter()
+    .any(|n| if *n == ".flick-quarantine" { name == *n } else { name.eq_ignore_ascii_case(n) })
+}
+pub(crate) fn export_tail(path: &str) -> bool {
+    let name = Path::new(path)
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy();
+    let stem = name
+        .rsplit_once('.')
+        .map_or(name.as_ref(), |(s, _)| s)
+        .to_lowercase();
+    if [" - 副本", " 副本", " - copy", " copy", "_copy"]
+        .iter()
+        .any(|s| stem.ends_with(s))
+    {
+        return true;
+    }
+    if let Some(s) = stem.strip_suffix(')')
+        && let Some((_, number)) = s.rsplit_once('(')
+    {
+        return !number.is_empty() && number.bytes().all(|b| b.is_ascii_digit());
+    }
+    false
+}
+pub(crate) fn order(a: &DupCopy, b: &DupCopy) -> std::cmp::Ordering {
+    b.protected
+        .cmp(&a.protected)
+        .then_with(|| b.preferred.cmp(&a.preferred))
+        .then_with(|| a.mtime.cmp(&b.mtime))
+        .then_with(|| a.export_tail.cmp(&b.export_tail))
+        .then_with(|| a.path.cmp(&b.path))
+}
+pub(crate) fn rfc3339(t: SystemTime) -> String {
+    let seconds = t.duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+    let z = (seconds / 86400) as i64 + 719468;
+    let era = if z >= 0 { z } else { z - 146096 } / 146097;
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let year = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = year + if month <= 2 { 1 } else { 0 };
+    format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
+        seconds / 3600 % 24,
+        seconds / 60 % 60,
+        seconds % 60
+    )
+}
+#[cfg(windows)]
+pub(crate) fn filetime(t: i64) -> String {
+    let ticks = (i128::from(t) - 116444736000000000).max(0) as u128;
+    rfc3339(UNIX_EPOCH + std::time::Duration::from_secs((ticks / 10000000) as u64))
+}

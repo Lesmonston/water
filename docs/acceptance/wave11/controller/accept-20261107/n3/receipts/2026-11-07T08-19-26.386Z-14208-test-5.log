@@ -1,0 +1,54 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... ok
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... FAILED
+test quarantine_move_contract ... FAILED
+test quarantine_purge_contract ... FAILED
+test quarantine_restore_contract ... FAILED
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- quarantine_inspect_and_list stdout ----
+
+thread 'quarantine_inspect_and_list' (26280) panicked at tests\clean_v1.rs:3613:46:
+CLEAN_W11_RENAME: list absent new root: InvalidPlan
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- quarantine_move_contract stdout ----
+
+thread 'quarantine_move_contract' (29840) panicked at tests\clean_v1.rs:1967:10:
+CLEAN_W11_RENAME: new/mixed-case root rejected: InvalidPlan
+
+---- quarantine_purge_contract stdout ----
+
+thread 'quarantine_purge_contract' (17512) panicked at tests\clean_v1.rs:3021:10:
+CLEAN_W11_RENAME: purge new root rejected: InvalidPlan
+
+---- quarantine_restore_contract stdout ----
+
+thread 'quarantine_restore_contract' (1640) panicked at tests\clean_v1.rs:2756:10:
+CLEAN_W11_RENAME: restore setup move: InvalidPlan
+
+
+failures:
+    quarantine_inspect_and_list
+    quarantine_move_contract
+    quarantine_purge_contract
+    quarantine_restore_contract
+
+test result: FAILED. 7 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 57.39s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w11-n3\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.78s
+     Running tests\clean_v1.rs (.local\w2-target\junk-clean\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

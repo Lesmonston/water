@@ -1,0 +1,41 @@
+n3 nc1 mutated packages/junk-clean/src/quarantine.rs: ticket control replayed from worker receipt 2026-11-07T07-03-44.735Z-11048-red-nc1-result.json (mutated sha 55c1bfb37b6e439396bf27fbc8d487a40fdf687b935bac8e3b6d7c48e909e852)
+n3 red-nc1 rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-11-04.040Z-36408-red-nc1-result.json"}
+n3 nc1 KILLED (expected CLEAN_W11_RENAME)
+n3 nc1 restored exact bytes=true sha 32303971f56b0969e30f9c5f1539d579b6396b0025a358696171ee18d79a9864
+n3 test rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-11-43.976Z-26460-test-result.json"}
+n3 nc2 mutated packages/junk-clean/src/quarantine.rs: ticket control replayed from worker receipt 2026-11-07T07-10-31.467Z-37672-red-nc2-result.json (mutated sha 4aa7d2f71ad9c1dde388d23a38f70e18dcf42c7a3f14822dd6a42ecd11e75410)
+n3 red-nc2 rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-12-31.071Z-35960-red-nc2-result.json"}
+n3 nc2 KILLED (expected CLEAN_W11_RENAME)
+n3 nc2 restored exact bytes=true sha 32303971f56b0969e30f9c5f1539d579b6396b0025a358696171ee18d79a9864
+n3 test rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-13-15.546Z-32128-test-result.json"}
+n3 nc3 mutated packages/junk-clean/src/model.rs: ticket control replayed from worker receipt 2026-11-07T07-16-15.538Z-33776-red-nc3-result.json (mutated sha c3325a292309ae5a36dc6a8db18dc8ca2c16d63876e1c4000408938924c14d1d)
+n3 red-nc3 rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-13-55.704Z-26196-red-nc3-result.json"}
+n3 nc3 KILLED (expected CLEAN_W11_NESTED)
+n3 nc3 restored exact bytes=true sha 132e28e2e8b40e2ed453f6c6db6cfed0583c538690e5f2d140e79e2dc2e31070
+n3 test rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-15-13.491Z-23528-test-result.json"}
+n3 c1 mutated packages/junk-clean/src/lib.rs: execute call site skips the overlap check (quarantine keeps it) (mutated sha f56677d445901ed896b7407d0e572f21c639d6daef85f338d572a0fdfdf69371)
+n3 test rc=1 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-16-29.929Z-4004-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-16-29.929Z-4004-test-result.json"}
+n3 c1 KILLED (expected CLEAN_W11_NESTED)
+n3 c1 restored exact bytes=true sha 12676c60a005d860416523bf57d3324993daf9b6eecd863c99c63fc9c0f56299
+n3 c2 mutated packages/junk-clean/src/quarantine.rs: quarantine call site skips the overlap check (execute keeps it) (mutated sha 6da7ce4a0353009758cc37919673239cb40c0588225e78075501e796431e60a4)
+n3 test rc=1 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-17-02.319Z-32972-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-17-02.319Z-32972-test-result.json"}
+n3 c2 KILLED (expected CLEAN_W11_NESTED)
+n3 c2 restored exact bytes=true sha 32303971f56b0969e30f9c5f1539d579b6396b0025a358696171ee18d79a9864
+n3 c3 mutated packages/junk-clean/src/model.rs: overlap check compares raw string prefixes without the separator (cache vs cache-x) (mutated sha 09f160f78b6737277b6658cc70b969a8a63e86f6f6ec6f17fde116ca15fc6d84)
+n3 test rc=1 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-17-31.272Z-3580-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-17-31.272Z-3580-test-result.json"}
+n3 c3 KILLED (expected CLEAN_W11_NESTED)
+n3 c3 restored exact bytes=true sha 132e28e2e8b40e2ed453f6c6db6cfed0583c538690e5f2d140e79e2dc2e31070
+n3 c4 mutated packages/junk-clean/src/model.rs: overlap check becomes case-sensitive (mutated sha 3d1f099d6d904497aac91e5226fa07e9bddba72b4bf65070a20914b8735a6b23)
+n3 test rc=1 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-18-11.072Z-20632-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-18-11.072Z-20632-test-result.json"}
+n3 c4 KILLED (expected CLEAN_W11_NESTED)
+n3 c4 restored exact bytes=true sha 132e28e2e8b40e2ed453f6c6db6cfed0583c538690e5f2d140e79e2dc2e31070
+n3 c5 mutated packages/junk-clean/src/quarantine.rs: source-path guard compares the new quarantine name case-sensitively (mutated sha 5285faa61b00249bc3a1a692119e70f7bd9cb7dc3d5f5fca58b1b32c013ce1f0)
+n3 test rc=1 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-18-44.602Z-36988-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-18-44.602Z-36988-test-result.json"}
+n3 c5 KILLED (expected CLEAN_W11_RENAME)
+n3 c5 restored exact bytes=true sha 32303971f56b0969e30f9c5f1539d579b6396b0025a358696171ee18d79a9864
+n3 c6 mutated packages/junk-clean/src/quarantine.rs: validate_root compares the new quarantine name case-sensitively (mutated sha 279b1487fb7131b464c99f575d6b36fee7dac41c7ac660d81a33b0ad1609c380)
+n3 test rc=1 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T08-19-26.386Z-14208-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-19-26.386Z-14208-test-result.json"}
+n3 c6 KILLED (expected CLEAN_W11_RENAME)
+n3 c6 restored exact bytes=true sha 32303971f56b0969e30f9c5f1539d579b6396b0025a358696171ee18d79a9864
+n3 survived: none
+n3 test --final rc=0 {"task":"WATER-W11-ACCEPT-N3","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w11-n3\\.local\\checks\\WATER-W11-ACCEPT-N3\\2026-11-07T08-20-33.868Z-23600-test-result.json"}

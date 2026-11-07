@@ -1,0 +1,167 @@
+//! Only metadata is inspected while preparing the private data directories.
+use std::{
+    fmt, fs,
+    io::ErrorKind,
+    path::{Component, Path, PathBuf},
+};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DataDirectoryError;
+
+impl fmt::Display for DataDirectoryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("HOST_DATA_DIRECTORY：无法安全打开 Flick 数据目录。")
+    }
+}
+
+impl std::error::Error for DataDirectoryError {}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct DataDirectories {
+    pub data: PathBuf,
+    pub webview: PathBuf,
+}
+
+fn validate_path(path: &Path) -> Result<(), DataDirectoryError> {
+    if !path.is_absolute() || path.components().any(|c| matches!(c, Component::ParentDir)) {
+        return Err(DataDirectoryError);
+    }
+    #[cfg(windows)]
+    if !matches!(
+        path.components().next(),
+        Some(Component::Prefix(prefix)) if matches!(prefix.kind(), std::path::Prefix::Disk(_))
+    ) {
+        // Keep the host on local disk paths; reject device and network namespaces.
+        return Err(DataDirectoryError);
+    }
+    Ok(())
+}
+
+fn check_directory(path: &Path) -> Result<(), DataDirectoryError> {
+    let meta = fs::symlink_metadata(path).map_err(|_| DataDirectoryError)?;
+    if !meta.is_dir() || meta.file_type().is_symlink() {
+        return Err(DataDirectoryError);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        if meta.file_attributes() & 0x400 != 0 {
+            return Err(DataDirectoryError);
+        }
+    }
+    Ok(())
+}
+
+fn ensure_directory(path: &Path, existing_root: Option<&Path>) -> Result<(), DataDirectoryError> {
+    validate_path(path)?;
+    let ancestors: Vec<_> = path.ancestors().collect();
+    for directory in ancestors.into_iter().rev() {
+        match fs::symlink_metadata(directory) {
+            Ok(_) => check_directory(directory)?,
+            Err(error) if error.kind() == ErrorKind::NotFound => {
+                // A migration fallback must never recreate the old root, including
+                // when preparing its webview child after a concurrent removal.
+                if existing_root.is_some_and(|root| root.starts_with(directory)) {
+                    return Err(DataDirectoryError);
+                }
+                // Recheck all existing parents before each write, never follow a known link.
+                for parent in directory.ancestors().skip(1) {
+                    check_directory(parent)?;
+                }
+                match fs::create_dir(directory) {
+                    Ok(()) => {}
+                    Err(error) if error.kind() == ErrorKind::AlreadyExists => {}
+                    Err(_) => return Err(DataDirectoryError),
+                }
+                check_directory(directory)?;
+            }
+            Err(_) => return Err(DataDirectoryError),
+        }
+    }
+    Ok(())
+}
+
+/// `local_data_dir` is provided by Tauri; no environment lookup occurs here.
+pub fn prepare_data_directories(
+    override_dir: Option<&Path>,
+    local_data_dir: &Path,
+) -> Result<DataDirectories, DataDirectoryError> {
+    let (data, keep_existing) = match override_dir {
+        Some(path) => (path.to_path_buf(), false),
+        None => {
+            let base = resolve_default_base(local_data_dir)?;
+            let new = base.join("Flick");
+            let old = base.join("Water");
+            match fs::symlink_metadata(&new) {
+                Err(error)
+                    if error.kind() == ErrorKind::NotFound && check_directory(&old).is_ok() =>
+                {
+                    // Recheck the resolved parent chain before the single same-parent move.
+                    for parent in base.ancestors() {
+                        check_directory(parent)?;
+                    }
+                    if fs::rename(&old, &new).is_ok() || check_directory(&new).is_ok() {
+                        (new, false)
+                    } else {
+                        // A running old instance may hold a file open. Keep its directory
+                        // this time; the unchanged lock/activation flow will find it there.
+                        (new, false)
+                    }
+                }
+                _ => (new, false),
+            }
+        }
+    };
+    let existing_root = keep_existing.then_some(data.as_path());
+    ensure_directory(&data, existing_root)?;
+    let webview = data.join("webview");
+    ensure_directory(&webview, existing_root)?;
+    Ok(DataDirectories { data, webview })
+}
+
+fn extended_disk(path: &Path) -> Result<PathBuf, DataDirectoryError> {
+    let text = path.to_str().ok_or(DataDirectoryError)?.replace('/', "\\");
+    if text.starts_with(r"\\") {
+        return Err(DataDirectoryError);
+    }
+    Ok(PathBuf::from(format!(r"\\?\{text}")))
+}
+
+fn strip_verbatim_prefix(path: &Path) -> Result<PathBuf, DataDirectoryError> {
+    let text = path.to_str().ok_or(DataDirectoryError)?;
+    let local = if let Some(stripped) = text.strip_prefix(r"\\?\") {
+        if stripped.starts_with(r"UNC\") || stripped.as_bytes().get(1) != Some(&b':') {
+            return Err(DataDirectoryError);
+        }
+        PathBuf::from(stripped)
+    } else {
+        path.to_path_buf()
+    };
+    validate_path(&local)?;
+    Ok(local)
+}
+
+fn canonicalize_base(path: &Path) -> Result<PathBuf, DataDirectoryError> {
+    // The extended form keeps trailing dots, spaces, and reserved names visible to the check below.
+    if let Ok(extended) = extended_disk(path)
+        && let Ok(canonical) = fs::canonicalize(&extended)
+    {
+        return Ok(canonical);
+    }
+    if !path.try_exists().map_err(|_| DataDirectoryError)? {
+        ensure_directory(path, None)?;
+    }
+    fs::canonicalize(path).map_err(|_| DataDirectoryError)
+}
+
+fn resolve_default_base(local_data_dir: &Path) -> Result<PathBuf, DataDirectoryError> {
+    validate_path(local_data_dir)?;
+    let resolved = canonicalize_base(local_data_dir)?;
+    let stripped = strip_verbatim_prefix(&resolved)?;
+    let again = fs::canonicalize(&stripped).map_err(|_| DataDirectoryError)?;
+    let stripped_again = strip_verbatim_prefix(&again)?;
+    if stripped != stripped_again {
+        return Err(DataDirectoryError);
+    }
+    Ok(stripped_again)
+}
