@@ -309,5 +309,88 @@
    "new": "  add(page, heading(BigInt(p.bytes) === 0n ? '没有可以放心清理的东西' : '可以放心清理', `${v.scope.only_folder ? '这次只看了这个文件夹 · ' : ''}${v.scope.labels_zh.join('、')} · ${relativeTime(v.finished_at)}`, [metric(p.delete_bytes, '推荐直接清理'), metric(p.chosen_bytes, '你选的'), metric(p.bytes, '本次计划')]));",
    "why": "ticket control replayed from worker receipt 2026-11-07T07-44-27.866Z-30300-red-nc3-result.json"
   }
+ ],
+ "n8": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SERVICE_W11_QUARANTINE",
+   "file": "packages/water-service/src/quarantine.rs",
+   "old": "        .unwrap_or_else(|| format!(\"{drive}.flick-quarantine\"));",
+   "new": "        .unwrap_or_else(|| format!(\"{drive}.water-quarantine\"));",
+   "why": "ticket control replayed from worker receipt 2026-11-07T09-34-53.562Z-31072-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SERVICE_W11_DECL",
+   "file": "packages/water-service/src/m35.rs",
+   "old": "            if name(&path).eq_ignore_ascii_case(manifest::FILE_NAMES[1])",
+   "new": "            if false && name(&path).eq_ignore_ascii_case(manifest::FILE_NAMES[1])",
+   "why": "ticket control replayed from worker receipt 2026-11-07T09-46-59.890Z-22120-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SERVICE_W11_NESTED",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "    retain_outermost(&mut items);",
+   "new": "    retain_outermost(&mut items.clone());",
+   "why": "ticket control replayed from worker receipt 2026-11-07T10-03-05.499Z-34040-red-nc3-result.json"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "SERVICE_W11_QUARANTINE",
+   "file": "packages/water-service/src/quarantine.rs",
+   "old": "if !crate::storage::plain_directory(std::path::Path::new(root)) {",
+   "new": "if false && !crate::storage::plain_directory(std::path::Path::new(root)) {",
+   "why": "service refresh lists registered quarantine roots that do not exist"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "SERVICE_W11_NESTED",
+   "file": "packages/water-service/src/clean.rs",
+   "old": ".trim_end_matches('\\\\')\n                        .to_ascii_lowercase()",
+   "new": ".trim_end_matches('\\\\')\n                        .to_string()",
+   "why": "nested dedupe compares paths case-sensitively (ASCII aliases survive)"
+  },
+  {
+   "label": "c4",
+   "mode": "test",
+   "token": "SERVICE_W11_NESTED",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "\"{}\\\\\",",
+   "new": "\"{}\",",
+   "why": "nested dedupe compares raw prefixes without the separator (node_modules-extra dropped)"
+  },
+  {
+   "label": "c5",
+   "mode": "test",
+   "token": "SERVICE_W11_QUARANTINE",
+   "file": "packages/water-service/src/quarantine.rs",
+   "old": "base: Some(root.clone()),",
+   "new": "base,",
+   "why": "default new move passes no root, leaving the executor default to decide"
+  },
+  {
+   "label": "c6",
+   "mode": "test",
+   "token": "SERVICE_W11_DECL",
+   "file": "packages/water-service/src/service.rs",
+   "old": ".is_some_and(|e| e.code == \"MANIFEST_SHADOWED\")",
+   "new": ".is_some_and(|e| e.code == \"MANIFEST_SHADOWED_NOT\")",
+   "why": "a shadowed old declaration keeps its old consent"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "SERVICE_W11_WORDING",
+   "file": "packages/water-service/src/conclusion.rs",
+   "old": "recent_text(recent_count(r, &first_group.group_id))",
+   "new": "String::from(\"已经不长了\")",
+   "why": "cluster card without an earlier checkup says \"已经不长了\" again (clue keeps the recent count)"
+  }
  ]
 }

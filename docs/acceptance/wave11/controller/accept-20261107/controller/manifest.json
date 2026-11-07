@@ -70,7 +70,7 @@
     },
     {
       "path": "docs/dispatch/W11-WORKER-RULES.md",
-      "sha256": "d18758a62db1f2730b129e629cf2c3c3a6feeca001509fc5672db485f72a7a22"
+      "sha256": "13f8a39a16e01212279fe5cbf34dd0894458a17629851f3a26243230d173b76e"
     }
   ],
   "readyReport": "docs/dispatch/wave11/PLAN.md",
@@ -1385,6 +1385,259 @@
       "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n7/2026-11-07T06-44-10.125Z-4904-baseline-result.json",
       "acceptsTask": "WATER-W11-N7",
       "acceptsHead": "a241611207ee11db3c3a34ba03db90abc42b6c49"
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W11-ACCEPT-N8",
+      "title": "服务：改名与新隔离区、只列存在的隔离区、几处说法",
+      "slot": "w11-n8",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w11-n8",
+      "branch": "controller/accept-w11-n8",
+      "baseCommit": "4e4118966b98f9ce20c560ca10f89b239847686c",
+      "snapshotRef": "refs/tags/water-w11-n8-base-20261107",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "readyOn": "2026-11-07",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "Flick text; new moves to .flick-quarantine with old-name batches still usable; list only existing quarantine roots; declaration names with MANIFEST_SHADOWED; growth wording without an earlier scan; 你加的位置; 50 ms scale asserts to 200 ms; nested plan items dropped (keep the outermost) because the executor now rejects nested plans (added 11-07 after the N3 review)",
+      "report": "docs/dispatch/reports/WATER-W11-N8-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave11/controller/accept-20261107/n8/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W11-N8-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W11-N8-SERVICE-20261107.md",
+      "spec": "contracts/w11-v1/RENAME-FLICK.md",
+      "proofTargets": {
+        "nc1": "SERVICE_W11_QUARANTINE",
+        "nc2": "SERVICE_W11_DECL",
+        "nc3": "SERVICE_W11_NESTED"
+      },
+      "modelHint": "Service, batch 2 after N3, N5, N6 merge; ticket line numbers rechecked at dispatch.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W11-WORKER-RULES.md",
+        "contracts/w11-v1/RENAME-FLICK.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
+        "docs/dispatch/tickets/WATER-W10-M14-SERVICE-FIX-20261107.md",
+        "packages/cleanup-manifest/src/lib.rs",
+        "packages/junk-clean/src/model.rs",
+        "packages/junk-clean/src/lib.rs",
+        "packages/junk-scan/src/lib.rs",
+        "packages/water-service/src/",
+        "packages/water-service/tests/service_v1.rs",
+        "packages/water-service/README.md"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/m35-v1/MANIFEST-M35.md",
+          "sha256": "4e3dc89590a42d33fb0d1e77f017e5ec26c61c03887f2aca580a096b8dd5f611"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/m35-v1/DUP-M35.md",
+          "sha256": "40e8295e0904e1c20bd218ac8c32e6ccea21482488fdc358fbaa204fb3117276"
+        },
+        {
+          "path": "contracts/m35-v1/APPS-M35.md",
+          "sha256": "0c224a377648d0d8d8956c48c36818658170f826691dfe9cc186ead1374f1c79"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/m3d-v1/SERVICE-M3D.md",
+          "sha256": "c7abb8e82cc4994f7ebed64dd4e625ce35ef0a4ef4fc33753fce48912cc22d4c"
+        },
+        {
+          "path": "contracts/desktop-v1/SERVICE.md",
+          "sha256": "44ae8643cbe64e083807386919192ce15c3cf586d1ecddbcf908ca0f0157180a"
+        },
+        {
+          "path": "contracts/hardening-v1/SERVICE-HARDENING.md",
+          "sha256": "fbec889779d5d95ef2cc23ad4c6ac489010a064be958881b37988a12add57359"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave11/n8/",
+        "docs/acceptance/wave11/controller/accept-20261107/n8/"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T08:23:38Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave11/PLAN.md",
+      "hint": "Service, batch 2 on main after N3, N5, N6; section 1.8 nested-item dedupe is nc3; line numbers rechecked on this base.",
+      "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n8/2026-11-07T08-36-02.016Z-1732-baseline-result.json",
+      "preflight": "first baseline failed on the controller's stale top-level hash of W11-WORKER-RULES.md (see frozenFilesNote); passed after the refresh",
+      "acceptsTask": "WATER-W11-N8",
+      "acceptsHead": "1cd5b42152e4e06d98827afa892cf7b8503a445b"
     }
   ],
   "bundles": [
@@ -1415,5 +1668,6 @@
   "preflight": {
     "evidence": "docs/acceptance/wave11/controller/preflight-20261107/",
     "note": "first run: N1 failed on a frozen hash taken from git bytes instead of checked-out bytes (mockup.html line endings), N6 and N7 on outputRootExists cloned from the new-package tickets; manifest regenerated, all seven rerun and passed"
-  }
+  },
+  "frozenFilesNote": "2026-11-07: top-level hashes rechecked on the N8 base 4e411896 (batch two); docs/dispatch/W11-WORKER-RULES.md changed in 3ee88c40 (the N2 native exception), so its batch-one hash (ccc584b3 bytes) was replaced. Batch-one trees and their acceptance manifest keep the ccc584b3 hash."
 }

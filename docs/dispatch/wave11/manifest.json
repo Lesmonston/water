@@ -166,7 +166,7 @@
       "branch": "worker/water-w11-n1",
       "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
       "snapshotRef": "refs/tags/water-w11-n1-base-20261107",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "Flick rename in the UI (title, mark, visible text), 0 bytes shows 0 MB (R7), partial status line on the conclusion header (R9)",
@@ -272,12 +272,12 @@
       "submittedHead": "0bb24797169b922e1636b1137605cd640e8fd287",
       "implementationCommit": "5f392089d1205c3e9b8d077c964fea84e620b2e1",
       "workerSelfReport": "Codex GPT-6 (took over a tree whose implementation was already committed; ran the checks and handed back)",
-      "mergeAfter": "WATER-W11-N2",
       "controllerReview": {
         "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
         "evidence": "docs/acceptance/wave11/controller/accept-20261107/n1/",
         "summary": "audit 0 problems; fresh tree check, test and browser finals; three ticket controls caught; screenshots show the Flick mark, 0 MB and the brand; the remaining visible Water text is service-owned (N8)"
-      }
+      },
+      "mergeCommit": "520d7a0920efdf9da2c0eec9b342aad4ea2841ad"
     },
     {
       "kind": "host",
@@ -636,7 +636,7 @@
       "branch": "worker/water-w11-n2",
       "baseCommit": "ccc584b3894e28d1f6bb8f86748d03c143a38e5b",
       "snapshotRef": "refs/tags/water-w11-n2-base-20261107",
-      "status": "ACCEPTED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "Flick rename in the host (productName, flick.exe, window title, icon, visible text), data directory move Water to Flick with keep-old-on-failure, reveal accepts both quarantine names",
@@ -735,7 +735,6 @@
       "submittedHead": "6345f5a416796b670e42fc832535abb6718222d8",
       "implementationCommit": "490c8e02d31e37dc2a3a04ccd09075a29d0ebbdf",
       "workerSelfReport": "Codex GPT-6",
-      "mergeAfter": "WATER-W11-N8",
       "controllerReview": {
         "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
         "evidence": "docs/acceptance/wave11/controller/accept-20261107/n2/",
@@ -746,7 +745,8 @@
         "an old-folder metadata error other than NotFound is treated as not a plain folder, so an empty Flick folder is created and the old data stays in place",
         "untested: rename fails while the new folder now exists; rename fails and the old folder no longer passes; new folder is a junction while the old one is plain",
         "running an old water.exe after the move creates a fresh Water folder (tell users at release to stop using the old program)"
-      ]
+      ],
+      "mergeCommit": "6b4bea5113a667d503a76347885e5888e5fd1cc3"
     },
     {
       "kind": "rust",
@@ -1595,7 +1595,7 @@
       "branch": "worker/water-w11-n8",
       "baseCommit": "4e4118966b98f9ce20c560ca10f89b239847686c",
       "snapshotRef": "refs/tags/water-w11-n8-base-20261107",
-      "status": "READY",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "Flick text; new moves to .flick-quarantine with old-name batches still usable; list only existing quarantine roots; declaration names with MANIFEST_SHADOWED; growth wording without an earlier scan; 你加的位置; 50 ms scale asserts to 200 ms; nested plan items dropped (keep the outermost) because the executor now rejects nested plans (added 11-07 after the N3 review)",
@@ -1696,7 +1696,28 @@
       "source": "docs/dispatch/wave11/PLAN.md",
       "hint": "Service, batch 2 on main after N3, N5, N6; section 1.8 nested-item dedupe is nc3; line numbers rechecked on this base.",
       "baselineEvidence": "docs/acceptance/wave11/controller/preflight-20261107/n8/2026-11-07T08-36-02.016Z-1732-baseline-result.json",
-      "preflight": "first baseline failed on the controller's stale top-level hash of W11-WORKER-RULES.md (see frozenFilesNote); passed after the refresh"
+      "preflight": "first baseline failed on the controller's stale top-level hash of W11-WORKER-RULES.md (see frozenFilesNote); passed after the refresh",
+      "submittedHead": "1cd5b42152e4e06d98827afa892cf7b8503a445b",
+      "implementationCommit": "f7cb9a965cc2cd189bcdc3fbb399640b64f3d1d3",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "e4c88c2a0e6d94c0ebc20b455ab9aa1fcac8588e",
+      "controllerReview": {
+        "report": "docs/acceptance/wave11/controller/WATER-W11-REVIEW-20261107.md",
+        "evidence": "docs/acceptance/wave11/controller/accept-20261107/n8/",
+        "summary": "audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls replayed and caught; six controller mutations all caught (c1 first written so it did not compile, rewritten and rerun); independent review found no high issue and one medium gap outside the ticket text: the conclusion page still sums nested selected items twice (carry-over)"
+      },
+      "carryOverLater": [
+        "conclusion page (conclusion.rs view: plan bytes, chosen bytes, item count, by drive) still sums nested selected items twice; the plan and the confirm dialog are right (ticket 1.8 named only the plan and the confirm dialog)",
+        "equal paths in two groups keep the first in request order, so direct delete can win over quarantine (rare: the scan gives a directory one primary group)",
+        "an inner delete item under an outer item whose drive has no quarantine is dropped without being counted in the not-cleaned note; if nothing else is selected the user gets invalid instead of the note",
+        "quarantine refresh pushes a root to seen_roots before the plain_directory check, so a root that lists but then fails that check would lose its recovery records (list_quarantines already rejects such roots)",
+        "records whose root the user deleted by hand are no longer cleaned up (the root is not listed any more)",
+        "a settings.json write failure while revoking a shadowed consent marks the whole scan failed",
+        "default quarantine availability only needs the drive to be listed; a file or junction named .flick-quarantine fails in the executor (same as the old name; ties to 1.9)",
+        "the qroot-x-legacy id branch and the WindowsPlatform root filter are not covered by tests (fixture roots are never drive roots)",
+        "out of scope: the trends page still marks never-compared clusters as stopped (same wording problem as 1.5); the 1.6 summary amount is the whole category while the brackets name selected groups only",
+        "section 1.9 stays open: a quarantine error after a finished direct delete loses the clean record"
+      ]
     }
   ],
   "bundles": [

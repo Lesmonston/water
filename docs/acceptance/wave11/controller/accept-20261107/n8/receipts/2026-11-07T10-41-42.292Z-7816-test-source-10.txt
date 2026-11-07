@@ -1,0 +1,598 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    IpcError, m35,
+    service::{Core, State, lock},
+    util,
+};
+use serde_json::{Value, json};
+use std::{collections::BTreeMap, sync::Arc};
+use water_junk_clean as clean;
+
+pub(crate) const JOURNAL_MESSAGE: &str = "文件已经动过，但记录没有写成功，请到隔离区核对";
+#[derive(Default)]
+pub(crate) struct Cache {
+    pub view: Value,
+    pub records: BTreeMap<String, Value>,
+    pub dirs: BTreeMap<String, String>,
+}
+pub(crate) fn idle() -> Value {
+    json!({"quarantine_id":null,"state":"idle","removed_entries":0,"freed_bytes":"0"})
+}
+pub(crate) fn id_ok(s: &str) -> bool {
+    !s.is_empty()
+        && s.len() <= 48
+        && !s.starts_with('-')
+        && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+}
+pub(crate) fn error(e: clean::CleanError) -> IpcError {
+    if e == clean::CleanError::Journal {
+        IpcError {
+            code: "unavailable".into(),
+            message_zh: JOURNAL_MESSAGE.into(),
+        }
+    } else {
+        IpcError::new("unavailable")
+    }
+}
+
+fn valid_record(v: &Value, id: &str, roots: &[String]) -> bool {
+    v["record_version"] == "water.quarantine-record.v1"
+        && v["quarantine_id"] == id
+        && v["root"]
+            .as_str()
+            .is_some_and(|r| roots.iter().any(|p| p.eq_ignore_ascii_case(r)))
+        && v["created_at"]
+            .as_str()
+            .and_then(util::parse_time)
+            .is_some()
+        && v["entries"].as_array().is_some_and(|entries| {
+            entries.iter().all(|e| {
+                let Some(rel) = e["rel"].as_str() else {
+                    return false;
+                };
+                let Some(root) = v["root"].as_str() else {
+                    return false;
+                };
+                !rel.starts_with('\\')
+                    && rel
+                        .split('\\')
+                        .all(|p| !p.is_empty() && p != ".." && p != "." && !p.contains([':', '/']))
+                    && e["original"].as_str().is_some_and(|p| {
+                        p.eq_ignore_ascii_case(&format!("{}{rel}", util::drive(root)))
+                    })
+                    && serde_json::from_value::<clean::Identity>(e["identity"].clone()).is_ok()
+                    && e["bytes"]
+                        .as_str()
+                        .is_some_and(|s| s.parse::<u64>().is_ok())
+            })
+        })
+}
+
+pub(crate) fn refresh(core: &Arc<Core>) -> Result<(), IpcError> {
+    refresh_with(core, clean::inspect)
+}
+
+pub(crate) fn refresh_with(
+    core: &Arc<Core>,
+    inspect: impl Fn(&str, &clean::StopFlag) -> Result<clean::QuarantineInfo, clean::CleanError>,
+) -> Result<(), IpcError> {
+    let roots = core.platform.quarantine_roots();
+    let records = core
+        .store
+        .records("quarantine")
+        .into_iter()
+        .filter(|(id, v)| valid_record(v, id, &roots))
+        .collect::<BTreeMap<_, _>>();
+    let mut cache = Cache {
+        view: json!({"bytes":"0","roots":[],"cards":[]}),
+        records,
+        dirs: BTreeMap::new(),
+    };
+    let mut rows = Vec::new();
+    let mut cards = Vec::new();
+    let mut total = 0u64;
+    let mut seen_roots = Vec::new();
+    for (index, root) in roots.iter().enumerate() {
+        let Ok(list) = clean::list_quarantines(root) else {
+            continue;
+        };
+        if list.state == "unavailable" {
+            continue;
+        }
+        seen_roots.push(root.clone());
+        if false && !crate::storage::plain_directory(std::path::Path::new(root)) {
+            continue;
+        }
+        let mut root_bytes = 0u64;
+        for q in list.quarantines {
+            // Listing is the authority for presence. Inspection failure (or a
+            // disappearance since listing) must not erase a recovery record.
+            cache.dirs.insert(q.quarantine_id.clone(), q.dir.clone());
+            let Ok(info) = inspect(&q.dir, &clean::StopFlag::default()) else {
+                continue;
+            };
+            if !info.exists {
+                continue;
+            }
+            let record = cache.records.get(&q.quarantine_id);
+            let bytes = util::number(&info.disk_bytes);
+            let bytes = if bytes == 0 {
+                util::number(&info.total_bytes)
+            } else {
+                bytes
+            };
+            root_bytes += bytes;
+            let created = record
+                .and_then(|r| r["created_at"].as_str())
+                .map(str::to_owned)
+                .or(q.created_at);
+            let days = created
+                .as_deref()
+                .and_then(util::parse_time)
+                .and_then(|t| core.platform.now().duration_since(t).ok())
+                .unwrap_or_default()
+                .as_secs()
+                / 86400;
+            let mut leftovers = Vec::new();
+            if let Some(report) = record.map(|r| &r["last_purge"]).filter(|v| v.is_object()) {
+                for e in report["leftovers"].as_array().into_iter().flatten() {
+                    let rel = e["rel"].as_str().unwrap_or("");
+                    if !rel.is_empty()
+                        && std::fs::symlink_metadata(format!("{}\\{rel}", q.dir)).is_err()
+                    {
+                        continue;
+                    }
+                    leftovers.push(json!({"display_name":rel,"bytes":e["bytes"],"reason_zh":reason(e["reason"].as_str().unwrap_or("other"),e["kind"]=="dir",rel),"retry":e["reason"]!="reparse" && e["reason"]!="access_denied"}));
+                }
+            }
+            for e in &info.hard_entries {
+                if leftovers.iter().any(|v| v["display_name"] == e.rel) {
+                    continue;
+                }
+                if let Some(hint) = e.hints.first() {
+                    let kind = match hint {
+                        clean::LeftoverHint::OddName => "odd_name",
+                        clean::LeftoverHint::LongPath => "long_path",
+                        clean::LeftoverHint::ReadOnly => "read_only",
+                        clean::LeftoverHint::Reparse => "reparse",
+                        clean::LeftoverHint::AccessDenied => "access_denied",
+                    };
+                    leftovers.push(json!({"display_name":e.rel,"bytes":e.bytes,"reason_zh":reason(kind,e.kind==clean::Kind::Dir,&e.rel),"retry":!matches!(kind,"reparse"|"access_denied")}));
+                }
+            }
+            let leftover = record.is_some_and(|r| {
+                r["last_purge"].is_object() && util::bytes(&r["last_purge"]["remaining_bytes"]) > 0
+            }) || !leftovers.is_empty();
+            let count = leftovers.len();
+            leftovers.truncate(20);
+            let mut by_title = BTreeMap::<String, (u64, u64)>::new();
+            if let Some(record) = record {
+                for e in record["entries"].as_array().into_iter().flatten() {
+                    let rel = e["rel"].as_str().unwrap_or("");
+                    if std::fs::symlink_metadata(format!("{}\\{rel}", q.dir)).is_ok() {
+                        let x = by_title
+                            .entry(e["group_title_zh"].as_str().unwrap_or("隔离文件").into())
+                            .or_default();
+                        x.0 += 1;
+                        x.1 += util::bytes(&e["bytes"]);
+                    }
+                }
+            }
+            let present_count = by_title.values().map(|(count, _)| *count).sum::<u64>();
+            let mut summary=by_title.into_iter().map(|(label,(count,bytes))|json!({"label_zh":label,"count":count,"bytes":bytes.to_string()})).collect::<Vec<_>>();
+            summary.sort_by_key(|v| std::cmp::Reverse(util::bytes(&v["bytes"])));
+            if summary.len() > 8 {
+                let other = summary.drain(7..).collect::<Vec<_>>();
+                summary.push(json!({"label_zh":"其它","count":other.iter().map(|r|r["count"].as_u64().unwrap_or(0)).sum::<u64>(),"bytes":other.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>().to_string()}));
+            }
+            cards.push(json!({"quarantine_id":q.quarantine_id,"created_at":created,"days":days,"bytes":bytes.to_string(),"item_count":record.map(|_|present_count).unwrap_or(info.file_count+info.dir_count),"state":if leftover{"leftover"}else{"present"},"restorable":record.is_some() && present_count>0,"reminder_zh":if days>=7{Some(format!("已经放了 {days} 天，确认没问题可以永久删除"))}else{None},"rows":summary,"leftovers":leftovers,"more_leftovers":count.saturating_sub(20)}));
+        }
+        total += root_bytes;
+        let target = if root.len() == 20 && root.as_bytes().get(1) == Some(&b':') {
+            let legacy = m35::name(root).eq_ignore_ascii_case(".water-quarantine")
+                && roots.iter().any(|other| {
+                    other.eq_ignore_ascii_case(&format!("{}.flick-quarantine", &root[..3]))
+                });
+            format!(
+                "qroot-{}{}",
+                root[..1].to_ascii_lowercase(),
+                if legacy { "-legacy" } else { "" }
+            )
+        } else {
+            format!("qroot-t{}", index + 1)
+        };
+        rows.push(json!({"target_id":target,"display_path":root,"bytes":root_bytes.to_string()}));
+    }
+    let gone = cache
+        .records
+        .iter()
+        .filter(|(id, v)| {
+            !cache.dirs.contains_key(*id)
+                && seen_roots
+                    .iter()
+                    .any(|p| Some(p.as_str()) == v["root"].as_str())
+        })
+        .map(|(id, _)| id.clone())
+        .collect::<Vec<_>>();
+    for id in &gone {
+        cache.records.remove(id);
+    }
+    core.store.remove("quarantine", &gone);
+    cards.sort_by(|a, b| {
+        b["created_at"]
+            .as_str()
+            .cmp(&a["created_at"].as_str())
+            .then(
+                a["quarantine_id"]
+                    .as_str()
+                    .cmp(&b["quarantine_id"].as_str()),
+            )
+    });
+    cache.view = json!({"bytes":total.to_string(),"roots":rows,"cards":cards});
+    let mut s = lock(core)?;
+    s.m35.quarantine_ids.extend(cache.dirs.keys().cloned());
+    s.m35.quarantine = cache;
+    Ok(())
+}
+
+pub(crate) fn bar(s: &State) -> Value {
+    let v = &s.m35.quarantine.view;
+    let cards = v["cards"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>();
+    if cards.is_empty() {
+        return Value::Null;
+    }
+    let days = cards
+        .iter()
+        .filter_map(|c| c["days"].as_u64())
+        .max()
+        .unwrap_or(0);
+    let count = cards
+        .iter()
+        .filter(|c| c["state"] == "leftover")
+        .map(|c| {
+            c["leftovers"].as_array().map_or(0, Vec::len)
+                + c["more_leftovers"].as_u64().unwrap_or(0) as usize
+        })
+        .sum::<usize>();
+    let left = cards
+        .iter()
+        .filter(|c| c["state"] == "leftover")
+        .map(|c| util::bytes(&c["bytes"]))
+        .sum::<u64>();
+    json!({"bytes":v["bytes"],"oldest_days":days,"leftover_count":count,"leftover_bytes":left.to_string(),"text_zh":if count>0 && cards.iter().all(|c|c["state"]=="leftover"){format!("还剩 {count} 个文件删不掉")}else{format!("隔离区还有 {} · 最早的放了 {days} 天",m35::amount(util::bytes(&v["bytes"])))}})
+}
+
+fn reason(kind: &str, dir: bool, name: &str) -> String {
+    match kind {
+        "in_use" => {
+            if dir {
+                "有程序正占着这个文件夹（可能是打开的终端）".into()
+            } else {
+                "有程序正在用（关掉后再试）".into()
+            }
+        }
+        "odd_name" => format!(
+            "名字是系统保留名 {}（Flick 能删，点再试一次）",
+            m35::name(name)
+        ),
+        "long_path" => "路径太长（Flick 能删，点再试一次）".into(),
+        "read_only" => "只读文件（Flick 能删，点再试一次）".into(),
+        "reparse" => "云端占位或特殊链接，请在对应程序里处理".into(),
+        "access_denied" => "没有权限".into(),
+        _ => "暂时无法删除，请再试一次".into(),
+    }
+}
+
+pub(crate) fn locate(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let s = lock(core)?;
+    let id = a["targetId"].as_str().unwrap();
+    let path = s
+        .m35
+        .quarantine
+        .dirs
+        .get(id)
+        .cloned()
+        .or_else(|| {
+            s.m35.quarantine.view["roots"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .find(|v| v["target_id"] == id)
+                .and_then(|v| v["display_path"].as_str())
+                .map(str::to_owned)
+        })
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    if !core.platform.quarantine_roots().iter().any(|root| {
+        path.eq_ignore_ascii_case(root)
+            || (m35::parent(&path).eq_ignore_ascii_case(root) && id_ok(m35::name(&path)))
+    }) || !crate::storage::plain_directory(std::path::Path::new(&path))
+    {
+        return Err(IpcError::new("not_found"));
+    }
+    Ok(json!({"path":path}))
+}
+
+pub(crate) fn unique_id(core: &Core, s: &State, root: &str) -> String {
+    let stamp = crate::native_windows::quarantine_stamp(core.platform.now());
+    let drive = util::drive(root)[..1].to_ascii_lowercase();
+    for n in 0u64.. {
+        let id = if n == 0 {
+            format!("{stamp}-{drive}")
+        } else {
+            format!("{stamp}-{n}-{drive}")
+        };
+        if !s.m35.quarantine_ids.contains(&id)
+            && !s.m35.quarantine.dirs.contains_key(&id)
+            && !s.m35.quarantine.records.contains_key(&id)
+        {
+            return id;
+        }
+    }
+    unreachable!()
+}
+
+pub(crate) fn save_moves(
+    core: &Core,
+    source: &crate::service::Record,
+    plan: &clean::CleanPlan,
+    report: &clean::QuarantineReport,
+    clean_id: &str,
+) -> Result<(), IpcError> {
+    let mut entries = Vec::new();
+    let mut root = None;
+    for moved in report
+        .items
+        .iter()
+        .filter(|i| i.status == clean::MoveStatus::Moved)
+    {
+        let item = plan
+            .items
+            .iter()
+            .find(|i| i.item_id == moved.item_id)
+            .ok_or_else(|| IpcError::new("unavailable"))?;
+        let base = registered_base(core, &util::drive(&item.path))
+            .ok_or_else(|| IpcError::new("unavailable"))?;
+        root = Some(base);
+        let title = source
+            .projection()
+            .details
+            .get(&item.group_id)
+            .map(|d| d["group"]["title_zh"].clone())
+            .unwrap_or(json!("重复文件"));
+        entries.push(json!({"item_id":item.item_id,"group_title_zh":title,"original":item.path,"rel":&item.path[3..],"kind":item.kind,"identity":moved.identity,"bytes":moved.bytes,"valuable_names":source.result.items.iter().find(|i|i.item_id==item.item_id).map(|i|i.valuable_names.clone()).unwrap_or_default()}));
+    }
+    if !entries.is_empty() {
+        let stored = json!({"record_version":"water.quarantine-record.v1","quarantine_id":report.quarantine_id,"created_at":report.started_at,"clean_id":clean_id,"root":root,"entries":entries,"last_purge":null});
+        core.store.write(
+            "quarantine",
+            &format!("{}.json", report.quarantine_id),
+            &stored,
+        )?;
+    }
+    Ok(())
+}
+
+// Used both before execution and when accepting its report. Test platforms
+// supply a base under .local; Windows defaults to the source drive's root.
+pub(crate) fn registered_base(core: &Core, drive: &str) -> Option<String> {
+    registered_target(core, drive).map(|(root, _)| root)
+}
+
+pub(crate) fn registered_target(
+    core: &Core,
+    drive: &str,
+) -> Option<(String, clean::QuarantineTarget)> {
+    let base = core.platform.quarantine_base(drive);
+    let root = base
+        .clone()
+        .unwrap_or_else(|| format!("{drive}.flick-quarantine"));
+    // Existing roots determine what is shown, not whether the executor may
+    // create its destination. Explicit fixture registrations retain priority.
+    let registered = if base.is_some() {
+        core.platform
+            .quarantine_roots()
+            .iter()
+            .any(|r| r.eq_ignore_ascii_case(&root))
+    } else {
+        core.platform
+            .drives()
+            .iter()
+            .any(|d| d.root.eq_ignore_ascii_case(drive))
+    };
+    registered.then(|| {
+        let target = clean::QuarantineTarget {
+            base: Some(root.clone()),
+        };
+        (root, target)
+    })
+}
+
+pub(crate) fn unavailable_note(drive: &str, count: usize) -> String {
+    format!("{} 盘不能放进隔离区，这 {count} 项这次不清理", &drive[..1])
+}
+
+pub(crate) fn restore(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    if !core.clean_enabled {
+        return Err(IpcError::disabled());
+    }
+    let mut s = lock(core)?;
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let id = a["quarantineId"].as_str().unwrap();
+    let mut record = s
+        .m35
+        .quarantine
+        .records
+        .get(id)
+        .cloned()
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    let dir = s
+        .m35
+        .quarantine
+        .dirs
+        .get(id)
+        .cloned()
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    if !valid_record(&record, id, &core.platform.quarantine_roots()) {
+        return Err(IpcError::new("invalid"));
+    }
+    let mut requests = Vec::new();
+    let entries = record["entries"].as_array().unwrap().clone();
+    for e in &entries {
+        let original = e["original"].as_str().unwrap();
+        let to = if a["beside"] == true && std::fs::symlink_metadata(original).is_ok() {
+            (1..=10000)
+                .map(|n| format!("{original}（还原 {n}）"))
+                .find(|p| std::fs::symlink_metadata(p).is_err())
+                .ok_or_else(|| IpcError::new("unavailable"))?
+                .into()
+        } else {
+            None
+        };
+        requests.push(clean::RestoreRequest {
+            rel: e["rel"].as_str().unwrap().into(),
+            identity: serde_json::from_value(e["identity"].clone())
+                .map_err(|_| IpcError::new("invalid"))?,
+            to,
+        });
+    }
+    s.busy = "cleaning";
+    let stop = clean::StopFlag::default();
+    s.stop = Some(stop.clone());
+    drop(s);
+    // Keep the operation exclusive through durable record updates and refresh.
+    // All disk work remains outside the state lock, including error paths.
+    let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+        || -> Result<Value, IpcError> {
+            let report =
+                clean::restore(&dir, &requests, &stop, core.platform.now()).map_err(error)?;
+            let mut restored = 0;
+            let mut bytes = 0u64;
+            let mut conflicts = Vec::new();
+            let mut keep = Vec::new();
+            for e in entries {
+                if report
+                    .items
+                    .iter()
+                    .any(|i| i.rel == e["rel"] && i.status == clean::RestoreStatus::Restored)
+                {
+                    restored += 1;
+                    bytes += util::bytes(&e["bytes"]);
+                } else {
+                    conflicts.push(json!({"label_zh":e["original"],"reason_zh":if report.items.iter().any(|i|i.rel==e["rel"] && i.reason==Some(clean::RestoreError::DestinationExists)){"原位置已有同名的项，可以还原到旁边"}else{"没有还原，请核对身份、路径与占用状态"}}));
+                    keep.push(e);
+                }
+            }
+            record["entries"] = json!(keep);
+            if keep.is_empty() {
+                core.store.remove("quarantine", &[id.into()]);
+            } else {
+                core.store
+                    .write("quarantine", &format!("{id}.json"), &record)?;
+            }
+            let event = m35::write_event(
+                core,
+                "restore",
+                format!("还原隔离区 · {restored} 项"),
+                bytes.to_string(),
+            )?;
+            {
+                let mut s = lock(core)?;
+                m35::push_event(&mut s, event);
+            }
+            refresh(core)?;
+            Ok(
+                json!({"restored_count":restored,"restored_bytes":bytes.to_string(),"conflicts":conflicts,"view":lock(core)?.m35.quarantine.view}),
+            )
+        },
+    ));
+    let mut s = lock(core)?;
+    s.busy = "idle";
+    s.stop = None;
+    run.unwrap_or_else(|_| Err(IpcError::new("unavailable")))
+}
+
+struct Observer(Arc<Core>);
+impl clean::PurgeObserver for Observer {
+    fn on_progress(&self, removed: u64, freed: u64) {
+        if let Ok(mut s) = lock(&self.0) {
+            s.m35.purge_progress["removed_entries"] = json!(removed);
+            s.m35.purge_progress["freed_bytes"] = json!(freed.to_string());
+        }
+    }
+}
+pub(crate) fn purge(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    if !core.clean_enabled {
+        return Err(IpcError::disabled());
+    }
+    let mut s = lock(core)?;
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let id = a["quarantineId"].as_str().unwrap().to_owned();
+    let dir = s
+        .m35
+        .quarantine
+        .dirs
+        .get(&id)
+        .cloned()
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    let stop = clean::StopFlag::default();
+    s.stop = Some(stop.clone());
+    s.busy = "purging";
+    s.m35.failures.remove(&id);
+    s.m35.purge_progress =
+        json!({"quarantine_id":id,"state":"running","removed_entries":0,"freed_bytes":"0"});
+    for c in s.m35.quarantine.view["cards"]
+        .as_array_mut()
+        .into_iter()
+        .flatten()
+        .filter(|c| c["quarantine_id"] == id)
+    {
+        c["state"] = json!("purging");
+    }
+    drop(s);
+    let worker = core.clone();
+    let worker_id = id.clone();
+    let spawn=std::thread::Builder::new().name("water-purge".into()).spawn(move||{
+        let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||{
+            let mut journal=worker.store.purge_journal(&worker_id)?;
+            let report=clean::purge(&dir,&mut journal,&stop,&Observer(worker.clone()),worker.platform.now()).map_err(error)?;
+            let stored={
+                let s=lock(&worker)?;
+                if report.dir_removed {None} else {
+                    Some(s.m35.quarantine.records.get(&worker_id).cloned().unwrap_or_else(||json!({"record_version":"water.quarantine-record.v1","quarantine_id":worker_id,"created_at":report.started_at,"clean_id":null,"root":m35::parent(&dir),"entries":[],"last_purge":null})))
+                }
+            };
+            if report.dir_removed {worker.store.remove("quarantine",std::slice::from_ref(&worker_id));}else {
+                let mut stored=stored.expect("purge record");
+                stored["last_purge"]=json!(report);worker.store.write("quarantine",&format!("{worker_id}.json"),&stored)?;
+            }
+            let tail=if report.remaining_entries>0{format!("，还剩 {} 项",report.remaining_entries)}else{String::new()};
+            let event=m35::write_event(&worker,"purge",format!("永久删除隔离区 · 腾出 {}{tail}",m35::amount(util::number(&report.freed_bytes))),report.freed_bytes.clone())?;
+            let final_state=if report.status==clean::RunStatus::Stopped{"stopped"}else{"completed"};
+            {
+                let mut s=lock(&worker)?;
+                m35::push_event(&mut s,event);
+                s.m35.purge_progress=json!({"quarantine_id":worker_id,"state":"running","removed_entries":report.removed_entries,"freed_bytes":report.freed_bytes});
+            }
+            Ok::<_,IpcError>(final_state)
+        })).unwrap_or_else(|_|Err(IpcError::new("unavailable")));
+        let _=refresh(&worker);
+        if let Ok(mut s)=lock(&worker){match result{Ok(state)=>s.m35.purge_progress["state"]=json!(state),Err(e)=>{s.m35.purge_progress["state"]=json!("failed");s.m35.failures.insert(worker_id,e);}}s.busy="idle";s.stop=None;}
+    });
+    if spawn.is_err() {
+        let mut s = lock(core)?;
+        s.busy = "idle";
+        s.stop = None;
+        s.m35.purge_progress["state"] = json!("failed");
+        return Err(IpcError::new("unavailable"));
+    }
+    Ok(json!({}))
+}
