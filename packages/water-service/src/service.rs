@@ -947,7 +947,7 @@ impl Service {
 }
 
 fn invalidate_skips(s: &mut State) {
-    m35::invalidate(s, "跳过名单变了");
+    s.stale_plans.extend(s.plans.keys().cloned());
     if let Some(c) = &mut s.m35.conclusion {
         c.serial += 1;
     }

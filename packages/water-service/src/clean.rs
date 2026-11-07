@@ -607,13 +607,7 @@ pub(crate) fn start_with_executor(
                             if report.journal_error.is_some()
                                 || reports.iter().any(|r| r.journal_error.is_some())
                             {
-                                let mut skipped = failed_batch(&batch, &id, now);
-                                skipped.status = clean::RunStatus::Stopped;
-                                for i in &mut skipped.items {
-                                    i.status = clean::MoveStatus::Skipped;
-                                    i.skip_reason = Some(clean::SkipReason::JournalFailed);
-                                    i.move_error = None;
-                                }
+                                let skipped = journal_failed_batch(&batch, &id, now);
                                 report.status = clean::RunStatus::Stopped;
                                 done += batch.items.len();
                                 reports.push(skipped);
@@ -652,23 +646,33 @@ pub(crate) fn start_with_executor(
                                 ) {
                                     Ok(report) => report,
                                     Err(e) => {
-                                        if e == clean::CleanError::Journal
-                                            && !report.items.iter().any(|i| {
+                                        if e == clean::CleanError::Journal {
+                                            let acted = report.items.iter().any(|i| {
                                                 matches!(
                                                     i.status,
                                                     clean::ItemStatus::Deleted
                                                         | clean::ItemStatus::Partial
                                                 )
-                                            })
-                                            && moved == 0
-                                        {
-                                            return Err(quarantine::error(e));
+                                            }) || reports
+                                                .iter()
+                                                .flat_map(|r| &r.items)
+                                                .any(|i| i.status == clean::MoveStatus::Moved);
+                                            if !acted {
+                                                return Err(quarantine::error(e));
+                                            }
+                                            let mut skipped =
+                                                journal_failed_batch(&batch, &id, now);
+                                            skipped.journal_error = Some(e.to_string());
+                                            skipped
+                                        } else {
+                                            for item in &batch.items {
+                                                batch_errors.push((
+                                                    item.group_id.clone(),
+                                                    quarantine_failure_reason(e).to_owned(),
+                                                ));
+                                            }
+                                            failed_batch(&batch, &id, now)
                                         }
-                                        for item in &batch.items {
-                                            batch_errors
-                                                .push((item.group_id.clone(), e.to_string()));
-                                        }
-                                        failed_batch(&batch, &id, now)
                                     }
                                 };
                                 quarantine::save_moves(
@@ -946,6 +950,31 @@ fn result_view(
     json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy(),"quarantined":null,"journal_note_zh":null})
 }
 
+pub(crate) fn quarantine_failure_reason(error: clean::CleanError) -> &'static str {
+    match error {
+        clean::CleanError::InvalidPlan => "清理计划无效",
+        clean::CleanError::Native => "文件操作失败",
+        clean::CleanError::Unsupported => "这台电脑不支持",
+        clean::CleanError::Journal => "日志写不进去",
+        clean::CleanError::Overflow => "数量超出范围",
+    }
+}
+
+fn journal_failed_batch(
+    batch: &clean::CleanPlan,
+    id: &str,
+    now: std::time::SystemTime,
+) -> clean::QuarantineReport {
+    let mut skipped = failed_batch(batch, id, now);
+    skipped.status = clean::RunStatus::Stopped;
+    for i in &mut skipped.items {
+        i.status = clean::MoveStatus::Skipped;
+        i.skip_reason = Some(clean::SkipReason::JournalFailed);
+        i.move_error = None;
+    }
+    skipped
+}
+
 fn failed_batch(
     batch: &clean::CleanPlan,
     id: &str,
@@ -1000,7 +1029,11 @@ pub(crate) fn save_result(
             .filter(|i| i.skip_reason == Some(clean::SkipReason::JournalFailed))
             .count();
     if journal_error {
-        view["journal_note_zh"] = json!(format!("清理日志没写全，后面的 {n} 项没有清"));
+        view["journal_note_zh"] = if n == 0 {
+            json!("清理日志没写全，这次要清的都已处理")
+        } else {
+            json!(format!("清理日志没写全，后面的 {n} 项没有清"))
+        };
     }
     for (id, reason) in errors {
         for g in view["groups"]
@@ -1046,7 +1079,9 @@ fn apply_quarantines(
         .map(|r| r.quarantine_id.clone())
         .collect::<Vec<_>>();
     ids.sort_by_key(|s| s.rsplit('-').next().unwrap_or("").to_owned());
-    view["quarantined"] = json!({"quarantine_ids":ids,"bytes":bytes.to_string(),"item_count":count,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"]});
+    if count > 0 {
+        view["quarantined"] = json!({"quarantine_ids":ids,"bytes":bytes.to_string(),"item_count":count,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"]});
+    }
     for group in view["groups"].as_array_mut().into_iter().flatten() {
         let moved = reports
             .iter()
