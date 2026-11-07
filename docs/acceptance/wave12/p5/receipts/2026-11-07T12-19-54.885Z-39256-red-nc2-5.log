@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... FAILED
+test rules_schema_strict ... ok
+test rules_seed_coverage ... FAILED
+
+failures:
+
+---- rules_resolve_plan stdout ----
+
+thread 'rules_resolve_plan' (39616) panicked at tests\rules_v1.rs:466:13:
+assertion `left == right` failed: RULES_W12_NEW: npm-global-reify-leftovers resolved path
+  left: "C:\\Users\\u\\AppData\\Roaming\\npm\\node_modules\\*"
+ right: "C:\\Users\\u\\AppData\\Roaming\\npm\\node_modules\\.*-*"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rules_seed_coverage stdout ----
+
+thread 'rules_seed_coverage' (1640) panicked at tests\rules_v1.rs:1019:9:
+assertion `left == right` failed: RULES_W12_NEW: npm-global-reify-leftovers exact locators
+  left: ["pattern:roaming_app_data:npm/node_modules/*", "pattern:roaming_app_data:npm/node_modules/@*/.*-*"]
+ right: ["pattern:roaming_app_data:npm/node_modules/.*-*", "pattern:roaming_app_data:npm/node_modules/@*/.*-*"]
+
+
+failures:
+    rules_resolve_plan
+    rules_seed_coverage
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w12-p5\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.00s
+     Running tests\rules_v1.rs (.local\w2-target\junk-rules\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`
