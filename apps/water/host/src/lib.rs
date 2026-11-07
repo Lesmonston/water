@@ -73,7 +73,7 @@ impl Backend for UnavailableBackend {
 fn unavailable_failure() -> IpcFailure {
     IpcFailure {
         code: "unavailable".into(),
-        message_zh: "Water 服务暂时不可用。".into(),
+        message_zh: "Flick 服务暂时不可用。".into(),
     }
 }
 
@@ -342,7 +342,7 @@ where
         return Err(StartupError::Failed);
     }
     let window = WebviewWindowBuilder::new(&app, "main", WebviewUrl::App("index.html".into()))
-        .title("Water")
+        .title("Flick")
         .inner_size(1240.0, 820.0)
         .min_inner_size(1040.0, 720.0)
         .center()

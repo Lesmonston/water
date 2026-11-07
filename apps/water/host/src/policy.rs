@@ -79,7 +79,7 @@ pub fn validate_config(raw: &str) -> Result<(), ConfigError> {
         return Err(ConfigError);
     }
     let config: Config = serde_json::from_str(raw).map_err(|_| ConfigError)?;
-    if config.product_name != "Water"
+    if config.product_name != "Flick"
         || config.version != "0.1.0"
         || config.identifier != "app.water.desktop"
         || config.build.frontend_dist != "../ui"

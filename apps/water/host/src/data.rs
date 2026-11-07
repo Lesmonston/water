@@ -10,7 +10,7 @@ pub struct DataDirectoryError;
 
 impl fmt::Display for DataDirectoryError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("HOST_DATA_DIRECTORY：无法安全打开 Water 数据目录。")
+        f.write_str("HOST_DATA_DIRECTORY：无法安全打开 Flick 数据目录。")
     }
 }
 
@@ -52,13 +52,18 @@ fn check_directory(path: &Path) -> Result<(), DataDirectoryError> {
     Ok(())
 }
 
-fn ensure_directory(path: &Path) -> Result<(), DataDirectoryError> {
+fn ensure_directory(path: &Path, existing_root: Option<&Path>) -> Result<(), DataDirectoryError> {
     validate_path(path)?;
     let ancestors: Vec<_> = path.ancestors().collect();
     for directory in ancestors.into_iter().rev() {
         match fs::symlink_metadata(directory) {
             Ok(_) => check_directory(directory)?,
             Err(error) if error.kind() == ErrorKind::NotFound => {
+                // A migration fallback must never recreate the old root, including
+                // when preparing its webview child after a concurrent removal.
+                if existing_root.is_some_and(|root| root.starts_with(directory)) {
+                    return Err(DataDirectoryError);
+                }
                 // Recheck all existing parents before each write, never follow a known link.
                 for parent in directory.ancestors().skip(1) {
                     check_directory(parent)?;
@@ -81,13 +86,37 @@ pub fn prepare_data_directories(
     override_dir: Option<&Path>,
     local_data_dir: &Path,
 ) -> Result<DataDirectories, DataDirectoryError> {
-    let data = match override_dir {
-        Some(path) => path.to_path_buf(),
-        None => resolve_default_base(local_data_dir)?.join("Water"),
+    let (data, keep_existing) = match override_dir {
+        Some(path) => (path.to_path_buf(), false),
+        None => {
+            let base = resolve_default_base(local_data_dir)?;
+            let new = base.join("Flick");
+            let old = base.join("Water");
+            match fs::symlink_metadata(&new) {
+                Err(error)
+                    if error.kind() == ErrorKind::NotFound && check_directory(&old).is_ok() =>
+                {
+                    // Recheck the resolved parent chain before the single same-parent move.
+                    for parent in base.ancestors() {
+                        check_directory(parent)?;
+                    }
+                    if fs::rename(&old, &new).is_ok() || check_directory(&new).is_ok() {
+                        (new, false)
+                    } else {
+                        // A running old instance may hold a file open. Keep its directory
+                        // this time; the unchanged lock/activation flow will find it there.
+                        check_directory(&old)?;
+                        (old, true)
+                    }
+                }
+                _ => (new, false),
+            }
+        }
     };
-    ensure_directory(&data)?;
+    let existing_root = keep_existing.then_some(data.as_path());
+    ensure_directory(&data, existing_root)?;
     let webview = data.join("webview");
-    ensure_directory(&webview)?;
+    ensure_directory(&webview, existing_root)?;
     Ok(DataDirectories { data, webview })
 }
 
@@ -121,7 +150,7 @@ fn canonicalize_base(path: &Path) -> Result<PathBuf, DataDirectoryError> {
         return Ok(canonical);
     }
     if !path.try_exists().map_err(|_| DataDirectoryError)? {
-        ensure_directory(path)?;
+        ensure_directory(path, None)?;
     }
     fs::canonicalize(path).map_err(|_| DataDirectoryError)
 }
