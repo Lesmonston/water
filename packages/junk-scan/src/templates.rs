@@ -4,7 +4,7 @@ fn separator(b: u8) -> bool {
     matches!(b, b'-' | b'_' | b'.' | b' ')
 }
 
-/// Fixed M3.5 suffix grammar, independent of directory contents.
+/// Fixed random-suffix grammar, independent of directory contents.
 pub fn name_template(name: &str, is_file: bool) -> Option<String> {
     let (stem, extension) = if is_file {
         name.rfind('.')

@@ -143,6 +143,11 @@ fn junction_attributes(link: &Path, hidden: bool, system: bool) {
         out.status.success(),
         "SCAN_W13_JUNCTIONS: link attributes fixture"
     );
+    assert_eq!(
+        fs::symlink_metadata(link).unwrap().file_attributes() & 0x406,
+        0x400 | if hidden { 0x2 } else { 0 } | if system { 0x4 } else { 0 },
+        "SCAN_W13_JUNCTIONS: attributes apply to the reparse point itself"
+    );
 }
 
 fn plan(targets: Vec<Value>, hard_guards: Vec<String>) -> String {
@@ -2281,7 +2286,7 @@ fn m35_plan_templates() {
             assert_eq!(
                 name_template(&name, file).as_deref(),
                 Some(expected),
-                "SCAN_M35_TEMPLATE: M13 random suffix {name}"
+                "SCAN_M35_TEMPLATE: random suffix {name}"
             );
         }
     }
@@ -2291,7 +2296,7 @@ fn m35_plan_templates() {
             assert_eq!(
                 name_template(&name, file),
                 None,
-                "SCAN_M35_TEMPLATE: M13 ordinary suffix {name}"
+                "SCAN_M35_TEMPLATE: ordinary suffix {name}"
             );
         }
     }
@@ -2676,7 +2681,7 @@ fn m13_expected_cluster_id(parent: &str, kind: &str, template: &str) -> String {
     format!("leak:{hash:016x}")
 }
 
-fn m13_cluster_exclusions() {
+fn cluster_exclusions() {
     let fx = Fixture::create();
     let mut excluded = Vec::new();
     let mut ordinary_dirs = Vec::new();
@@ -2753,7 +2758,7 @@ fn m13_cluster_exclusions() {
                 .iter()
                 .any(|item| item.group_id.starts_with("leak:")
                     && (item.path == *path || item.path.starts_with(&format!("{path}\\")))),
-            "SCAN_M35_CLUSTERS: M13 excluded entry never a leak member: {path}"
+            "SCAN_M35_CLUSTERS: excluded entry never a leak member: {path}"
         );
     }
     for path in &ordinary_dirs {
@@ -2762,7 +2767,7 @@ fn m13_cluster_exclusions() {
                 .items
                 .iter()
                 .any(|item| item.group_id == "modules" && item.path == *path),
-            "SCAN_M35_CLUSTERS: M13 exclusions preserve ordinary nested target: {path}"
+            "SCAN_M35_CLUSTERS: exclusions preserve ordinary nested target: {path}"
         );
     }
     let expected = [
@@ -2781,7 +2786,7 @@ fn m13_cluster_exclusions() {
             .filter(|group| group.cluster.is_some())
             .count(),
         expected.len(),
-        "SCAN_M35_CLUSTERS: M13 exact surviving clusters"
+        "SCAN_M35_CLUSTERS: exact surviving clusters"
     );
     for (parent, kind, template) in expected {
         let id = m13_expected_cluster_id(&fx.p(parent), kind, template);
@@ -2789,27 +2794,24 @@ fn m13_cluster_exclusions() {
             .groups
             .iter()
             .find(|group| group.group_id == id)
-            .expect("SCAN_M35_CLUSTERS: M13 expected FNV group ID");
+            .expect("SCAN_M35_CLUSTERS: expected FNV group ID");
         let info = group
             .cluster
             .as_ref()
-            .expect("SCAN_M35_CLUSTERS: M13 cluster info");
+            .expect("SCAN_M35_CLUSTERS: cluster info");
         assert_eq!(
             info.member_count, 12,
-            "SCAN_M35_CLUSTERS: M13 exact member count"
+            "SCAN_M35_CLUSTERS: exact member count"
         );
         assert_eq!(
             group.item_count, 12,
-            "SCAN_M35_CLUSTERS: M13 no excluded extras"
+            "SCAN_M35_CLUSTERS: no excluded extras"
         );
-        assert_eq!(
-            info.template, template,
-            "SCAN_M35_CLUSTERS: M13 exact template"
-        );
+        assert_eq!(info.template, template, "SCAN_M35_CLUSTERS: exact template");
         assert_eq!(
             group.level,
             water_junk_scan::Level::Confirm,
-            "SCAN_M35_CLUSTERS: M13 unchanged level"
+            "SCAN_M35_CLUSTERS: unchanged level"
         );
     }
 
@@ -2846,7 +2848,7 @@ fn m13_cluster_exclusions() {
     let (discovery, _) = m35_full(&plan(rows, vec![]), now, &extras);
     assert!(
         discovery.groups.iter().all(|group| group.cluster.is_none()),
-        "SCAN_M35_CLUSTERS: M13 discovery exclusions"
+        "SCAN_M35_CLUSTERS: discovery exclusions"
     );
     for (index, parent) in parents.iter().enumerate() {
         let group = discovery
@@ -2857,7 +2859,7 @@ fn m13_cluster_exclusions() {
         assert_eq!(
             group.item_count,
             if parent.ends_with("/d") { 13 } else { 12 },
-            "SCAN_M35_CLUSTERS: M13 ordinary discovery count"
+            "SCAN_M35_CLUSTERS: ordinary discovery count"
         );
     }
     for path in &excluded {
@@ -2866,7 +2868,7 @@ fn m13_cluster_exclusions() {
             assert_eq!(
                 item.template,
                 name_template(name, item.kind == "file"),
-                "SCAN_M35_CLUSTERS: M13 ordinary item template"
+                "SCAN_M35_CLUSTERS: ordinary item template"
             );
         }
     }
@@ -2877,16 +2879,16 @@ fn m13_cluster_exclusions() {
         .unwrap();
     assert_eq!(
         resource.template, None,
-        "SCAN_M35_CLUSTERS: M13 Item.template rejects lowercase digit suffix"
+        "SCAN_M35_CLUSTERS: Item.template rejects lowercase digit suffix"
     );
 }
 
-fn m13_installer_patterns() {
+fn installer_patterns() {
     let fx = Fixture::create();
     let accepted = [
-        "MostLogin-setup.exe",
+        "DemoApp-setup.exe",
         "SampleTool-0.0.783.exe",
-        "WorkBuddy 5.1.0.exe",
+        "ServerKit 5.1.0.exe",
         "UtilitySuite_installer.exe",
     ];
     let rejected = [
@@ -2916,7 +2918,7 @@ fn m13_installer_patterns() {
     assert_eq!(
         result.items.len(),
         4,
-        "SCAN_M35_RULES: exact M12 installer matches"
+        "SCAN_M35_RULES: exact installer matches"
     );
     for name in accepted {
         assert!(
@@ -2946,8 +2948,8 @@ fn m13_installer_patterns() {
 }
 
 fn m35_clusters() {
-    m13_cluster_exclusions();
-    m13_installer_patterns();
+    cluster_exclusions();
+    installer_patterns();
     let fx = Fixture::create();
     let now = SystemTime::now();
     let old = now - Duration::from_secs(40 * 86400);
@@ -4576,6 +4578,7 @@ fn m35_junctions_overview() {
     let now = SystemTime::now();
     write_file(&fx.join("loc/cache/sub/data"), b"cache");
     write_file(&fx.join("loc/attr-cache/data"), b"attributes");
+    write_file(&fx.join("loc/parent-only/data"), b"parent");
     junction(&fx.join("loc/links/direct"), &fx.join("loc/cache"));
     junction(
         &fx.join("loc/links/inside-target"),
@@ -4644,6 +4647,15 @@ fn m35_junctions_overview() {
         0,
         0,
     );
+    let parent_only = target(
+        "parent-only",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("loc"),"segments":["parent-only"]}),
+        "dir",
+        0,
+        0,
+    );
     let search = m35_marker_target(
         "search",
         &fx.p("loc"),
@@ -4651,7 +4663,7 @@ fn m35_junctions_overview() {
         None,
         "dir",
     );
-    let text = plan(vec![main, attrs, search], vec![]);
+    let text = plan(vec![main, attrs, parent_only, search], vec![]);
     let extras = ExtrasOptions {
         junctions: true,
         declarations: true,
@@ -4679,6 +4691,15 @@ fn m35_junctions_overview() {
     assert_eq!(
         row.referenced_count, 3,
         "SCAN_W13_JUNCTIONS: reference count"
+    );
+    let parent_row = item(&result, &fx.p("loc/parent-only"));
+    assert_eq!(
+        parent_row.referenced_count, 0,
+        "SCAN_W13_JUNCTIONS: parent-only target has no references"
+    );
+    assert!(
+        parent_row.referenced_by.is_empty(),
+        "SCAN_W13_JUNCTIONS: parent-only reference list is empty"
     );
     let attr_row = item(&result, &fx.p("loc/attr-cache"));
     let mut attr_expected = ["loc/compat/hidden-only", "loc/compat/system-only"]
@@ -4786,6 +4807,110 @@ fn m35_junctions_overview() {
             .len(),
         1,
         "SCAN_M35_JUNCTIONS: target root indexed"
+    );
+
+    // Isolate one compatibility link so another link cannot satisfy skip checks.
+    write_file(&fx.join("only-target/cache/data"), b"outside");
+    junction(&fx.join("only-compat/link"), &fx.join("only-target/cache"));
+    junction_attributes(&fx.join("only-compat/link"), true, true);
+    assert_eq!(
+        fs::symlink_metadata(fx.join("only-target/cache"))
+            .unwrap()
+            .file_attributes()
+            & 0x6,
+        0,
+        "SCAN_W13_JUNCTIONS: attrib /l leaves target attributes unchanged"
+    );
+    let isolated_item = target(
+        "isolated-item",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.p("only-target"),"segments":["cache"]}),
+        "dir",
+        0,
+        0,
+    );
+    let isolated_search = m35_marker_target(
+        "isolated-search",
+        &fx.p("only-compat"),
+        json!({"kind":"dir_name","names":["never-hit"]}),
+        None,
+        "dir",
+    );
+    let (isolated, isolated_index) = m35_full(
+        &plan(vec![isolated_item, isolated_search], vec![]),
+        now,
+        &extras,
+    );
+    assert!(
+        isolated_index.junctions.is_empty() && !isolated_index.junctions_truncated,
+        "SCAN_W13_JUNCTIONS: isolated hidden-system link does not use index capacity"
+    );
+    let isolated_row = item(&isolated, &fx.p("only-target/cache"));
+    assert_eq!(
+        isolated_row.referenced_count, 0,
+        "SCAN_W13_JUNCTIONS: isolated hidden-system target has no references"
+    );
+    assert!(
+        isolated_row.referenced_by.is_empty(),
+        "SCAN_W13_JUNCTIONS: isolated hidden-system reference list is empty"
+    );
+    assert_eq!(
+        isolated
+            .issues
+            .iter()
+            .filter(|i| i.group_id == "isolated-search" && i.code == "reparse_skipped")
+            .map(|i| i.count)
+            .sum::<u64>(),
+        1,
+        "SCAN_W13_JUNCTIONS: isolated hidden-system link still records a skip"
+    );
+
+    let measure_only = target(
+        "measure-only",
+        "recommended",
+        "custom",
+        json!({"kind":"pattern","base":fx.path,"segments":["only-compat"]}),
+        "dir",
+        0,
+        0,
+    );
+    let (measured, measured_index) = m35_full(&plan(vec![measure_only], vec![]), now, &extras);
+    assert!(
+        measured_index.junctions.is_empty() && !measured_index.junctions_truncated,
+        "SCAN_W13_JUNCTIONS: measurement also excludes hidden-system links"
+    );
+    let measured_row = item(&measured, &fx.p("only-compat"));
+    assert_eq!(
+        (measured_row.total_bytes.as_str(), measured_row.file_count),
+        ("0", 0),
+        "SCAN_W13_JUNCTIONS: measurement does not follow compatibility link"
+    );
+
+    let compat_root = m35_marker_target(
+        "compat-root",
+        &fx.p("only-compat/link"),
+        json!({"kind":"dir_name","names":["cache"]}),
+        None,
+        "dir",
+    );
+    let (root_result, root_index) = m35_full(&plan(vec![compat_root], vec![]), now, &extras);
+    assert!(
+        root_index.junctions.is_empty() && !root_index.junctions_truncated,
+        "SCAN_W13_JUNCTIONS: hidden-system scan root is not indexed"
+    );
+    assert!(
+        root_result.items.is_empty() && root_result.visited_entries == 0,
+        "SCAN_W13_JUNCTIONS: hidden-system scan root is not followed"
+    );
+    assert_eq!(
+        root_result
+            .issues
+            .iter()
+            .map(|i| (i.group_id.as_str(), i.code.as_str(), i.count))
+            .collect::<Vec<_>>(),
+        [("compat-root", "base_reparse", 1)],
+        "SCAN_W13_JUNCTIONS: scan root retains its existing reparse issue"
     );
     // Both invalid-name and stopped root measurements belong only to fallback.
     write_file(
