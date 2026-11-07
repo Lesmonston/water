@@ -1,0 +1,35 @@
+=== j1 2026-11-07T18:00:46Z
+j1 lock rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-00-47.862Z-25416-lock-result.json"}
+j1 check:final rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-01-03.811Z-23600-check-result.json"}
+j1 real:final rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"real","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-01-35.068Z-39728-real-result.json"}
+j1 nc1 mutated packages/junk-scan/src/scan.rs: ticket control replayed from worker receipt 2026-11-07T16-57-33.965Z-21804-red-nc1-result.json (mutated sha d4ff9c54b09e58d1b6260b2036aa53d35e47da21ff8c51ae30c4bdf4876b9718)
+j1 red-nc1 rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-04-41.809Z-38360-red-nc1-result.json"}
+j1 nc1 KILLED (expected SCAN_W13_JUNCTIONS)
+j1 nc1 restored exact bytes=true sha 95da1b9272ba2ad34e83711ab4440aabc5c6d226139491c06b835c7fd423a389
+j1 test rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-05-08.538Z-25260-test-result.json"}
+j1 nc2 mutated packages/junk-scan/src/scan.rs: ticket control replayed from worker receipt 2026-11-07T16-58-15.690Z-37320-red-nc2-result.json (mutated sha b6a630dce058032cf80a45eaf340d7fc9e7b0da59a9401654ecb2bc8062569a3)
+j1 red-nc2 rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-05-24.195Z-29120-red-nc2-result.json"}
+j1 nc2 KILLED (expected SCAN_W13_JUNCTIONS)
+j1 nc2 restored exact bytes=true sha 95da1b9272ba2ad34e83711ab4440aabc5c6d226139491c06b835c7fd423a389
+j1 test rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-05-36.595Z-20036-test-result.json"}
+j1 nc3 mutated packages/junk-scan/src/scan.rs: ticket control replayed from worker receipt 2026-11-07T16-58-59.744Z-38840-red-nc3-result.json (mutated sha 1f827f76e1aadcfba3e141703e22bec04f47ffb6bb64ea4f76fb57dcca77e7c5)
+j1 red-nc3 rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-05-48.814Z-37688-red-nc3-result.json"}
+j1 nc3 KILLED (expected SCAN_W13_JUNCTIONS)
+j1 nc3 restored exact bytes=true sha 95da1b9272ba2ad34e83711ab4440aabc5c6d226139491c06b835c7fd423a389
+j1 test rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-05-59.244Z-30216-test-result.json"}
+j1 c1 mutated packages/junk-scan/src/scan.rs: only the hidden attribute is checked, not system (a hidden-only junction drops out of the index) (mutated sha 5c0f73e96454ac824ac5d566f60acbe4fdd64bc89f597e6a02650f610bd2db49)
+j1 test rc=1 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T18-06-12.927Z-36000-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-06-12.927Z-36000-test-result.json"}
+j1 c1 KILLED (expected SCAN_W13_JUNCTIONS)
+j1 c1 restored exact bytes=true sha 95da1b9272ba2ad34e83711ab4440aabc5c6d226139491c06b835c7fd423a389
+j1 c2 mutated packages/junk-scan/src/scan.rs: referenced_by misses junctions whose target lies inside the item (mutated sha 9ce54e76742676efe60be6246a17b265e3960b80c5b60a91e070b96fe9cf23bb)
+j1 test rc=1 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T18-06-23.868Z-37492-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-06-23.868Z-37492-test-result.json"}
+j1 c2 KILLED (expected SCAN_W13_JUNCTIONS)
+j1 c2 restored exact bytes=true sha 95da1b9272ba2ad34e83711ab4440aabc5c6d226139491c06b835c7fd423a389
+j1 c3 mutated packages/junk-scan/src/scan.rs: the scan root loses its attributes, so a hidden-system root junction is no longer recognised (mutated sha e325be0d254f23000a0a8e3fa4d9da83bec6868b791d357cdc3b90edb7f6c201)
+j1 test rc=1 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T18-06-34.174Z-26108-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-06-34.174Z-26108-test-result.json"}
+j1 c3 KILLED (expected SCAN_W13_JUNCTIONS)
+j1 c3 restored exact bytes=true sha 95da1b9272ba2ad34e83711ab4440aabc5c6d226139491c06b835c7fd423a389
+j1 survived: none
+j1 test --final rc=0 {"task":"WATER-W13-ACCEPT-J1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-j1\\.local\\checks\\WATER-W13-ACCEPT-J1\\2026-11-07T18-06-45.577Z-19252-test-result.json"}
+=== j1 done rc=0 2026-11-07T18:06:57Z
+SEQ-DONE

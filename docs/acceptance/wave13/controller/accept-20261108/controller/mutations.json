@@ -1,0 +1,114 @@
+{
+ "j1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SCAN_W13_JUNCTIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            || child.attributes & (HIDDEN | SYSTEM) == (HIDDEN | SYSTEM)\n            || self",
+   "new": "            || self",
+   "why": "ticket control replayed from worker receipt 2026-11-07T16-57-33.965Z-21804-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SCAN_W13_JUNCTIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "                .is_some_and(|p| path_eq(p, &item.path) || is_proper_ancestor(&item.path, p))",
+   "new": "                .is_some_and(|p| path_eq(p, &item.path) || is_proper_ancestor(&item.path, p) || is_proper_ancestor(p, &item.path))",
+   "why": "ticket control replayed from worker receipt 2026-11-07T16-58-15.690Z-37320-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SCAN_W13_JUNCTIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            || child.attributes & (HIDDEN | SYSTEM) == (HIDDEN | SYSTEM)",
+   "new": "            || child.attributes & (HIDDEN | SYSTEM) != 0",
+   "why": "ticket control replayed from worker receipt 2026-11-07T16-58-59.744Z-38840-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "SCAN_W13_JUNCTIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            || child.attributes & (HIDDEN | SYSTEM) == (HIDDEN | SYSTEM)",
+   "new": "            || child.attributes & HIDDEN == HIDDEN",
+   "why": "only the hidden attribute is checked, not system (a hidden-only junction drops out of the index)"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "SCAN_W13_JUNCTIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": ".is_some_and(|p| path_eq(p, &item.path) || is_proper_ancestor(&item.path, p))",
+   "new": ".is_some_and(|p| path_eq(p, &item.path))",
+   "why": "referenced_by misses junctions whose target lies inside the item"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "SCAN_W13_JUNCTIONS",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        attributes: attrs,\n",
+   "new": "        attributes: 0,\n",
+   "why": "the scan root loses its attributes, so a hidden-system root junction is no longer recognised"
+  }
+ ],
+ "s1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SERVICE_W13_FRESH",
+   "file": "packages/water-service/src/service.rs",
+   "old": "    s.stale_plans.extend(s.plans.keys().cloned());",
+   "new": "    m35::invalidate(s, \"跳过名单变了\");",
+   "why": "ticket control replayed from worker receipt 2026-11-07T16-48-43.379Z-33424-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SERVICE_W13_CLUE",
+   "file": "packages/water-service/src/conclusion.rs",
+   "old": "        && members.all(|i| s.settings.skipped.iter().any(|skip| skip.matches(i)))",
+   "new": "        && members.all(|i| views::skipped(i, &s.settings))",
+   "why": "ticket control replayed from worker receipt 2026-11-07T16-53-17.042Z-19948-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SERVICE_W13_JOURNAL",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "                                        if e == clean::CleanError::Journal {",
+   "new": "                                        if e == clean::CleanError::Journal && reports.is_empty() {",
+   "why": "ticket control replayed from worker receipt 2026-11-07T17-00-38.741Z-19452-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "SERVICE_W13_JOURNAL",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "json!(\"清理日志没写全，这次要清的都已处理\")",
+   "new": "json!(format!(\"清理日志没写全，后面的 {n} 项没有清\"))",
+   "why": "the journal note for N = 0 goes back to \"后面的 0 项没有清\""
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "SERVICE_W13_JOURNAL",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "    if count > 0 {\n        view[\"quarantined\"]",
+   "new": "    if count > 0 || ids.is_empty() {\n        view[\"quarantined\"]",
+   "why": "quarantined is written (item_count 0) when no batch moved anything"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "SERVICE_W13_JOURNAL",
+   "file": "packages/water-service/src/clean.rs",
+   "old": "clean::CleanError::Native => \"文件操作失败\",",
+   "new": "clean::CleanError::Native => \"filesystem operation failed\",",
+   "why": "a native quarantine failure reason reaches the UI in English"
+  }
+ ]
+}

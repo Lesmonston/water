@@ -1,0 +1,782 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave13-controller-acceptance",
+  "status": "CONTROLLER_ACCEPTANCE",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "-J1": "scripts/checkup-wave-check.mjs",
+    "-S1": "scripts/desktop-wave-check.mjs",
+    "-R1": "scripts/checkup-wave-check.mjs",
+    "-U1": "scripts/checkup-wave-check.mjs"
+  },
+  "baseCommit": "6b7703e84e8903d03a6c2ef0c0550187034717ac",
+  "baseTag": "water-w13-j1-base-20261108 (one tag per task, all on this commit)",
+  "plan": "docs/dispatch/wave13/PLAN.md",
+  "overallPlan": "docs/PLAN-OPEN-SOURCE-20261107.md",
+  "workerRules": "docs/dispatch/W13-WORKER-RULES.md",
+  "commonRules": "docs/dispatch/WORKER-RULES.md",
+  "contract": "contracts/w13-v1/W13.md",
+  "userDecision": "2026-11-08: \"两条一起改\" (junction references: compatibility junctions out of the index, only targets equal to or inside an item count); \"照推荐定稿\" (skips no longer make the conclusion stale; controller edits process-scan test data and READMEs without tickets; the W12-P2 medium goes into S1)",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+      "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+    },
+    {
+      "path": "contracts/m35-v1/IPC-M35.md",
+      "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "contracts/w11-v1/RENAME-FLICK.md",
+      "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+    },
+    {
+      "path": "contracts/w12-v1/W12.md",
+      "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+    },
+    {
+      "path": "contracts/w13-v1/W13.md",
+      "sha256": "eb978b7eb75b90348fe6724c3b8f92609ec5c7b0a61c46e422098145d74b89ea"
+    },
+    {
+      "path": "docs/dispatch/WORKER-RULES.md",
+      "sha256": "e578f86200d3f492782f451ba84fa0a1a0b60e4806fefb36dd561504aca90a78"
+    },
+    {
+      "path": "docs/dispatch/W13-WORKER-RULES.md",
+      "sha256": "d35ac7a82629b571703baa1c0f79db2fe1ad7082d317fde0ecd1c1732cf8f0b7"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave13/PLAN.md",
+  "tasks": [
+    {
+      "id": "WATER-W13-ACCEPT-J1",
+      "title": "扫描：联接引用修正",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w13-j1",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w13-j1",
+      "branch": "controller/accept-w13-j1",
+      "baseCommit": "6b7703e84e8903d03a6c2ef0c0550187034717ac",
+      "snapshotRef": "refs/tags/water-w13-j1-base-20261108",
+      "ticket": "docs/dispatch/tickets/WATER-W13-J1-SCAN-20261108.md",
+      "report": "docs/dispatch/reports/WATER-W13-J1-REPORT.md",
+      "spec": "contracts/w13-v1/W13.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_W13_JUNCTIONS",
+        "nc2": "SCAN_W13_JUNCTIONS",
+        "nc3": "SCAN_W13_JUNCTIONS"
+      },
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W13-J1-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave13/j1/",
+        "docs/acceptance/wave13/controller/accept-20261108/j1/"
+      ],
+      "evidenceDir": "docs/acceptance/wave13/controller/accept-20261108/j1/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W13-WORKER-RULES.md",
+        "contracts/w13-v1/W13.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/extras.rs",
+        "packages/junk-scan/src/native_windows.rs",
+        "packages/junk-scan/examples/real_smoke.rs",
+        "packages/junk-scan/tests/scan_v1.rs",
+        "packages/junk-scan/README.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "medium",
+      "purpose": "junctions with both hidden and system attributes (Windows compatibility junctions) stay out of the reference index; only junctions whose final target equals an item or lies inside it count as references; real smoke reports indexed junctions with hidden and system attributes (must be 0); public wording in tests and README",
+      "modelHint": "Scan: W13 sections 0 and 1; tests in m35_junctions_overview; pre-listed parent-target assertions; medium gate.",
+      "frozenFiles": [
+        {
+          "path": "contracts/w13-v1/W13.md",
+          "sha256": "eb978b7eb75b90348fe6724c3b8f92609ec5c7b0a61c46e422098145d74b89ea"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "DeviceIoControl",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "readyOn": "2026-11-08",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T16:13:13Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave13/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave13/controller/preflight-20261108/j1/",
+      "dispatchReportedAt": "2026-11-07T16:33:04Z",
+      "dispatchEvidence": "user 2026-11-08: \"这次界面单给astra了，其余的都是sol\"",
+      "acceptsTask": "WATER-W13-J1",
+      "acceptsHead": "6ecbf3a2e174408eae0d1a0354a7fe7df843fcc6"
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W13-ACCEPT-S1",
+      "title": "服务：跳过不过期、跳过的簇、日志收尾",
+      "slot": "w13-s1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w13-s1",
+      "branch": "controller/accept-w13-s1",
+      "baseCommit": "6b7703e84e8903d03a6c2ef0c0550187034717ac",
+      "snapshotRef": "refs/tags/water-w13-s1-base-20261108",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "skips no longer make the conclusion stale (plans invalidated, version bumped); a leak cluster whose every member matches a skip shows no card, clue or trends row; a later quarantine batch returning Err(Journal) after any action stops the rest; acted judged by item status; N = 0 wording; Chinese quarantine failure reasons; quarantined null when nothing moved; trends test independent of real elapsed time",
+      "report": "docs/dispatch/reports/WATER-W13-S1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave13/controller/accept-20261108/s1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W13-S1-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W13-S1-SERVICE-20261108.md",
+      "spec": "contracts/w13-v1/W13.md",
+      "proofTargets": {
+        "nc1": "SERVICE_W13_FRESH",
+        "nc2": "SERVICE_W13_CLUE",
+        "nc3": "SERVICE_W13_JOURNAL"
+      },
+      "modelHint": "Service: W13 sections 0 and 2; executor on main is post W12-P1; pre-listed skip-stale and reason assertions; medium gate.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W13-WORKER-RULES.md",
+        "contracts/w13-v1/W13.md",
+        "contracts/w12-v1/W12.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "docs/dispatch/tickets/WATER-W12-P2-ADDENDUM-01-20261107.md"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w13-v1/W13.md",
+          "sha256": "eb978b7eb75b90348fe6724c3b8f92609ec5c7b0a61c46e422098145d74b89ea"
+        },
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "0d65a0b05ef0ad9f7d4fceadde71727d596339b1b9d960644e10775af210ebe3"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "9605b8e6c1e25cc399d0f44e4af039c5a55ea314845b211603f91ce680446889"
+        },
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "d0b6bb18a5deedc8200569cc9f3c68a544d564c8a07c45d0905e9ab01a07e6a5"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "2dd62585cb7ca31d429af8bf5360dda44d645dd73a5d3f79542d4d23ce1840e2"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "c01bc0cb59d3bd0d61a1410446659e032dcfc1bfc8ad3fb3635331924f23a033"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "8bb75e4e7860345bbde9f0561e4b4c119891bb3219a102093a2f5c095706450c"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "62f726ced5f863f1b47db261976d8b5e5183f65669b2ba09d2f85a3977161be2"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave13/s1/",
+        "docs/acceptance/wave13/controller/accept-20261108/s1/"
+      ],
+      "hint": "Service, batch 2 on main after N3, N5, N6; section 1.8 nested-item dedupe is nc3; line numbers rechecked on this base.",
+      "dispatchReportedAt": "2026-11-07T16:33:04Z",
+      "readyOn": "2026-11-08",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T16:13:13Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave13/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave13/controller/preflight-20261108/s1/",
+      "dispatchEvidence": "user 2026-11-08: \"这次界面单给astra了，其余的都是sol\"",
+      "acceptsTask": "WATER-W13-S1",
+      "acceptsHead": "e7ea9a9e3eb2aac5fa0634e32c65ea9a4ecdf49e"
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W13-ACCEPT-MAIN",
+      "title": "服务：跳过不过期、跳过的簇、日志收尾",
+      "slot": "w13-s1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w13-s1",
+      "branch": "controller/main-w13",
+      "baseCommit": "2b4d9661dfb205fb6ba24e6404d9890943d36b06",
+      "snapshotRef": "refs/tags/water-w13-s1-base-20261108",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "skips no longer make the conclusion stale (plans invalidated, version bumped); a leak cluster whose every member matches a skip shows no card, clue or trends row; a later quarantine batch returning Err(Journal) after any action stops the rest; acted judged by item status; N = 0 wording; Chinese quarantine failure reasons; quarantined null when nothing moved; trends test independent of real elapsed time",
+      "report": "docs/dispatch/reports/WATER-W13-S1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave13/controller/accept-20261108/main/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W13-S1-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W13-S1-SERVICE-20261108.md",
+      "spec": "contracts/w13-v1/W13.md",
+      "proofTargets": {
+        "nc1": "SERVICE_W13_FRESH",
+        "nc2": "SERVICE_W13_CLUE",
+        "nc3": "SERVICE_W13_JOURNAL"
+      },
+      "modelHint": "Service: W13 sections 0 and 2; executor on main is post W12-P1; pre-listed skip-stale and reason assertions; medium gate.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W13-WORKER-RULES.md",
+        "contracts/w13-v1/W13.md",
+        "contracts/w12-v1/W12.md",
+        "contracts/m35-v1/IPC-M35.md",
+        "contracts/m35-v1/SERVICE-M35.md",
+        "contracts/m3c-v1/IPC-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C.md",
+        "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+        "docs/dispatch/tickets/WATER-W12-P2-ADDENDUM-01-20261107.md"
+      ],
+      "frozenFiles": [],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave13/s1/",
+        "docs/acceptance/wave13/controller/accept-20261108/main/"
+      ],
+      "hint": "Service, batch 2 on main after N3, N5, N6; section 1.8 nested-item dedupe is nc3; line numbers rechecked on this base.",
+      "dispatchReportedAt": "2026-11-07T16:33:04Z",
+      "readyOn": "2026-11-08",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T16:13:13Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave13/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave13/controller/preflight-20261108/s1/",
+      "dispatchEvidence": "user 2026-11-08: \"这次界面单给astra了，其余的都是sol\"",
+      "acceptsTask": "WATER-W13-S1",
+      "acceptsHead": "2b4d9661dfb205fb6ba24e6404d9890943d36b06",
+      "note": "main after the four wave 13 merges; base = HEAD so the scope check is empty; used only for test; frozen files cleared (U1 legitimately changed the fixtures S1 froze)"
+    },
+    {
+      "id": "WATER-W13-ACCEPT-MAINSCAN",
+      "title": "扫描：联接引用修正",
+      "status": "CONTROLLER_ACCEPTANCE",
+      "slot": "w13-j1",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/accept-w13-j1",
+      "branch": "controller/main-w13-scan",
+      "baseCommit": "2b4d9661dfb205fb6ba24e6404d9890943d36b06",
+      "snapshotRef": "refs/tags/water-w13-j1-base-20261108",
+      "ticket": "docs/dispatch/tickets/WATER-W13-J1-SCAN-20261108.md",
+      "report": "docs/dispatch/reports/WATER-W13-J1-REPORT.md",
+      "spec": "contracts/w13-v1/W13.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_W13_JUNCTIONS",
+        "nc2": "SCAN_W13_JUNCTIONS",
+        "nc3": "SCAN_W13_JUNCTIONS"
+      },
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W13-J1-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave13/j1/",
+        "docs/acceptance/wave13/controller/accept-20261108/mainscan/"
+      ],
+      "evidenceDir": "docs/acceptance/wave13/controller/accept-20261108/mainscan/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W13-WORKER-RULES.md",
+        "contracts/w13-v1/W13.md",
+        "contracts/m35-v1/SCAN-M35.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/extras.rs",
+        "packages/junk-scan/src/native_windows.rs",
+        "packages/junk-scan/examples/real_smoke.rs",
+        "packages/junk-scan/tests/scan_v1.rs",
+        "packages/junk-scan/README.md"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "medium",
+      "purpose": "junctions with both hidden and system attributes (Windows compatibility junctions) stay out of the reference index; only junctions whose final target equals an item or lies inside it count as references; real smoke reports indexed junctions with hidden and system attributes (must be 0); public wording in tests and README",
+      "modelHint": "Scan: W13 sections 0 and 1; tests in m35_junctions_overview; pre-listed parent-target assertions; medium gate.",
+      "frozenFiles": [],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "DeviceIoControl",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "readyOn": "2026-11-08",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-07T16:13:13Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave13/PLAN.md",
+      "baselineEvidence": "docs/acceptance/wave13/controller/preflight-20261108/j1/",
+      "dispatchReportedAt": "2026-11-07T16:33:04Z",
+      "dispatchEvidence": "user 2026-11-08: \"这次界面单给astra了，其余的都是sol\"",
+      "acceptsTask": "WATER-W13-J1",
+      "acceptsHead": "2b4d9661dfb205fb6ba24e6404d9890943d36b06",
+      "note": "main after wave 13 and the test-data tidy; base = HEAD so scope is empty; test only"
+    }
+  ],
+  "mergeOrder": [
+    "WATER-W13-J1",
+    "WATER-W13-R1",
+    "WATER-W13-S1",
+    "WATER-W13-U1"
+  ]
+}

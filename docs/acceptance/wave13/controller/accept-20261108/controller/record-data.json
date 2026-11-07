@@ -1,0 +1,52 @@
+{
+ "j1": {
+  "head": "6ecbf3a2e174408eae0d1a0354a7fe7df843fcc6",
+  "impl": "9b1fcab1559165edc4cb9573835601333f28a70c",
+  "merge": "78fa7251a9cdf1190780b7106069378414564d8f",
+  "self": "Codex GPT-6",
+  "summary": "medium gate: audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls replayed and caught; controller mutations c1 (hidden attribute only), c2 (references miss targets inside the item) and c3 (scan root loses its attributes) all caught; independent review found no high or medium issue; real smoke 10 indexed junctions, 0 hidden+system",
+  "later": [
+   "spec trade-off (W13 1.1): a normal link whose target is written through a compatibility alias (for example ...\\Local Settings\\Temp\foo) no longer resolves to the real item, so that item is not marked referenced; record for the next contract touch",
+   "tests: \"hidden-system links remain skipped\" is vacuous on the shared fixture (the isolated block covers it); \"does not use index capacity\" overclaims with one link (code order is right)",
+   "real_smoke: expect() panics if an indexed link disappears before the attribute re-read; the 0 is trivially true when no compatibility junction is enumerated; a seen-and-skipped count would show the filter ran",
+   "public wording: tests/scan_v1.rs helper m13_expected_cluster_id keeps a milestone tag; real_smoke imports std::os::windows unconditionally (Windows-only CI, fine today)"
+  ]
+ },
+ "r1": {
+  "head": "a3629e9b739a7592ba514ec3b24f9a6a19dcef06",
+  "impl": "5e8332871a045e51597121406860eb872b8c00f4",
+  "merge": "4b7f1ad9cb34888def9256521cddc142d28e74db",
+  "self": "Codex GPT-6",
+  "addendaStatus": "VERIFIED",
+  "summary": "light gate: first return BLOCKED on a controller manifest omission (no productionFiles, so the rules data was outside the production snapshot); addendum 01 added them; both ticket controls re-collected red then green with different production hashes; check, test and real finals on 504bd856 (doc commit on top of the implementation 5e833287); audit 0 problems; product files scanned clean of private names; 119 observation refs dated and public, data version 2026-11-08.1, 118 rules",
+  "later": [
+   "some observation refs that were only internal ids were rewritten from the rule description (for example the Audition conformed-files reference); facts and numbers kept, wording reviewed"
+  ]
+ },
+ "s1": {
+  "head": "e7ea9a9e3eb2aac5fa0634e32c65ea9a4ecdf49e",
+  "impl": "cc238b6a158b29082677d9f955ded47ba16575ab",
+  "merge": "40e4b27ea41682e9a25de8afed1a716ff772c8ec",
+  "self": "Codex GPT-6",
+  "summary": "medium gate: audit 0 problems; fresh tree lock, check, real and test finals; three ticket controls replayed and caught; controller mutations c1 (N = 0 wording reverted), c2 (quarantined summary written with nothing moved) and c3 (English native failure reason) all caught, no timing rerun; independent review found no high or medium issue; on main after all four merges the service tests pass 12/12 (79 s, then 95 s after the test-data tidy)",
+  "later": [
+   "an old plan prepared before a skip returns stale with the generic \"结果已过期，请重新体检后再清理。\"; the UI then marks the whole (fresh) conclusion stale although re-preparing the plan is enough; check in integration 11 and fix in the UI or the stale code",
+   "tests/service_v1.rs keeps two ticket-era comments (\"Addendum 05\", \"Before W10-M12 ... since M12\"); tidy with the post-merge public wording pass",
+   "the new card filter for fully skipped leak units is redundant with the eligible-size check; the cluster test protects clue and trends, not the card",
+   "service_trends_locations moves the fake clock 60 s past the second scan; a scan slower than 60 s real time would still race (an hour would remove it)",
+   "the not-run batch stores journal_error from e.to_string() (English); it never reaches the UI (diagnostics only checks presence)",
+   "callers still extend stale_plans after invalidate_skips did the same (harmless duplicate)"
+  ]
+ },
+ "u1": {
+  "head": "a6b84bcae0f81cad0bed899a1c5a89dbc6d4363a",
+  "impl": "631cb4096c2f8ab0be7916de406ccdcf3bdc77b7",
+  "merge": "5d1ef876c5cb5dc8fefa8022742d7c7fe403001f",
+  "self": "Codex GPT-6 (user dispatched to astra)",
+  "summary": "light gate: audit 0 problems; check, test and browser finals on 631cb409; 28 screenshots retaken, made-up paths only (D:\\code\\flick, C:\\Users\\alice, Acme); two browser controls on removeSkip red then green (worker discounted one nc2 round with an unrelated dedupe wait failure and reran it); public export scan finds no error in the UI or the fixtures",
+  "later": [
+   "fixture clue copy_text still says \"Water 只看了...\" (old product name) in ui-fixtures-m35.json; the service no longer emits these strings; tidy with the public wording pass",
+   "UI and fixture behaviour against the real service after S1 (skip keeps the conclusion fresh) is checked in integration 11"
+  ]
+ }
+}

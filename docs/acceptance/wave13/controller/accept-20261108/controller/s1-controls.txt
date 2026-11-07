@@ -1,0 +1,29 @@
+s1 nc1 mutated packages/water-service/src/service.rs: ticket control replayed from worker receipt 2026-11-07T16-48-43.379Z-33424-red-nc1-result.json (mutated sha c4b2e21ba1c0618a91f8d8dc5f4cb9e40b883e0da8265768ea9db21edf15b5a8)
+s1 red-nc1 rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-11-33.871Z-27116-red-nc1-result.json"}
+s1 nc1 KILLED (expected SERVICE_W13_FRESH)
+s1 nc1 restored exact bytes=true sha 374db6881da3d5d2f4e533b8ba0d78b8d0f4371d331f62d97b95f7933382bee9
+s1 test rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-13-36.200Z-15732-test-result.json"}
+s1 nc2 mutated packages/water-service/src/conclusion.rs: ticket control replayed from worker receipt 2026-11-07T16-53-17.042Z-19948-red-nc2-result.json (mutated sha 4e7b1281d10d06c84cfc9dfac5c06494359e3ad9b5e9c00a26cf0e7e116bd8dd)
+s1 red-nc2 rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-15-12.752Z-12192-red-nc2-result.json"}
+s1 nc2 KILLED (expected SERVICE_W13_CLUE)
+s1 nc2 restored exact bytes=true sha c67127ea9ecee28de58888d15916ef2599ff7c3e19ef7b50108564e928cc2b6a
+s1 test rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-16-48.757Z-35368-test-result.json"}
+s1 nc3 mutated packages/water-service/src/clean.rs: ticket control replayed from worker receipt 2026-11-07T17-00-38.741Z-19452-red-nc3-result.json (mutated sha 6515fce720c484221ff4a9aa083553594d96097868aaf826d76be913c9534915)
+s1 red-nc3 rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-18-23.730Z-19324-red-nc3-result.json"}
+s1 nc3 KILLED (expected SERVICE_W13_JOURNAL)
+s1 nc3 restored exact bytes=true sha 0988f8156abba1e61d3b2df5c8fb513a30b0eb344900c041f5b1495af917f7e1
+s1 test rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-19-55.358Z-38592-test-result.json"}
+s1 c1 mutated packages/water-service/src/clean.rs: the journal note for N = 0 goes back to "后面的 0 项没有清" (mutated sha 3ae34fcb9b2342c88d17fb8e2f85af3a2bcbf00db0e95513ed6853fb9d81eeba)
+s1 test rc=1 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T18-21-33.249Z-39448-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-21-33.249Z-39448-test-result.json"}
+s1 c1 KILLED (expected SERVICE_W13_JOURNAL)
+s1 c1 restored exact bytes=true sha 0988f8156abba1e61d3b2df5c8fb513a30b0eb344900c041f5b1495af917f7e1
+s1 c2 mutated packages/water-service/src/clean.rs: quarantined is written (item_count 0) when no batch moved anything (mutated sha c32bedcd3af5caddec9aca86d9d639c98d431d3cc58dcf590ffb3ffb597a9738)
+s1 test rc=1 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T18-23-09.810Z-33484-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-23-09.810Z-33484-test-result.json"}
+s1 c2 KILLED (expected SERVICE_W13_JOURNAL)
+s1 c2 restored exact bytes=true sha 0988f8156abba1e61d3b2df5c8fb513a30b0eb344900c041f5b1495af917f7e1
+s1 c3 mutated packages/water-service/src/clean.rs: a native quarantine failure reason reaches the UI in English (mutated sha d8e0742fe08b71d03b82b419738bdfb77328bb6368aa96b112522ee50e84ee63)
+s1 test rc=1 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-07T18-24-34.594Z-34628-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-24-34.594Z-34628-test-result.json"}
+s1 c3 KILLED (expected SERVICE_W13_JOURNAL)
+s1 c3 restored exact bytes=true sha 0988f8156abba1e61d3b2df5c8fb513a30b0eb344900c041f5b1495af917f7e1
+s1 survived: none
+s1 test --final rc=0 {"task":"WATER-W13-ACCEPT-S1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w13-s1\\.local\\checks\\WATER-W13-ACCEPT-S1\\2026-11-07T18-26-09.322Z-9648-test-result.json"}
