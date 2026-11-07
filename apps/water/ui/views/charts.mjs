@@ -78,12 +78,16 @@ export function treemap(items) {
 }
 export function heatmap(entries) {
   const root = el('div', 'heatmap'); if (!entries.length) return root;
-  const days = new Map(); let first = Infinity, last = 0;
+  const days = new Map(); let first = Infinity, last = 0, latest = null;
   for (const entry of entries) {
     const date = new Date(entry.at); date.setHours(0, 0, 0, 0);
+    // An unreadable time has no day: skip it, or the walk below starts and ends at NaN and never stops.
+    if (Number.isNaN(date.getTime())) continue;
+    latest ??= entry;
     const key = localDateKey(date); first = Math.min(first, date.getTime()); last = Math.max(last, date.getTime());
     const existing = days.get(key) ?? []; existing.push(entry); days.set(key, existing);
   }
+  if (!days.size) return root;
   const start = new Date(first), lastKey = localDateKey(last); start.setDate(start.getDate() - (start.getDay() + 6) % 7);
   // Compare local calendar days, not timestamps: where DST skips midnight the walk lands on 01:00 and would miss the last day.
   for (const day = new Date(start); localDateKey(day) <= lastKey; day.setDate(day.getDate() + 1)) {
@@ -91,7 +95,7 @@ export function heatmap(entries) {
     const records = days.get(key) ?? [], grade = e => ['clean', 'purge'].includes(e.kind) ? bytes(e.bytes) >= 8n * 1024n ** 3n ? 4 : bytes(e.bytes) >= 2n * 1024n ** 3n ? 3 : 2 : 1;
     const depth = records.reduce((m, e) => Math.max(m, grade(e)), 0);
     const cell = el('button', `heat depth-${depth}`, '', {type:'button', title:`${key}${records.map(e => `\n${e.summary_zh} · ${formatBytes(e.bytes)}`).join('')}`});
-    if (records.includes(entries[0])) cell.classList.add('latest');
+    if (records.includes(latest)) cell.classList.add('latest');
     cell.setAttribute('aria-label', cell.title); add(root, cell);
   }
   return root;

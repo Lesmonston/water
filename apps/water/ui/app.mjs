@@ -14,8 +14,9 @@ import {dedupe} from './views/dedupe.mjs';
 import {trends} from './views/trends.mjs';
 import {history as records} from './views/history.mjs';
 import {locations} from './views/locations.mjs';
+import {intro} from './views/intro.mjs';
 
-const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), scanSamples:[], detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false};
+const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), scanSamples:[], detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false, intro:false, appInfo:null};
 const page = document.getElementById('page'), main = document.getElementById('main');
 let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, sampleSecond = -1, checkupQueued = false;
 const busy = () => s.pending || s.busy !== 'idle' || !s.app;
@@ -32,7 +33,7 @@ async function run(task, scope) {
   }
   finally {
     s.pending = false; render();
-    if (checkupQueued) { checkupQueued = false; if (checkupIsReturn()) a.returnToCheckup(); }
+    if (checkupQueued) { checkupQueued = false; if (checkupIsReturn() && !s.modal) a.returnToCheckup(); }
   }
 }
 function markStale() { if (s.conclusion) s.conclusion = {...s.conclusion, stale:true}; }
@@ -76,6 +77,8 @@ async function loadRoute() {
       if (route === 'quarantine' && revision !== quarantineRevision) return;
       s[route === 'history' ? 'history' : route.startsWith('settings/') ? 'locations' : route] = value;
     }
+    // The host answers app_info itself; without it the about page simply leaves the three lines out.
+    if (route === 'settings/about' && !s.appInfo) { try { s.appInfo = await ipc.app_info(); } catch {} }
   } catch (error) { if (epoch === routeEpoch && (route !== 'quarantine' || revision === quarantineRevision)) fail(error); }
   if (epoch === routeEpoch) render();
 }
@@ -167,6 +170,7 @@ const a = {
   expandRow:rowId => run(async () => { s.drawer.rowId = rowId; s.drawer.query = null; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, rowId, null); }, 'conclusion'),
   summaryRows:() => { s.drawer.items = null; s.drawer.query = null; s.drawer.rowId = null; render(); },
   skipItem:itemId => run(async () => { if (s.conclusion?.stale) return; s.locations = await ipc.skip_add(itemId); await readConclusion(); s.modal = null; }),
+  skipUnit:unitId => run(async () => { if (!s.conclusion || s.conclusion.stale) return; s.locations = await ipc.skip_unit_add(s.conclusion.version, unitId); await readConclusion(); s.modal = null; }, 'conclusion'),
   details:() => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, s.detailMode); s.mode = 'details'; s.modal = null; main.scrollTop = 0; }, 'conclusion'),
   detailsMode:mode => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, mode); s.detailMode = mode; s.openSection = null; }, 'conclusion'),
   openSection:id => { s.openSection = s.openSection === id ? null : id; render(); },
@@ -181,6 +185,8 @@ const a = {
   }, s.prepareSource),
   finish:() => run(() => returnToCheckup(true)),
   copy:async text => { try { await navigator.clipboard.writeText(text); } catch { s.copyText = text; show('copy'); render(); } },
+  copyDiagnostics:() => run(async () => { const app = await ipc.app_info(), service = await ipc.diagnostics_get(); s.appInfo = app; await a.copy(`Flick 诊断信息\n${JSON.stringify({app, platform:navigator.userAgent, service}, null, 2)}`); }),
+  startIntro:() => { try { localStorage.setItem('flick.intro.v1', '1'); } catch {} s.intro = false; navigate('home'); },
   reveal:id => run(() => ipc.quarantine_reveal(id)),
   revealRoots:() => run(async () => { const revision = quarantineRevision, view = await ipc.quarantine_list(); if (revision === quarantineRevision) s.quarantine = view; const roots = s.quarantine.roots; if (roots.length === 1) await ipc.quarantine_reveal(roots[0].target_id); else if (roots.length) show('roots'); }),
   restore:(id, beside) => run(async () => { const v = await ipc.quarantine_restore(id, beside); installQuarantine(v.view); s.app = await ipc.app_state(); if (v.conflicts.length) { s.conflict = {id, result:v}; show('conflict'); } else s.modal = null; }),
@@ -256,7 +262,8 @@ function render() {
   top(); const notice = document.getElementById('notice'); notice.hidden = !s.error && !s.pollPaused; notice.replaceChildren();
   if (!notice.hidden) add(notice, el('span', '', s.error || s.pollReason || '进度读取已暂停，请重新连接。'), s.pollPaused ? button('重新连接', () => { resumePolling(); render(); }, 'btn soft', 'poll-retry', s.pending) : null);
   let view, name = s.route;
-  if (s.route === 'home') {
+  if (s.intro) { view = intro; name = 'intro'; }
+  else if (s.route === 'home') {
     name = s.busy === 'scanning' ? 'scan' : s.busy === 'cleaning' ? 'cleaning' : s.busy === 'deduping' ? 'dedupe' : s.mode;
     if (s.modal === 'drawer' && s.conclusion) name = 'results';
     view = {home, scan, cleaning, results, details, done, dedupe}[name] ?? home;
@@ -271,7 +278,7 @@ function render() {
 }
 function routeChanged() {
   routeEpoch++; s.route = canonicalRoute(location.hash); if (location.hash !== `#${s.route}`) history.replaceState(null, '', `#${s.route}`);
-  s.modal = null; s.error = ''; main.scrollTop = 0;
+  s.modal = null; s.error = ''; main.scrollTop = 0; checkupQueued = false;
   try { localStorage.setItem('water-last-page', s.route); } catch {}
   render(); void loadRoute();
 }
@@ -280,4 +287,6 @@ window.addEventListener('beforeunload', event => { if (['cleaning', 'purging'].i
 window.addEventListener('pagehide', () => { stopped = true; clearTimeout(timer); });
 if (!location.hash) { let saved; try { saved = localStorage.getItem('water-last-page'); } catch {} history.replaceState(null, '', `#${canonicalRoute(saved ?? 'home')}`); }
 s.route = canonicalRoute(location.hash); if (location.hash !== `#${s.route}`) history.replaceState(null, '', `#${s.route}`);
+// First run only; a storage that cannot be read never blocks the way in.
+try { s.intro = localStorage.getItem('flick.intro.v1') === null; } catch {}
 render(); void connect();

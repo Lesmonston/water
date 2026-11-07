@@ -15,6 +15,7 @@ export function results(s, a) {
   if (v.cards.length) cards.setAttribute('aria-label', '需要你看一眼');
   for (const c of viewCards(v)) {
     const entries = [];
+    if (c.menu.includes('skip')) entries.push(['以后都跳过', () => a.skipUnit(c.card_id)]);
     if (c.menu.includes('detail')) entries.push(['查看明细', () => a.detail(c.group_id)]);
     const clue = v.clues.find(x => x.clue_id === c.clue_id);
     if (c.menu.includes('copy_clue') && clue) entries.push(['复制线索给 agent', () => a.copy(clue.copy_text)]);

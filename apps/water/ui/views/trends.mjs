@@ -1,6 +1,7 @@
 import {add, el, heading, metric, card, button, row, menu, tag} from './common.mjs';
 import {dial, stems, proportions} from './charts.mjs';
 import {formatBytes, percent} from '../format.mjs';
+import {clusterStates} from '../model.mjs';
 export function trends(s, a) {
   const data = s.trends, page = el('section', 'screen');
   if (!data) return add(page, heading('趋势', '正在读取…'));
@@ -16,7 +17,7 @@ export function trends(s, a) {
   for (const c of data.clusters) {
     const entries = [['标记为已修', () => a.markFixed(c.group_id, true)]];
     if (c.copy_text) entries.push(['复制线索给 agent', () => a.copy(c.copy_text)]);
-    add(clusters, row(c.title_zh, c.rate_zh, tag({growing:'仍在长', stopped:'已止住', suspected:'疑似'}[c.state], c.state === 'growing' ? 'hot' : ''), menu(`${c.title_zh}菜单`, entries, `cluster-${c.group_id}`)));
+    add(clusters, row(c.title_zh, c.rate_zh, tag(clusterStates[c.state], c.state === 'growing' ? 'hot' : ''), menu(`${c.title_zh}菜单`, entries, `cluster-${c.group_id}`)));
   }
   add(left, clusters);
   const others = card('其它盘');

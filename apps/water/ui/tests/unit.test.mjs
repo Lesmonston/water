@@ -87,14 +87,15 @@ test('ui_v2_view_rules', () => {
   assert(items.rows.every(r => model.itemRow(items.group, r)), 'UI_V2_DRAWER: small group has real item IDs');
   assert(rows.rows.every(r => !model.itemRow(rows.group, r)), 'UI_V2_DRAWER: summary IDs are not item IDs');
   assert(merged.rows.every(r => !model.itemRow(merged.group, r)), 'UI_V2_DRAWER: merged group IDs are not item IDs');
+  assert.deepEqual(model.clusterStates, {growing:'仍在长', stopped:'已止住', suspected:'疑似', new:'新发现'}, 'UI_W12_FIXES: a cluster never compared before reads 新发现');
 });
 
 test('ui_ipc_boundary', async () => {
   const calls = [], original = globalThis.__TAURI__;
   const cases = {
-    app_state:[], scan_start:[], scan_cancel:['scan-a'], scan_progress:[], scan_result:['scan-a'], group_detail:['custom:water:cachedir-tagged'], clean_prepare:[['group-a', 'custom:water:cachedir-tagged']], clean_start:['plan-a', 'token-a'], clean_stop:[], clean_progress:[], clean_result:['clean-a'], trends:[], history_list:[], locations_get:[], locations_set_category:['agent_tool', false], custom_root_add:[], custom_root_remove:['root-a'], skip_add:['i-000201'], skip_remove:['s-000001']
+    app_state:[], scan_start:[], scan_cancel:['scan-a'], scan_progress:[], scan_result:['scan-a'], group_detail:['custom:water:cachedir-tagged'], clean_prepare:[['group-a', 'custom:water:cachedir-tagged']], clean_start:['plan-a', 'token-a'], clean_stop:[], clean_progress:[], clean_result:['clean-a'], trends:[], history_list:[], locations_get:[], locations_set_category:['agent_tool', false], custom_root_add:[], custom_root_remove:['root-a'], skip_add:['i-000201'], skip_remove:['s-000001'], skip_unit_add:['cv-1', 'card:codex-runtimes'], diagnostics_get:[], app_info:[]
   };
-  const keys = {scan_cancel:['scanId'], scan_result:['scanId'], group_detail:['groupId'], clean_prepare:['groupIds'], clean_start:['planId', 'confirmToken'], clean_result:['cleanId'], locations_set_category:['category', 'enabled'], custom_root_remove:['rootId'], skip_add:['itemId'], skip_remove:['skipId']};
+  const keys = {scan_cancel:['scanId'], scan_result:['scanId'], group_detail:['groupId'], clean_prepare:['groupIds'], clean_start:['planId', 'confirmToken'], clean_result:['cleanId'], locations_set_category:['category', 'enabled'], custom_root_remove:['rootId'], skip_add:['itemId'], skip_remove:['skipId'], skip_unit_add:['conclusionVersion', 'unitId']};
   const newCases = {
     conclusion_get:[[], {}], conclusion_decide:[['cv-1', {group:'group-a', choice:'clean'}], {version:'cv-1', decision:{group:'group-a', choice:'clean'}}],
     detail_get:[['cv-1', 'category'], {version:'cv-1', mode:'category'}], group_items:[['group-a', null, 'term'], {groupId:'group-a', rowId:null, query:'term'}],
@@ -115,7 +116,7 @@ test('ui_ipc_boundary', async () => {
       await ipc.clean_start('plan-a', token);
       assert.equal(calls.at(-1).args.confirmToken, token);
     }
-    assert.equal(Object.keys(ipc).length, 36, 'UI_IPC_NO_PATH: 36 commands, original positional calls retained');
+    assert.equal(Object.keys(ipc).length, 39, 'UI_IPC_NO_PATH: 39 commands, original positional calls retained');
     await ipc.clean_prepare(['group-a'], ['i-000201']);
     assert.deepEqual(calls.at(-1), {command:'clean_prepare', args:{groupIds:['group-a'], excludeItemIds:['i-000201']}}, 'UI_M3C_EXCLUDE: item IDs reach clean_prepare');
     await ipc.clean_prepare(['group-a'], []);
@@ -128,6 +129,11 @@ test('ui_ipc_boundary', async () => {
     await ipc.clean_prepare({dedupeId:'dup-1', dedupeVersion:'dv-1'}); assert.deepEqual(calls.at(-1).args, {dedupeId:'dup-1', dedupeVersion:'dv-1'});
     await ipc.group_items('m:cachedir-tagged', 'r:0123456789abcdef', null);
     assert.deepEqual(calls.at(-1).args, {groupId:'m:cachedir-tagged', rowId:'r:0123456789abcdef', query:null});
+    for (const unitId of ['card:custom:drive-f:custom-avd-snapshots', 'card:m:cachedir-tagged', 'r:59e431c1522f4cab', 'custom:water:cachedir-tagged']) {
+      await ipc.skip_unit_add('cv-16Z-5d2b-1', unitId);
+      assert.deepEqual(calls.at(-1), {command:'skip_unit_add', args:{conclusionVersion:'cv-16Z-5d2b-1', unitId}}, 'UI_W12_SKIP: skip_unit_add sends exactly the conclusion version and the unit ID');
+    }
+    for (const name of ['diagnostics_get', 'app_info']) { await ipc[name]('C:\\private'); assert.deepEqual(calls.at(-1), {command:name, args:{}}, 'UI_W12_SKIP: ' + name + ' never forwards an argument'); }
     const size = calls.length;
     for (const bad of ['C:\\Temp', '/tmp', 'a:b', '\u0001', 'x'.repeat(65)]) await assert.rejects(ipc.group_items('group-a', null, bad), e => e.code === 'invalid', 'UI_IPC_NO_PATH: search refuses paths');
     await assert.rejects(ipc.conclusion_decide('cv-1', {group:'g', choice:'clean', path:'C:/x'}), e => e.code === 'invalid');
@@ -144,6 +150,8 @@ test('ui_ipc_boundary', async () => {
     for (const bad of ['C:\\Users\\private', 'C:/Users/private', '/tmp/private', '..', '', 12, null]) await assert.rejects(ipc.group_detail(bad), e => e.code === 'invalid');
     await assert.rejects(ipc.clean_prepare(['safe', 'D:\\private']), e => e.code === 'invalid');
     await assert.rejects(ipc.locations_set_category('browser', 'yes'), e => e.code === 'invalid');
+    for (const bad of ['C:\\private', 'F:/private', '/tmp/private', '\\\\server\\share', '..', '', 12, null, undefined]) await assert.rejects(ipc.skip_unit_add('cv-1', bad), e => e.code === 'invalid', 'UI_W12_SKIP: skip_unit_add refuses paths and non-IDs as the unit');
+    for (const bad of ['', 'a'.repeat(65), 'cv/1', 'cv 1', null, 3, undefined]) await assert.rejects(ipc.skip_unit_add(bad, 'card:codex-runtimes'), e => e.code === 'invalid', 'UI_W12_SKIP: skip_unit_add refuses a malformed conclusion version');
     assert.equal(calls.length, size, 'invalid inputs must never reach host');
     delete globalThis.__TAURI__;
     for (const [name, [args]] of Object.entries(newCases)) await assert.rejects(ipc[name](...args), e => e.code === 'unavailable');

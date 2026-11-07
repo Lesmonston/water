@@ -72,3 +72,6 @@ export const dedupe_decide = (dedupeId, v, groupId, include) => invoke('dedupe_d
 export const locations_set_session_cleanup = (tool, enabled, days) => invoke('locations_set_session_cleanup', () => ({tool:id(tool), enabled:bool(enabled), days:oneOf(days, [7, 30, 90])}));
 export const manifest_trust = (manifestId, trusted) => invoke('manifest_trust', () => ({manifestId:id(manifestId), trusted:bool(trusted)}));
 export const cluster_mark_fixed = (groupId, fixed) => invoke('cluster_mark_fixed', () => ({groupId:id(groupId), fixed:bool(fixed)}));
+export const skip_unit_add = (conclusionVersion, unitId) => invoke('skip_unit_add', () => ({conclusionVersion:version(conclusionVersion), unitId:id(unitId)}));
+export const diagnostics_get = () => invoke('diagnostics_get');
+export const app_info = () => invoke('app_info');

@@ -1,5 +1,5 @@
 import {add, el, heading, card, button, row, toggle, tag} from './common.mjs';
-import {formatBytes} from '../format.mjs';
+import {formatBytes, localDateKey} from '../format.mjs';
 import {about} from './about.mjs';
 export function locations(s, a) {
   const current = s.route.split('/')[1], titles = {content:'扫描内容', skip:'跳过名单', decl:'项目声明', about:'关于与隐私'}, page = add(el('section', 'screen'), heading(titles[current], '设置 · 改了下次体检生效'));
@@ -23,7 +23,7 @@ export function locations(s, a) {
     add(body, categories, sessions);
   } else if (current === 'skip') {
     const list = card('以后都跳过');
-    for (const item of value.skipped) add(list, row(item.display_path, item.added_at, button('移除', () => a.removeSkip(item.skip_id), 'btn soft', `skip-remove-${item.skip_id}`, a.busy())));
+    for (const item of value.skipped) add(list, row(item.display_zh ?? item.display_path, `加入于 ${localDateKey(item.added_at)}`, button('移除', () => a.removeSkip(item.skip_id), 'btn soft', `skip-remove-${item.skip_id}`, a.busy())));
     if (!value.skipped.length) add(list, el('p', 'sub', '跳过名单为空')); add(body, list);
   } else if (current === 'decl') {
     for (const m of value.manifests) {
@@ -34,7 +34,7 @@ export function locations(s, a) {
       add(node, button(m.state === 'trusted' ? '不信任' : '信任', () => a.trust(m.manifest_id, m.state !== 'trusted'), 'btn soft', `trust-${m.manifest_id}`, m.state === 'invalid' || a.busy())); add(body, node);
     }
     if (!value.manifests.length) add(body, card('尚未发现项目声明'));
-  } else add(body, about(s));
+  } else add(body, about(s, a));
   const privacy = add(card('隐私', 'dark main-card'), row('本地体检', '一般体检只读名字、大小、时间和属性'), row('不联网', '不上传任何数据'), row('清理由你确认', '隔离不会释放空间；永久删除不能恢复'), row('项目声明优先', '声明保护的内容不会清理'), el('p', 'sub bottom', `Flick ${s.app?.app_version ?? ''} · 记录只存在这台电脑上`));
   return add(page, add(grid, body, privacy));
 }

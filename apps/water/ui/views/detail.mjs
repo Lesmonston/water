@@ -1,7 +1,6 @@
 import {add, el, button, iconButton, check, menu, row, heading, card, metric, search} from './common.mjs';
 import {blocks} from './charts.mjs';
 import {formatBytes} from '../format.mjs';
-import {itemRow} from '../model.mjs';
 export function detail(s, a) {
   const d = s.drawer.data, g = d.group, page = el('dialog', 'drawer', undefined, {'aria-labelledby':'drawer-title'}), disabled = a.busy() || s.conclusion?.stale;
   add(page, add(el('div', 'card-head'), el('h2', '', g.title_zh, {id:'drawer-title'}), iconButton('关闭抽屉', 'close', a.close, 'detail-close')), el('p', 'sub', d.after_zh), el('p', 'sub', d.why_zh), metric(g.total_bytes), blocks(g.eligible_bytes, g.total_bytes, 'lime'), search('找某一项', a.searchItems, 'drawer-search', s.drawer.query ?? ''));
@@ -17,7 +16,8 @@ export function detail(s, a) {
   } else {
     for (const r of d.rows) {
       const choices = [];
-      if (itemRow(g, r) && ['recommended', 'confirm'].includes(g.level)) choices.push(['以后都跳过', () => a.skipItem(r.row_id)]);
+      if (r.skip === 'item') choices.push(['以后都跳过', () => a.skipItem(r.row_id)]);
+      else if (r.skip === 'unit') choices.push(['以后都跳过', () => a.skipUnit(r.row_id)]);
       if (r.expandable) choices.push(['展开看每一项', () => a.expandRow(r.row_id)]);
       const item = add(el('div', 'summary-row', undefined, {'data-row':r.row_id}), check(`选择${r.label_zh}`, r.included, include => a.decide({row:r.row_id, include}), `row-${r.row_id}`, disabled || !r.selectable), row(r.label_zh, r.release_zh, el('span', '', formatBytes(r.bytes)), choices.length ? menu('汇总行菜单', choices, `row-menu-${r.row_id}`) : null));
       add(list, item);
