@@ -271,6 +271,7 @@ pub(crate) fn supplement(
     unfinished: &BTreeMap<String, String>,
 ) -> Value {
     let apps = core.platform.installed_apps();
+    let mut uninstallers = BTreeMap::new();
     let mut notes = serde_json::Map::new();
     let mut resumed = serde_json::Map::new();
     let mut created = serde_json::Map::new();
@@ -288,6 +289,18 @@ pub(crate) fn supplement(
         let mut messages = Vec::new();
         let mut blocked = Vec::new();
         let path = local_path(&item.path);
+        if (g.rule_id == "installer-files" || g.cluster.is_some())
+            && let Some(reason) = program_directory(
+                &item.path,
+                g.cluster.as_ref().map(|c| c.parent.as_str()),
+                apps.as_ref(),
+                &mut uninstallers,
+            )
+        {
+            // This explanation takes priority even when the scanner already blocked the item.
+            item.ineligible_reason = Some(reason.clone());
+            blocked.push(reason);
+        }
         if path.is_none() {
             blocked.push("路径格式无法核对项目声明".to_owned());
         }
@@ -372,13 +385,8 @@ pub(crate) fn supplement(
         }
         if g.rule_id == "installer-files"
             && let Some(list) = &apps
-            && let Some(index) = water_installed_apps::find(
-                list,
-                &water_installed_apps::installer_tokens(name(&item.path)),
-            )
-            .first()
+            && let Some(app) = installer_app(list, name(&item.path))
         {
-            let app = &list.apps[*index];
             messages.push(format!(
                 "对应的软件已经装好：{} {}",
                 app.name,
@@ -434,6 +442,75 @@ pub(crate) fn supplement(
         }
     }
     json!({"item_notes":notes,"unfinished":resumed,"item_created":created,"installed_apps_at":apps.as_ref().and_then(|a|collected_at(&a.collected_at))})
+}
+
+fn installer_app<'a>(
+    list: &'a water_installed_apps::AppList,
+    file_name: &str,
+) -> Option<&'a water_installed_apps::App> {
+    let installer = water_installed_apps::installer_tokens(file_name);
+    list.apps.iter().find(|app| {
+        let words = water_installed_apps::name_tokens(&app.name)
+            .into_iter()
+            .filter(|s| !s.chars().all(char::is_numeric))
+            .collect::<Vec<_>>();
+        words.iter().any(|s| s.chars().count() >= 3)
+            && words
+                .iter()
+                .all(|s| installer.iter().any(|t| s.eq_ignore_ascii_case(t)))
+    })
+}
+
+fn program_directory(
+    item_path: &str,
+    cluster_parent: Option<&str>,
+    apps: Option<&water_installed_apps::AppList>,
+    cache: &mut BTreeMap<String, bool>,
+) -> Option<String> {
+    let path = local_path(item_path)?;
+    if let Some(app) = apps.into_iter().flat_map(|list| &list.apps).find(|app| {
+        app.install_location
+            .as_deref()
+            .and_then(local_path)
+            .is_some_and(|root| {
+                root.trim_end_matches('\\').len() > 3 && util::contains(&root, &path)
+            })
+    }) {
+        return Some(format!("在已安装程序 {} 的安装目录里", app.name));
+    }
+    let mut dir = cluster_parent
+        .and_then(local_path)
+        .unwrap_or_else(|| parent(&path));
+    // The containing directory plus five ancestors; never enumerate a drive root.
+    for _ in 0..=5 {
+        if dir.len() <= 3 {
+            break;
+        }
+        let found = *cache.entry(dir.to_ascii_lowercase()).or_insert_with(|| {
+            std::fs::read_dir(&dir).is_ok_and(|entries| {
+                entries.flatten().any(|entry| {
+                    let file_name = entry.file_name().to_string_lossy().to_ascii_lowercase();
+                    file_name.ends_with(".exe")
+                        && (file_name.starts_with("unins") || file_name.starts_with("uninstall"))
+                        && entry
+                            .metadata()
+                            .is_ok_and(|m| m.is_file() && m.file_attributes() & 0x400 == 0)
+                })
+            })
+        });
+        if found {
+            return Some(format!("在程序目录 {} 里（有卸载程序）", name(&dir)));
+        }
+        dir = parent(&dir);
+    }
+    None
+}
+
+pub(crate) fn program_directory_blocked(item: &water_junk_scan::Item) -> bool {
+    !item.eligible
+        && item.ineligible_reason.as_deref().is_some_and(|reason| {
+            reason.starts_with("在已安装程序 ") || reason.starts_with("在程序目录 ")
+        })
 }
 
 fn compact(s: &str) -> String {
