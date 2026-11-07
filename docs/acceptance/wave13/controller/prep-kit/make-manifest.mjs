@@ -61,7 +61,11 @@ const tasks = [
     proof: ['RULES_W13_SOURCES', 'RULES_W13_SOURCES'],
     read: ['contracts/m35-v1/RULES-M35.md', 'packages/junk-rules/rules/windows.json', 'packages/junk-rules/tests/rules_v1.rs', 'packages/junk-rules/README.md'],
     frozen: ['contracts/m35-v1/RULES-M35.md', 'contracts/checkup-v1/RULES.md', 'contracts/checkup-v1/MODEL.md', 'contracts/m3c-v1/RULES-M3C.md', 'contracts/m3d-v1/RULES-M3D.md', 'contracts/m35-v1/SCAN-M35.md'],
-    extra: {negativeControlPaths: ['packages/junk-rules/rules/windows.json']}}),
+    // productionFiles as in W12-P5: HISTORY drops it, and without rules/windows.json in the production snapshot an NC on the
+    // rules data leaves productionHash unchanged (R1 blocked on this, 11-08; addendum 01). J1 and S1 also lost their
+    // README/Cargo entries; left as dispatched, since their NCs change src/ and restoring the list mid-ticket would void their greens.
+    extra: {negativeControlPaths: ['packages/junk-rules/rules/windows.json'],
+      productionFiles: ['packages/junk-rules/Cargo.toml', 'packages/junk-rules/Cargo.lock', 'packages/junk-rules/README.md', 'packages/junk-rules/rules/windows.json']}}),
   task(from12('WATER-W12-P4'), 'u1', {title: '界面：样例换成虚构路径、移除跳过后重读结论', executor: 'opus', gate: 'light', ticket: T + 'WATER-W13-U1-UI-20261108.md',
     purpose: 'the three UI fixtures use made-up paths with identical keys and types; removing a skip re-reads the conclusion instead of marking it stale; browser fake returns a fresh conclusion after skips; all screenshots retaken; public wording',
     hint: 'UI: W13 sections 0, 2.1 and 4; fixtures are editable for this ticket only; two browser NCs on removeSkip; light gate.',

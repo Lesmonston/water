@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>Flick video scenes</title>
+<!--
+  The tweet video (docs/launch/VIDEO-SCRIPT-20261108.md), one 1920x1080 stage driven by time.
+  window.renderAt(t) puts every element where it is at t seconds and returns a key that changes only when the picture
+  does; render.mjs calls it frame by frame. Open with ?play to watch it in real time, ?t=12.5 to hold one moment.
+  Fonts are the machine's own (Segoe UI Variable, Noto Sans SC, Cascadia Mono); nothing is fetched.
+-->
+<style>
+:root{
+  --ink:#111418; --ink-2:#5C6470; --ink-3:#9AA2AD; --hairline:rgba(17,20,24,.09);
+  --font:"Noto Sans SC","Microsoft YaHei UI",sans-serif;
+  --latin:"Segoe UI Variable Display","Segoe UI",sans-serif;
+  --mono:"Cascadia Mono","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#fff}
+body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;font-kerning:normal;font-feature-settings:"palt" 0}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:linear-gradient(175deg,#EDF2F8 0%,#F6F8FB 40%,#FFFFFF 100%)}
+.fog{position:absolute;border-radius:50%;pointer-events:none}
+#fog1{width:1200px;height:1200px;left:1150px;top:-520px;background:radial-gradient(circle,rgba(190,219,243,.50) 0%,rgba(190,219,243,0) 68%)}
+#fog2{width:1000px;height:1000px;left:-380px;top:560px;background:radial-gradient(circle,rgba(222,231,242,.55) 0%,rgba(222,231,242,0) 68%)}
+.scene{position:absolute;inset:0;visibility:hidden}
+[data-d]{opacity:0;will-change:opacity,transform}
+
+/* statements: one centred line */
+.say{position:absolute;left:0;right:0;top:494px;text-align:center;font-size:66px;font-weight:300;letter-spacing:.02em;line-height:1.3}
+
+/* logo lockup */
+.lockup{position:absolute;left:0;right:0;top:388px;display:flex;justify-content:center;align-items:center;gap:26px}
+.lockup .mark{width:150px;height:150px;margin-right:-12px}
+.lockup .word{font-family:var(--latin);font-size:120px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.under{position:absolute;left:0;right:0;top:612px;text-align:center;font-size:44px;font-weight:300;color:var(--ink-2);letter-spacing:.04em}
+
+/* the list: same place on every screen */
+.lead{position:absolute;left:240px;top:466px;font-size:46px;font-weight:300;color:var(--ink-2);letter-spacing:.04em}
+.num{position:absolute;left:244px;top:338px;font-family:var(--latin);font-size:24px;font-weight:400;letter-spacing:.08em;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.num b{font-weight:600;color:var(--ink)}
+.title{position:absolute;left:236px;top:380px;font-size:100px;font-weight:500;letter-spacing:.01em;line-height:1.15}
+.sub{position:absolute;left:240px;top:540px;width:1560px;font-size:44px;font-weight:300;color:var(--ink-2);line-height:1.65;letter-spacing:.02em;white-space:nowrap}
+.sub code{font-family:var(--mono);font-size:.86em;font-weight:300;color:#3A4049;letter-spacing:0}
+.clue{position:absolute;left:240px;top:768px;display:inline-flex;align-items:center;gap:14px;padding:20px 30px 20px 26px;border-radius:16px;
+  background:rgba(255,255,255,.78);border:1px solid var(--hairline);box-shadow:0 22px 60px rgba(17,20,24,.10),0 1px 0 rgba(17,20,24,.04);
+  font-size:32px;font-weight:500;letter-spacing:.02em}
+.clue svg{width:34px;height:34px;color:var(--ink)}
+
+/* placeholder for the two UI shots (32-38 s), filled after the UI sample data uses made-up paths */
+.shot{position:absolute;left:330px;top:150px;width:1260px;height:700px;border-radius:18px;border:1.5px dashed rgba(17,20,24,.16);
+  display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:300;color:var(--ink-3)}
+.cap{position:absolute;left:0;right:0;top:896px;text-align:center;font-size:44px;font-weight:300;letter-spacing:.03em}
+
+/* end card */
+.end-mark{position:absolute;left:50%;top:360px;width:100px;height:100px;margin-left:-50px}
+.sign{position:absolute;left:0;right:0;top:508px;text-align:center;font-size:48px;font-weight:300;color:var(--ink-2);letter-spacing:.04em}
+.sign b{font-family:var(--latin);font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.sign i{font-style:normal;color:var(--ink-3);padding:0 .5em}
+</style>
+
+<div id="stage">
+  <div class="fog" id="fog1"></div>
+  <div class="fog" id="fog2"></div>
+
+  <section class="scene" id="s1"><p class="say" data-d="0">写代码的电脑，总是满得很快。</p></section>
+  <section class="scene" id="s2"><p class="say" data-d="0">又不太敢乱删。</p></section>
+
+  <section class="scene" id="s3">
+    <div class="lockup">
+      <svg class="mark" viewBox="0 0 48 48" data-d="0" data-dur="0.25" data-shift="0" data-blur="0">
+        <defs>
+          <linearGradient id="g3" x1="6" y1="40" x2="42" y2="6" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset="0" stop-color="#000"/></linearGradient>
+          <mask id="m3" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="url(#g3)"/></mask>
+        </defs>
+        <path d="M12 30.5 C19 22.5 29 13.5 41 8 C32 16 24 27.5 15.8 38.3 A5 5 0 1 1 12 30.5 Z" fill="#111418" mask="url(#m3)" data-draw="0.05" data-draw-dur="0.6" data-grad="g3"/>
+      </svg>
+      <span class="word" data-d="0.45" data-dx="-10" data-shift="0">Flick</span>
+    </div>
+    <p class="under" data-d="0.95">做了个清理的小工具，还在调。</p>
+  </section>
+
+  <section class="scene" id="s4"><p class="lead" data-d="0">它会找出这些：</p></section>
+
+  <section class="scene" id="c1">
+    <p class="num" data-d="0"><b>01</b> / 07</p>
+    <h2 class="title" data-d="0.08">AI 编程工具</h2>
+    <p class="sub" data-d="0.28">Claude Code、Codex、Cursor 的旧版本、升级残留、<br>安装下载、临时目录和日志</p>
+  </section>
+  <section class="scene" id="c2">
+    <p class="num" data-d="0"><b>02</b> / 07</p>
+    <h2 class="title" data-d="0.08">开发缓存</h2>
+    <p class="sub" data-d="0.28">npm、pip、yarn、cargo、Gradle 的下载缓存，Playwright 的浏览器</p>
+  </section>
+  <section class="scene" id="c3">
+    <p class="num" data-d="0"><b>03</b> / 07</p>
+    <h2 class="title" data-d="0.08">项目文件夹里</h2>
+    <p class="sub" data-d="0.28">Rust 的 <code>target</code>、<code>__pycache__</code>、<br>很久没动的 <code>node_modules</code>、测试用的浏览器配置</p>
+  </section>
+  <section class="scene" id="c4">
+    <p class="num" data-d="0"><b>04</b> / 07</p>
+    <h2 class="title" data-d="0.08">浏览器、系统与软件</h2>
+    <p class="sub" data-d="0.28">网页缓存、崩溃转储、显卡着色器缓存、临时文件，<br>装完没删的安装包、没装上的更新</p>
+  </section>
+  <section class="scene" id="c5">
+    <p class="num" data-d="0"><b>05</b> / 07</p>
+    <h2 class="title" data-d="0.08">一直在长的</h2>
+    <p class="sub" data-d="0.28">同一个模板、天天多出来的目录。<br>给你一段线索，交给 agent 查根因。</p>
+    <div class="clue" data-d="1.1" data-dur="0.9" data-shift="22">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.2"/><path d="M15.5 8.5V6.7a2.2 2.2 0 0 0-2.2-2.2H6.7a2.2 2.2 0 0 0-2.2 2.2v6.6a2.2 2.2 0 0 0 2.2 2.2h1.8"/></svg>
+      <span>复制线索给 agent</span>
+    </div>
+  </section>
+  <section class="scene" id="c6">
+    <p class="num" data-d="0"><b>06</b> / 07</p>
+    <h2 class="title" data-d="0.08">只列出来，不替你删</h2>
+    <p class="sub" data-d="0.28">Hugging Face 和 Ollama 的模型、浏览器的端侧模型</p>
+  </section>
+  <section class="scene" id="c7">
+    <p class="num" data-d="0"><b>07</b> / 07</p>
+    <h2 class="title" data-d="0.08">不碰</h2>
+    <p class="sub" data-d="0.28">登录信息与 Cookies、你的源码。<br>AI 工具的会话记录默认不清，打开后也只清超过保留天数的</p>
+  </section>
+
+  <section class="scene" id="u1">
+    <div class="shot" data-d="0" data-shift="24">界面：结论页（等虚构样例）</div>
+    <p class="cap" data-d="0.35">先只读体检，再给结论。拿不准的，一张卡，你来定。</p>
+  </section>
+  <section class="scene" id="u2">
+    <div class="shot" data-d="0" data-shift="24">界面：隔离区（等虚构样例）</div>
+    <p class="cap" data-d="0.25">清掉的先进隔离区，随时还原。</p>
+  </section>
+
+  <section class="scene" id="end">
+    <svg class="end-mark" viewBox="0 0 48 48" data-d="0" data-dur="0.25" data-shift="0" data-blur="0">
+      <defs>
+        <linearGradient id="g9" x1="6" y1="40" x2="42" y2="6" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset="0" stop-color="#000"/></linearGradient>
+        <mask id="m9" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><rect width="48" height="48" fill="url(#g9)"/></mask>
+      </defs>
+      <path d="M12 30.5 C19 22.5 29 13.5 41 8 C32 16 24 27.5 15.8 38.3 A5 5 0 1 1 12 30.5 Z" fill="#111418" mask="url(#m9)" data-draw="0.05" data-draw-dur="0.5" data-grad="g9"/>
+    </svg>
+    <p class="sign" data-d="0.35"><b>Flick</b><i>·</i>Windows<i>·</i>在本机运行</p>
+  </section>
+
+</div>
+
+<script>
+// Scene times in seconds, from the storyboard. Each scene fades in from its start and out just before its end.
+const SCENES = [
+  ['s1', 0, 3], ['s2', 3, 5], ['s3', 5, 8], ['s4', 8, 10],
+  ['c1', 10, 13], ['c2', 13, 16], ['c3', 16, 19], ['c4', 19, 22], ['c5', 22, 26], ['c6', 26, 29], ['c7', 29, 32],
+  ['u1', 32, 36], ['u2', 36, 38], ['end', 38, 40],
+].map(([id, a, b]) => ({id, a, b, node: document.getElementById(id)}));
+const LENGTH = 40, IN = 0.7, OUT = 0.45, SHIFT = 16, BLUR = 3;
+const clamp = x => Math.max(0, Math.min(1, x));
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const easeSine = x => -(Math.cos(Math.PI * x) - 1) / 2;
+
+function renderAt(t) {
+  const key = [];
+  for (const s of SCENES) {
+    const live = t >= s.a && t < s.b;
+    s.node.style.visibility = live ? 'visible' : 'hidden';
+    if (!live) continue;
+    key.push(s.id);
+    // The last scene holds until 0.4 s before the end, then fades to the empty background.
+    const out = easeSine(clamp((t - (s.b - (s.b === LENGTH ? 0.4 : OUT))) / (s.b === LENGTH ? 0.4 : OUT)));
+    for (const el of s.node.querySelectorAll('[data-d]')) {
+      const d = +el.dataset.d, dur = +(el.dataset.dur ?? IN), shift = +(el.dataset.shift ?? SHIFT);
+      const dx = +(el.dataset.dx ?? 0), blur = +(el.dataset.blur ?? BLUR);
+      const p = easeOut(clamp((t - s.a - d) / dur));
+      const o = p * (1 - out), x = (1 - p) * dx, y = (1 - p) * shift - out * shift * 0.5, b = (1 - p) * blur;
+      el.style.opacity = o.toFixed(4);
+      el.style.transform = `translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`;
+      el.style.filter = b > 0.01 ? `blur(${b.toFixed(2)}px)` : 'none';
+      key.push(o.toFixed(3), x.toFixed(1), y.toFixed(1), b.toFixed(2));
+    }
+    // The mark is drawn like one brush flick: a soft edge sweeps from the round head to the tip.
+    for (const el of s.node.querySelectorAll('[data-draw]')) {
+      const p = easeInOut(clamp((t - s.a - +el.dataset.draw) / +el.dataset.drawDur));
+      const [a, b] = document.getElementById(el.dataset.grad).querySelectorAll('stop');
+      const edge = clamp(p * 1.16 - 0.08);
+      a.setAttribute('offset', edge.toFixed(4)); b.setAttribute('offset', clamp(edge + 0.08).toFixed(4));
+      key.push(edge.toFixed(3));
+    }
+  }
+  // Slow drift of the two soft background shapes; whole pixels so held frames stay identical.
+  const f = t / LENGTH;
+  document.getElementById('fog1').style.transform = `translate(${Math.round(-60 * f)}px,${Math.round(36 * f)}px)`;
+  document.getElementById('fog2').style.transform = `translate(${Math.round(48 * f)}px,${Math.round(-20 * f)}px)`;
+  key.push(Math.round(-60 * f), Math.round(36 * f), Math.round(48 * f), Math.round(-20 * f));
+  return key.join(',');
+}
+window.renderAt = renderAt;
+window.VIDEO_LENGTH = LENGTH;
+
+const q = new URLSearchParams(location.search);
+if (q.has('play')) {
+  const t0 = performance.now();
+  const tick = now => { renderAt(((now - t0) / 1000) % LENGTH); requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+} else renderAt(q.has('t') ? +q.get('t') : 0);
+</script>
+</html>

@@ -64,3 +64,16 @@
   
   先给用户看几张关键帧，确认后再出整段。
 - **出视频前再核一遍**：画面里没有用户名、本机路径、本机项目名。
+
+## 制作（11-08 起）
+
+- **画面**：[flick-video/scenes.html](flick-video/scenes.html)，一个 1920×1080 的页面按时间摆好每一屏。加 `?play` 可在浏览器里实时看，加 `?t=12.5` 停在某一刻。
+- **渲染**：[flick-video/render.mjs](flick-video/render.mjs) 用本机 headless Chrome 逐帧截图，再交给 ffmpeg 编成 30 fps 的 H.264 MP4。
+  - ffmpeg 用的是本机 Python 包 `imageio-ffmpeg` 自带的那份（7.1，带 libx264），不用下载；
+  - 用法：`node docs/launch/flick-video/render.mjs frames <目录> <秒,秒,…>` 出关键帧，`… video <文件.mp4>` 出整段；
+  - 产物放 `.local/flick-video/`，不进仓库。
+- **字**：中文与正文用 Noto Sans SC（本机已装），数字与 “Flick” 字标用 Segoe UI Variable，代码名用 Cascadia Mono。正文比初稿放大到 44px，手机上看推特也读得清。
+- **渲染里踩过的坑**：
+  - headless 的标签页算“在后台”，每帧要等一秒左右，要加不节流的开关；
+  - 页面上铺噪点会让每帧 PNG 很大、很慢。噪点改在 ffmpeg 里加（防背景渐变出色带）。
+- **界面两屏（32–38 秒）**：现在是虚线占位。等 U1 合入后，用虚构样例在浏览器里截真界面换上。

@@ -513,7 +513,7 @@
       "branch": "worker/water-w13-r1",
       "baseCommit": "6b7703e84e8903d03a6c2ef0c0550187034717ac",
       "snapshotRef": "refs/tags/water-w13-r1-base-20261108",
-      "status": "DISPATCHED",
+      "status": "BLOCKED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "local_observation sources start with a date, name the maintainer check, carry no path separators or private references; data_version 2026-11-08.1; rule count and data version asserted through one constant each; public wording in README",
       "report": "docs/dispatch/reports/WATER-W13-R1-REPORT.md",
@@ -581,11 +581,31 @@
       "negativeControlPaths": [
         "packages/junk-rules/rules/windows.json"
       ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
       "issuedAt": "2026-11-07T16:13:13Z",
       "baselineStatus": "PASSED",
       "source": "docs/dispatch/wave13/PLAN.md",
       "baselineEvidence": "docs/acceptance/wave13/controller/preflight-20261108/r1/",
-      "dispatchEvidence": "user 2026-11-08: \"这次界面单给astra了，其余的都是sol\""
+      "dispatchEvidence": "user 2026-11-08: \"这次界面单给astra了，其余的都是sol\"",
+      "returnedHead": "504bd856890e599b1dfa66260b64320dec79d53f",
+      "candidateImplementation": "5e8332871a045e51597121406860eb872b8c00f4",
+      "blockedReport": "docs/dispatch/reports/WATER-W13-R1-REPORT.md",
+      "blockedReason": "test --final proof audit: Missing valid negative control nc1. Controller manifest omission: the generator drops productionFiles carried over from W12-P5 and R1 only re-added negativeControlPaths, so rules/windows.json was outside the production snapshot and red and green had the same productionHash. Worker receipts confirmed; both NCs failed RULES_W13_SOURCES as intended.",
+      "addenda": [
+        {
+          "id": "WATER-W13-R1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W13-R1-ADDENDUM-01-20261108.md",
+          "status": "READY",
+          "issuedAt": "2026-11-07T17:40:00Z",
+          "resumeFromCommit": "504bd856890e599b1dfa66260b64320dec79d53f",
+          "change": "manifest only: productionFiles for R1 as in W12-P5 (Cargo.toml, Cargo.lock, README.md, rules/windows.json); implementation unchanged; worker re-collects red-nc1, restore test, red-nc2, restore test, then check, test and real finals and archive"
+        }
+      ]
     },
     {
       "kind": "ui",
