@@ -241,6 +241,7 @@ fn finish(
 
 fn potential_children(
     engine: &mut Engine<'_>,
+    parent: &str,
     children: &[Child],
     group: &str,
     category: Category,
@@ -251,12 +252,11 @@ fn potential_children(
         if engine.stopped(group) {
             return HashSet::new();
         }
-        if c.kind == Kind::Reparse || c.name.eq_ignore_ascii_case(".git") {
+        let template = name_template(&c.name, c.kind == Kind::File);
+        if !cluster_candidate_allowed(parent, c, template.as_deref()) {
             continue;
         }
-        if let Some(t) = name_template(&c.name, c.kind == Kind::File)
-            && !(c.kind == Kind::File && t.contains("<d>"))
-        {
+        if let Some(t) = template {
             *counts.entry((c.kind == Kind::File, t)).or_default() += 1;
         }
     }
@@ -280,11 +280,11 @@ fn potential_children(
         if engine.stopped(group) {
             return HashSet::new();
         }
-        if c.kind == Kind::Reparse || c.name.eq_ignore_ascii_case(".git") {
+        let template = name_template(&c.name, c.kind == Kind::File);
+        if !cluster_candidate_allowed(parent, c, template.as_deref()) {
             continue;
         }
-        let matched = name_template(&c.name, c.kind == Kind::File)
-            .is_some_and(|t| templates.contains(&(c.kind == Kind::File, t)));
+        let matched = template.is_some_and(|t| templates.contains(&(c.kind == Kind::File, t)));
         let extra = if c.kind == Kind::File {
             let (stem, ext) = file_parts(&c.name);
             let ext = ext.to_ascii_lowercase();
@@ -675,6 +675,7 @@ pub(super) fn walk(
                     {
                         potential_children(
                             engine,
+                            &dir.path,
                             &listing.children,
                             &group,
                             plan.targets[primary].category,

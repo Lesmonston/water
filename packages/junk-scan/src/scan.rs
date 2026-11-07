@@ -1282,6 +1282,45 @@ fn file_parts(name: &str) -> (&str, &str) {
         .unwrap_or((name, ""))
 }
 
+// Shared by streaming candidate measurement and final cluster assembly,
+// including the extra siblings of hash-file clusters. Ordinary hits are unaffected.
+fn cluster_candidate_allowed(parent: &str, child: &Child, template: Option<&str>) -> bool {
+    if child.kind == Kind::Reparse || child.name.eq_ignore_ascii_case(".git") {
+        return false;
+    }
+    if parent
+        .rsplit('\\')
+        .filter(|part| !part.is_empty())
+        .take(5)
+        .any(|part| {
+            [
+                "sessions",
+                "subagents",
+                "conversations",
+                "chats",
+                "transcripts",
+            ]
+            .iter()
+            .any(|name| part.eq_ignore_ascii_case(name))
+        })
+    {
+        return false;
+    }
+    if child.kind == Kind::File && file_parts(&child.name).1.eq_ignore_ascii_case(".jsonl") {
+        return false;
+    }
+    if let Some(template) = template {
+        let template = template.to_ascii_lowercase();
+        if template.contains("backup") || template.contains("bak") {
+            return false;
+        }
+        if child.kind == Kind::File && (template.contains("<d>") || template.contains("<u>")) {
+            return false;
+        }
+    }
+    true
+}
+
 fn hash_extra(template: &str, name: &str) -> bool {
     let Some((prefix, extension)) = template.split_once("<h>") else {
         return false;
@@ -1383,9 +1422,11 @@ fn build_clusters(
             if !eligible || claimed(&member_paths, &key) {
                 continue;
             }
-            if let Some(template) = name_template(&child.name, child.kind == Kind::File)
-                && !(child.kind == Kind::File && template.contains("<d>"))
-            {
+            let template = name_template(&child.name, child.kind == Kind::File);
+            if !cluster_candidate_allowed(&parent, &child, template.as_deref()) {
+                continue;
+            }
+            if let Some(template) = template {
                 templates
                     .entry((
                         (if child.kind == Kind::File {
