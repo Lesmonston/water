@@ -1,10 +1,10 @@
 #![forbid(unsafe_code)]
 use serde_json::json;
-use water_cleanup_manifest::{FILE_NAME, read_git_link, read_manifest};
+use water_cleanup_manifest::{FILE_NAMES, read_git_link, read_manifest};
 fn main() {
     let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(4)
+        .find(|ancestor| ancestor.join(".worktrees").is_dir())
         .expect("repository");
     let mut counts = [0u64; 3];
     for entry in std::fs::read_dir(repo.join(".worktrees"))
@@ -23,15 +23,19 @@ fn main() {
             }] += 1;
         }
     }
-    let path = repo.join(FILE_NAME);
-    let manifest = if std::fs::symlink_metadata(&path).is_ok() {
-        let loaded = read_manifest(&path.to_string_lossy());
-        json!({"present":true,"valid":loaded.manifest.is_some(),
-            "entries":loaded.manifest.as_ref().map_or(0,|m|m.disposable.len()),
-            "hash_prefix":loaded.hash.as_ref().map(|h|&h[..8])})
-    } else {
-        json!({"present":false})
-    };
+    let mut manifest = serde_json::Map::new();
+    for (key, name) in ["flick", "water"].into_iter().zip(FILE_NAMES) {
+        let path = repo.join(name);
+        let summary = if std::fs::symlink_metadata(&path).is_ok() {
+            let loaded = read_manifest(&path.to_string_lossy());
+            json!({"present":true,"valid":loaded.manifest.is_some(),
+                "entries":loaded.manifest.as_ref().map_or(0,|m|m.disposable.len()),
+                "hash_prefix":loaded.hash.as_ref().map(|h|&h[..8])})
+        } else {
+            json!({"present":false,"valid":false,"entries":0,"hash_prefix":null})
+        };
+        manifest.insert(key.to_owned(), summary);
+    }
     println!(
         "{}",
         json!({"valid":counts[0],"detached":counts[1],"invalid":counts[2],"manifest":manifest})

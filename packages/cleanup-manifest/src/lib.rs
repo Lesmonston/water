@@ -10,6 +10,8 @@ use std::io::Read;
 use std::path::Path;
 
 pub const FILE_NAME: &str = ".water-cleanup.json";
+pub const FILE_NAME_FLICK: &str = ".flick-cleanup.json";
+pub const FILE_NAMES: [&str; 2] = [FILE_NAME_FLICK, FILE_NAME];
 pub const MAX_BYTES: u64 = 65_536;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -435,7 +437,7 @@ pub fn read_manifest(path: &str) -> Loaded {
         if !p.is_absolute()
             || !p
                 .file_name()
-                .is_some_and(|n| n.eq_ignore_ascii_case(FILE_NAME))
+                .is_some_and(|n| FILE_NAMES.iter().any(|name| n.eq_ignore_ascii_case(name)))
         {
             return Err(invalid("MANIFEST_NOT_FILE", ""));
         }

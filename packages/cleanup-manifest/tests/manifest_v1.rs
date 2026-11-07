@@ -370,6 +370,59 @@ impl Drop for Fixture {
 }
 #[test]
 fn manifest_read_files() {
+    assert_eq!(
+        FILE_NAME, ".water-cleanup.json",
+        "MANIFEST_W11_NAMES: legacy constant unchanged"
+    );
+    assert_eq!(
+        FILE_NAME_FLICK, ".flick-cleanup.json",
+        "MANIFEST_W11_NAMES: Flick constant"
+    );
+    assert_eq!(
+        FILE_NAMES,
+        [".flick-cleanup.json", ".water-cleanup.json"],
+        "MANIFEST_W11_NAMES: exact names and priority"
+    );
+    {
+        let f = Fixture::new();
+        let bytes = serde_json::to_vec(&sample()).expect("MANIFEST_W11_NAMES: content");
+        let water = f.root.join(FILE_NAME);
+        let flick = f.root.join(FILE_NAME_FLICK);
+        std::fs::write(&water, &bytes).expect("MANIFEST_W11_NAMES: write legacy fixture");
+        std::fs::write(&flick, &bytes).expect("MANIFEST_W11_NAMES: write Flick fixture");
+        let expected = read_manifest(water.to_str().unwrap());
+        assert!(
+            expected.error.is_none() && expected.manifest.is_some(),
+            "MANIFEST_W11_NAMES: valid legacy declaration"
+        );
+        for path in [flick, f.root.join(".FlIcK-ClEaNuP.JsOn")] {
+            let mut actual = read_manifest(path.to_str().unwrap());
+            assert_eq!(
+                actual.path,
+                path.to_str().unwrap(),
+                "MANIFEST_W11_NAMES: caller spelling retained"
+            );
+            actual.path = expected.path.clone();
+            assert_eq!(
+                actual, expected,
+                "MANIFEST_W11_NAMES: both names and mixed case yield the same loaded declaration"
+            );
+        }
+        for name in [".flick-cleanup.json.bak", "flick-cleanup.json"] {
+            let path = f.root.join(name);
+            std::fs::write(&path, &bytes).expect("MANIFEST_W11_NAMES: write rejected fixture");
+            let rejected = read_manifest(path.to_str().unwrap());
+            assert_eq!(
+                rejected.error.as_ref().map(|e| e.code.as_str()),
+                Some("MANIFEST_NOT_FILE"),
+                "MANIFEST_W11_NAMES: reject other filename {name}"
+            );
+            assert!(
+                rejected.hash.is_none() && rejected.manifest.is_none() && rejected.size == 0,
+                "MANIFEST_W11_NAMES: other filename rejected before reading {name}"
+            );
+        }
+    }
     let mut f = Fixture::new();
     let path = f.root.join(FILE_NAME);
     let s = path.to_str().unwrap();
