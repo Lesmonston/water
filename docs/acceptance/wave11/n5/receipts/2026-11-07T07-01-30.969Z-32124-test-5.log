@@ -1,0 +1,61 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n5\packages\junk-scan)
+error[E0618]: expected function, found `Value`
+    --> tests\scan_v1.rs:4493:19
+     |
+ 143 | / fn target(
+ 144 | |     id: &str,
+ 145 | |     level: &str,
+ 146 | |     category: &str,
+...    |
+ 150 | |     keep: u64,
+ 151 | | ) -> Value {
+     | |__________- this function of the same name is available here, but it's shadowed by the local binding
+...
+4457 |       let target = target(
+     |           ------ `target` has type `Value`
+...
+4493 |           let all = target(
+     |                     -^^^^^- help: consider using a semicolon here to finish the statement: `;`
+     |  ___________________|
+     | |
+4494 | |             "rename-all",
+4495 | |             "confirm",
+4496 | |             "custom",
+...    |
+4500 | |             0,
+4501 | |         );
+     | |_________- call expression requires function
+
+error[E0618]: expected function, found `Value`
+    --> tests\scan_v1.rs:4521:26
+     |
+ 143 | / fn target(
+ 144 | |     id: &str,
+ 145 | |     level: &str,
+ 146 | |     category: &str,
+...    |
+ 150 | |     keep: u64,
+ 151 | | ) -> Value {
+     | |__________- this function of the same name is available here, but it's shadowed by the local binding
+...
+4457 |       let target = target(
+     |           ------ `target` has type `Value`
+...
+4521 |               let inside = target(
+     |                            -^^^^^- help: consider using a semicolon here to finish the statement: `;`
+     |  __________________________|
+     | |
+4522 | |                 "rename-inside",
+4523 | |                 "recommended",
+4524 | |                 "custom",
+...    |
+4528 | |                 0,
+4529 | |             );
+     | |_____________- call expression requires function
+
+For more information about this error, try `rustc --explain E0618`.
+error: could not compile `water-junk-scan` (test "scan_v1") due to 2 previous errors
