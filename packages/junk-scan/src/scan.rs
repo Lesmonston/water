@@ -264,7 +264,9 @@ impl<'a> Engine<'a> {
         }
         if !self.include_quarantine {
             listing.children.retain(|c| {
-                !(c.kind == Kind::Dir && c.name.eq_ignore_ascii_case(".water-quarantine"))
+                !(c.kind == Kind::Dir
+                    && (c.name.eq_ignore_ascii_case(".water-quarantine")
+                        || c.name.eq_ignore_ascii_case(".flick-quarantine")))
             });
         }
         listing.by_name = listing
@@ -416,8 +418,9 @@ fn accept_type(item_type: ItemType, kind: Kind) -> bool {
 }
 
 fn ignored_root(path: &str) -> bool {
-    path.split('\\')
-        .any(|p| p.eq_ignore_ascii_case(".water-quarantine"))
+    path.split('\\').any(|p| {
+        p.eq_ignore_ascii_case(".water-quarantine") || p.eq_ignore_ascii_case(".flick-quarantine")
+    })
 }
 
 fn odd_name(name: &str) -> bool {
