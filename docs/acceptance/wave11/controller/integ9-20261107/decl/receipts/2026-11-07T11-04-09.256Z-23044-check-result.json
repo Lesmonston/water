@@ -1,0 +1,292 @@
+{
+  "task": "WATER-W11-ACCEPT-INTEG9-DECL",
+  "mode": "check",
+  "finalGate": false,
+  "manifest": ".local/w11-integ9/checkup-manifest.json",
+  "startedAt": "2026-11-07T11:04:09.257Z",
+  "realDataRead": false,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-04-09.256Z-23044-check-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-04-09.256Z-23044-check-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-04-09.256Z-23044-check-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/cleanup-manifest/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-04-09.256Z-23044-check-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "fmt",
+        "--manifest-path",
+        "packages/cleanup-manifest/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-04-09.256Z-23044-check-5.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/cleanup-manifest/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-04-09.256Z-23044-check-6.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [],
+  "before": {
+    "head": "3d8bec1173a5d62ea39290b1a7809b79183af792",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/cleanup-manifest/Cargo.toml",
+        "snapshot": "2026-11-07T11-04-09.256Z-23044-check-source-0.txt",
+        "sha256": "e81c0440ae57e64f8b9de69df71d8f3b61ec1c5e3d0f6a407da97c615447fe7f",
+        "test": false
+      },
+      {
+        "path": "packages/cleanup-manifest/Cargo.lock",
+        "snapshot": "2026-11-07T11-04-09.256Z-23044-check-source-1.txt",
+        "sha256": "a518186c2aadb26772abc9fdf2631a9d87c6897f55210f5be5aba15515f57912",
+        "test": false
+      },
+      {
+        "path": "packages/cleanup-manifest/README.md",
+        "snapshot": "2026-11-07T11-04-09.256Z-23044-check-source-2.txt",
+        "sha256": "2b985bed209fbbe471f11e7526bfb65ba34c89aef597b13861603d165afdcf32",
+        "test": false
+      },
+      {
+        "path": "packages/cleanup-manifest/src/lib.rs",
+        "snapshot": "2026-11-07T11-04-09.256Z-23044-check-source-3.txt",
+        "sha256": "63a16944b6ab4e8fc16a801419ebc56362c63c84eebf6f441c71b1e6356a7dd5",
+        "test": false
+      },
+      {
+        "path": "packages/cleanup-manifest/src/sha256.rs",
+        "snapshot": "2026-11-07T11-04-09.256Z-23044-check-source-4.txt",
+        "sha256": "dd37cadc8d9e1fd938028028a16b54800c9f839e9642a0e53b1cedc6502e7ad1",
+        "test": false
+      },
+      {
+        "path": "packages/cleanup-manifest/tests/manifest_v1.rs",
+        "snapshot": "2026-11-07T11-04-09.256Z-23044-check-source-5.txt",
+        "sha256": "a3be992609bcd5d8e2b036e60490eae509d4b37ef87c2acd220e78a7667143a0",
+        "test": true
+      }
+    ],
+    "productionHash": "45783c678d0426c872d9db28fab93c9a2c23c87a9185efebb0af09cf90954fbc",
+    "testHash": "653adeb61f0e6f4dca37cf924974c201b52a59fb043debb03afe05dd9b0d17ec"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "after": {
+    "head": "3d8bec1173a5d62ea39290b1a7809b79183af792",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-07T11:04:19.107Z"
+}

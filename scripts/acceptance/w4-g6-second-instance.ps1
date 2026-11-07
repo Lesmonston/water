@@ -5,7 +5,9 @@
 param(
   [Parameter(Mandatory)][string]$Exe,
   [Parameter(Mandatory)][string]$DataDir,
-  [Parameter(Mandatory)][string]$EvidencePrefix
+  [Parameter(Mandatory)][string]$EvidencePrefix,
+  # Wave 11 renamed the window to Flick; older runs keep the default.
+  [string]$Title = 'Water'
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -49,7 +51,7 @@ $out.firstPid = $first.Id
 $h = [IntPtr]::Zero; $deadline = (Get-Date).AddSeconds(30)
 while ((Get-Date) -lt $deadline) {
   $first.Refresh(); $h = $first.MainWindowHandle
-  if ($h -ne [IntPtr]::Zero -and [W]::IsWindowVisible($h) -and $first.MainWindowTitle -eq 'Water') { break }
+  if ($h -ne [IntPtr]::Zero -and [W]::IsWindowVisible($h) -and $first.MainWindowTitle -eq $Title) { break }
   Start-Sleep -Milliseconds 100
 }
 if ($h -eq [IntPtr]::Zero) { throw 'first window never appeared' }

@@ -1,0 +1,827 @@
+{
+  "task": "WATER-W11-ACCEPT-INTEG9-SCAN",
+  "mode": "real",
+  "finalGate": true,
+  "manifest": ".local/w11-integ9/checkup-manifest.json",
+  "startedAt": "2026-11-07T11:03:03.550Z",
+  "realDataRead": true,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-03-03.548Z-7852-real-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-03-03.548Z-7852-real-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-03-03.548Z-7852-real-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-scan/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-03-03.548Z-7852-real-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "run",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-scan/Cargo.toml",
+        "--example",
+        "real_smoke",
+        "--",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8a\\.local\\w2-real\\2026-11-07T11-03-03.548Z-7852-real-plan.json"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-07T11-03-03.548Z-7852-real-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "3d8bec1173a5d62ea39290b1a7809b79183af792",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [],
+  "before": {
+    "head": "3d8bec1173a5d62ea39290b1a7809b79183af792",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-scan/Cargo.toml",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-0.txt",
+        "sha256": "29ec38aeb1817ed42ba82bee27c00a5a1332a7b06c0d55647ce36da2a6c5688f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/Cargo.lock",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-1.txt",
+        "sha256": "fbbf0b92aae939de63099e7c4bcf96c5450b9a07f593aeae09fa5def8f08d800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/README.md",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-2.txt",
+        "sha256": "7f3c44561c92c6b1bbecb946c84a46baa3808d8b345e056ec5746d82ec474146",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/error.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-3.txt",
+        "sha256": "a3c54ce80dd3dc7cd6d0b47ce95d241c1e664dd40ce0d83d597ca2ef9d9e6d9f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/extras.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-4.txt",
+        "sha256": "7fae2409df6927e6b8e9990f7f1f10a5693be1c51ed71bb37fba38488182fdc9",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/keys.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-5.txt",
+        "sha256": "9f7051047cbd43212ac058fb61bcc2e7010ac86c5ceac60290c8f5ced305d30d",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/lib.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-6.txt",
+        "sha256": "36db45b36c1088fa4ae7270358e6c61a2ec84048acd9883ff38d48445284f695",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/model.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-7.txt",
+        "sha256": "42a5e9d2ccf53486c51c60854011e22ef55ddd683ef1113430f2426501e8ea38",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/native_windows.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-8.txt",
+        "sha256": "35f06e312b3ad15773c0055fa60692960fcb7e38ff419afa9f5357cd7e216565",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/plan.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-9.txt",
+        "sha256": "240605674259f7dd584822e04be800f3d4a48f06c3202827165185c1d0f192a5",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/scan.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-10.txt",
+        "sha256": "f8e698682feac111b1f34931938a214ccf0026013a284ba55bf36545aac7e22c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/scan/streaming.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-11.txt",
+        "sha256": "5a0233de2bb10fd0a772dc9cc2ae38498b8ddb43b012fd521d4f3c05f6f5df7a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/snapshot.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-12.txt",
+        "sha256": "82077cf485e362953e117f1d15a6cf7f613b0b4efd1c7ae7f3ed9e2c722f029c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/templates.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-13.txt",
+        "sha256": "5e66a75886b877e3816ba509ebe5b69dbb22c0855aa64e120abc9c15fc3fb72c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/util.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-14.txt",
+        "sha256": "fde30a29f12f9ac036d0e5e75c54611d286e248059b4c5486ebd9f6b63d2e6d8",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/tests/scan_v1.rs",
+        "snapshot": "2026-11-07T11-03-03.548Z-7852-real-source-15.txt",
+        "sha256": "4789d2ce21aa635c8943e6cb32c1d91d504f383803533aee5fd603021e2a57da",
+        "test": true
+      }
+    ],
+    "productionHash": "906316e36ddc37531d4e118d9b6137975a290ffcb9e138b24972e3ac32052f18",
+    "testHash": "c80abc9ef22d47b5de73e56f6ea5435d3ea5a29e298d433d14df0223b35235b7"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "CloseHandle",
+    "CoTaskMemFree",
+    "CreateFileW",
+    "DeviceIoControl",
+    "GetFileInformationByHandleEx",
+    "GetVolumeInformationByHandleW",
+    "SHGetKnownFolderPath"
+  ],
+  "realPlanTemplateSha256": "3959478c757fb76e3925d97de00325865a8ef9a3572ef7a19f656e2da583eaad",
+  "realPlan": ".local/w2-real/2026-11-07T11-03-03.548Z-7852-real-plan.json",
+  "realSummary": {
+    "scan": {
+      "status": "completed",
+      "visited_entries": 276898,
+      "elapsed_ms": 12348,
+      "groups": [
+        {
+          "group_id": "codex-marketplace-staging",
+          "level": "recommended",
+          "item_count": 0,
+          "eligible_count": 0,
+          "total_bytes": "0",
+          "eligible_bytes": "0",
+          "unique_bytes": "0",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "0",
+          "eligible_disk_bytes": "0",
+          "issues": [
+            {
+              "code": "reparse_skipped",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "group_id": "claude-desktop-old-versions",
+          "level": "recommended",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "661811538",
+          "eligible_bytes": "0",
+          "unique_bytes": "661811538",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "661995904",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "claude-code-sessions",
+          "level": "protected",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "9631875395",
+          "eligible_bytes": "0",
+          "unique_bytes": "9631875395",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "9635187896",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "claude-code-scratchpad",
+          "level": "confirm",
+          "item_count": 27,
+          "eligible_count": 6,
+          "total_bytes": "2539774229",
+          "eligible_bytes": "14137",
+          "unique_bytes": "2535888501",
+          "eligible_unique_bytes": "14137",
+          "disk_bytes": "2549683768",
+          "eligible_disk_bytes": "31816",
+          "issues": []
+        },
+        {
+          "group_id": "chrome-cache",
+          "level": "recommended",
+          "item_count": 9,
+          "eligible_count": 8,
+          "total_bytes": "2372664226",
+          "eligible_bytes": "1989447903",
+          "unique_bytes": "2372664226",
+          "eligible_unique_bytes": "1989447903",
+          "disk_bytes": "2396041400",
+          "eligible_disk_bytes": "2010718384",
+          "issues": []
+        },
+        {
+          "group_id": "chrome-login-and-site-data",
+          "level": "protected",
+          "item_count": 10,
+          "eligible_count": 0,
+          "total_bytes": "11991187",
+          "eligible_bytes": "0",
+          "unique_bytes": "11991187",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "12030176",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "electron-app-cache",
+          "level": "recommended",
+          "item_count": 3,
+          "eligible_count": 2,
+          "total_bytes": "67602178",
+          "eligible_bytes": "63686191",
+          "unique_bytes": "67602178",
+          "eligible_unique_bytes": "63686191",
+          "disk_bytes": "74487872",
+          "eligible_disk_bytes": "69746848",
+          "issues": [
+            {
+              "code": "reparse_skipped",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "group_id": "installer-unpack-temp",
+          "level": "recommended",
+          "item_count": 0,
+          "eligible_count": 0,
+          "total_bytes": "0",
+          "eligible_bytes": "0",
+          "unique_bytes": "0",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "0",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "npm-cache",
+          "level": "recommended",
+          "item_count": 1,
+          "eligible_count": 1,
+          "total_bytes": "1137810611",
+          "eligible_bytes": "1137810611",
+          "unique_bytes": "1137810611",
+          "eligible_unique_bytes": "1137810611",
+          "disk_bytes": "1207571488",
+          "eligible_disk_bytes": "1207571488",
+          "issues": []
+        },
+        {
+          "group_id": "crash-dumps",
+          "level": "recommended",
+          "item_count": 3,
+          "eligible_count": 2,
+          "total_bytes": "68455563",
+          "eligible_bytes": "57328614",
+          "unique_bytes": "68455563",
+          "eligible_unique_bytes": "57328614",
+          "disk_bytes": "68460544",
+          "eligible_disk_bytes": "57331712",
+          "issues": []
+        },
+        {
+          "group_id": "system-temp-old",
+          "level": "recommended",
+          "item_count": 2549,
+          "eligible_count": 145,
+          "total_bytes": "6408073915",
+          "eligible_bytes": "9517840",
+          "unique_bytes": "6408073915",
+          "eligible_unique_bytes": "9517840",
+          "disk_bytes": "6785432232",
+          "eligible_disk_bytes": "9702984",
+          "issues": []
+        },
+        {
+          "group_id": "user-temp-old",
+          "level": "recommended",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "7967846",
+          "eligible_bytes": "0",
+          "unique_bytes": "7967846",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "8046072",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        }
+      ]
+    },
+    "full": {
+      "summary": {
+        "status": "completed",
+        "visited_entries": 276906,
+        "elapsed_ms": 10807,
+        "groups": [
+          {
+            "group_id": "codex-marketplace-staging",
+            "level": "recommended",
+            "item_count": 0,
+            "eligible_count": 0,
+            "total_bytes": "0",
+            "eligible_bytes": "0",
+            "unique_bytes": "0",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "0",
+            "eligible_disk_bytes": "0",
+            "issues": [
+              {
+                "code": "reparse_skipped",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "group_id": "claude-desktop-old-versions",
+            "level": "recommended",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "661811538",
+            "eligible_bytes": "0",
+            "unique_bytes": "661811538",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "661995904",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "claude-code-sessions",
+            "level": "protected",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "9631875395",
+            "eligible_bytes": "0",
+            "unique_bytes": "9631875395",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "9635187896",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "claude-code-scratchpad",
+            "level": "confirm",
+            "item_count": 27,
+            "eligible_count": 6,
+            "total_bytes": "2539774229",
+            "eligible_bytes": "14137",
+            "unique_bytes": "2535888501",
+            "eligible_unique_bytes": "14137",
+            "disk_bytes": "2549683768",
+            "eligible_disk_bytes": "31816",
+            "issues": []
+          },
+          {
+            "group_id": "chrome-cache",
+            "level": "recommended",
+            "item_count": 9,
+            "eligible_count": 8,
+            "total_bytes": "2373304151",
+            "eligible_bytes": "1989447903",
+            "unique_bytes": "2373304151",
+            "eligible_unique_bytes": "1989447903",
+            "disk_bytes": "2396700856",
+            "eligible_disk_bytes": "2010718384",
+            "issues": []
+          },
+          {
+            "group_id": "chrome-login-and-site-data",
+            "level": "protected",
+            "item_count": 10,
+            "eligible_count": 0,
+            "total_bytes": "11991187",
+            "eligible_bytes": "0",
+            "unique_bytes": "11991187",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "12030176",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "electron-app-cache",
+            "level": "recommended",
+            "item_count": 3,
+            "eligible_count": 2,
+            "total_bytes": "67602178",
+            "eligible_bytes": "63686191",
+            "unique_bytes": "67602178",
+            "eligible_unique_bytes": "63686191",
+            "disk_bytes": "74487872",
+            "eligible_disk_bytes": "69746848",
+            "issues": [
+              {
+                "code": "reparse_skipped",
+                "count": 3
+              }
+            ]
+          },
+          {
+            "group_id": "installer-unpack-temp",
+            "level": "recommended",
+            "item_count": 0,
+            "eligible_count": 0,
+            "total_bytes": "0",
+            "eligible_bytes": "0",
+            "unique_bytes": "0",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "0",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "npm-cache",
+            "level": "recommended",
+            "item_count": 1,
+            "eligible_count": 1,
+            "total_bytes": "1137810611",
+            "eligible_bytes": "1137810611",
+            "unique_bytes": "1137810611",
+            "eligible_unique_bytes": "1137810611",
+            "disk_bytes": "1207571488",
+            "eligible_disk_bytes": "1207571488",
+            "issues": []
+          },
+          {
+            "group_id": "crash-dumps",
+            "level": "recommended",
+            "item_count": 3,
+            "eligible_count": 2,
+            "total_bytes": "68455563",
+            "eligible_bytes": "57328614",
+            "unique_bytes": "68455563",
+            "eligible_unique_bytes": "57328614",
+            "disk_bytes": "68460544",
+            "eligible_disk_bytes": "57331712",
+            "issues": []
+          },
+          {
+            "group_id": "system-temp-old",
+            "level": "recommended",
+            "item_count": 1239,
+            "eligible_count": 131,
+            "total_bytes": "6434154886",
+            "eligible_bytes": "9455730",
+            "unique_bytes": "6434154886",
+            "eligible_unique_bytes": "9455730",
+            "disk_bytes": "6812263104",
+            "eligible_disk_bytes": "9562504",
+            "issues": [
+              {
+                "code": "identity_unavailable",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "group_id": "user-temp-old",
+            "level": "recommended",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "7967846",
+            "eligible_bytes": "0",
+            "unique_bytes": "7967846",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "8046072",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "leak:08dd51cf727e23af",
+            "level": "confirm",
+            "item_count": 19,
+            "eligible_count": 17,
+            "total_bytes": "9738",
+            "eligible_bytes": "8882",
+            "unique_bytes": "9738",
+            "eligible_unique_bytes": "8882",
+            "disk_bytes": "51456",
+            "eligible_disk_bytes": "47096",
+            "issues": []
+          },
+          {
+            "group_id": "leak:27b19b406bb08bda",
+            "level": "confirm",
+            "item_count": 75,
+            "eligible_count": 73,
+            "total_bytes": "184050",
+            "eligible_bytes": "179142",
+            "unique_bytes": "184050",
+            "eligible_unique_bytes": "179142",
+            "disk_bytes": "307200",
+            "eligible_disk_bytes": "299008",
+            "issues": []
+          },
+          {
+            "group_id": "leak:65ab0ed9e69c4386",
+            "level": "confirm",
+            "item_count": 1114,
+            "eligible_count": 496,
+            "total_bytes": "300020",
+            "eligible_bytes": "133337",
+            "unique_bytes": "300020",
+            "eligible_unique_bytes": "133337",
+            "disk_bytes": "302152",
+            "eligible_disk_bytes": "134280",
+            "issues": []
+          },
+          {
+            "group_id": "leak:940253d3e2a74215",
+            "level": "confirm",
+            "item_count": 33,
+            "eligible_count": 31,
+            "total_bytes": "339834",
+            "eligible_bytes": "319238",
+            "unique_bytes": "339834",
+            "eligible_unique_bytes": "319238",
+            "disk_bytes": "821040",
+            "eligible_disk_bytes": "771280",
+            "issues": []
+          },
+          {
+            "group_id": "leak:b2a9dce057399f6c",
+            "level": "confirm",
+            "item_count": 11,
+            "eligible_count": 0,
+            "total_bytes": "0",
+            "eligible_bytes": "0",
+            "unique_bytes": "0",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "0",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "leak:c4f3820e1012959c",
+            "level": "confirm",
+            "item_count": 37,
+            "eligible_count": 35,
+            "total_bytes": "90798",
+            "eligible_bytes": "85890",
+            "unique_bytes": "90798",
+            "eligible_unique_bytes": "85890",
+            "disk_bytes": "151552",
+            "eligible_disk_bytes": "143360",
+            "issues": []
+          },
+          {
+            "group_id": "leak:f65827502bcb7a6d",
+            "level": "confirm",
+            "item_count": 11,
+            "eligible_count": 11,
+            "total_bytes": "122233",
+            "eligible_bytes": "122233",
+            "unique_bytes": "122233",
+            "eligible_unique_bytes": "122233",
+            "disk_bytes": "215920",
+            "eligible_disk_bytes": "215920",
+            "issues": []
+          },
+          {
+            "group_id": "leak:f6ebd40d770b3283",
+            "level": "confirm",
+            "item_count": 10,
+            "eligible_count": 9,
+            "total_bytes": "332178",
+            "eligible_bytes": "327786",
+            "unique_bytes": "332178",
+            "eligible_unique_bytes": "327786",
+            "disk_bytes": "352256",
+            "eligible_disk_bytes": "344064",
+            "issues": []
+          }
+        ]
+      },
+      "cluster_count": 8,
+      "confirm_cluster_count": 8,
+      "advisory_cluster_count": 0,
+      "junction_count": 23,
+      "junctions_truncated": false,
+      "declaration_count": 0
+    },
+    "overview": {
+      "status": "completed",
+      "elapsed_ms": 34436,
+      "visited_entries": 672208,
+      "disk_bytes": "108167919216",
+      "total_bytes": "107751982100",
+      "file_count": 575004,
+      "top_count": 10,
+      "others_count": 229,
+      "others_disk_bytes": "7401694080",
+      "issues": []
+    }
+  },
+  "after": {
+    "head": "3d8bec1173a5d62ea39290b1a7809b79183af792",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-07T11:04:05.543Z"
+}

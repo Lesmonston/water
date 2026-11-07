@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave11-fixes-flick",
-  "status": "OPEN",
+  "status": "CLOSED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -1749,5 +1749,13 @@
     "evidence": "docs/acceptance/wave11/controller/preflight-20261107/",
     "note": "first run: N1 failed on a frozen hash taken from git bytes instead of checked-out bytes (mockup.html line endings), N6 and N7 on outputRootExists cloned from the new-package tickets; manifest regenerated, all seven rerun and passed"
   },
-  "frozenFilesNote": "2026-11-07: top-level hashes rechecked on the N8 base 4e411896 (batch two); docs/dispatch/W11-WORKER-RULES.md changed in 3ee88c40 (the N2 native exception), so its batch-one hash (ccc584b3 bytes) was replaced. Batch-one trees and their acceptance manifest keep the ccc584b3 hash."
+  "frozenFilesNote": "2026-11-07: top-level hashes rechecked on the N8 base 4e411896 (batch two); docs/dispatch/W11-WORKER-RULES.md changed in 3ee88c40 (the N2 native exception), so its batch-one hash (ccc584b3 bytes) was replaced. Batch-one trees and their acceptance manifest keep the ccc584b3 hash.",
+  "closed": {
+    "at": "2026-11-07",
+    "integration": "docs/acceptance/wave11/controller/WATER-W11-INTEGRATION9-20261107.md",
+    "testedCommit": "3d8bec1173a5d62ea39290b1a7809b79183af792",
+    "release": ".local/release/flick-0.1.0-3d8bec11/flick.exe",
+    "releaseSha256": "83e13946088094ff1ba7eaa7e25abf4555236415f42dafbd451bf957cdfb1111",
+    "toWave12": "docs/dispatch/wave11/PLAN.md section 6"
+  }
 }
