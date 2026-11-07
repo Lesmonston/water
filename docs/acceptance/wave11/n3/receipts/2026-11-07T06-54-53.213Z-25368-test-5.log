@@ -1,0 +1,71 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... FAILED
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... FAILED
+test quarantine_move_contract ... FAILED
+test quarantine_purge_contract ... FAILED
+test quarantine_restore_contract ... FAILED
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- clean_plan_contract stdout ----
+
+thread 'clean_plan_contract' (31072) panicked at tests\clean_v1.rs:278:9:
+CLEAN_W11_NESTED: execute accepted overlapping paths: Ok(CleanReport { report_version: "water.clean-report.v1", plan_id: "fixture-plan", started_at: "2026-11-07T06:59:15Z", ended_at: "2026-11-07T06:59:13Z", status: Completed, freed_bytes: "16", estimate_bytes: "32", volumes: [VolumeReport { root: "F:\\", free_before: "233745256448", free_after: "233745256448" }], items: [ItemReport { item_id: "first", status: Deleted, skip_reason: None, bytes_before: "16", bytes_freed: "16", failed_entries: 0 }, ItemReport { item_id: "second", status: Skipped, skip_reason: Some(Gone), bytes_before: "0", bytes_freed: "0", failed_entries: 0 }] })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- quarantine_inspect_and_list stdout ----
+
+thread 'quarantine_inspect_and_list' (16576) panicked at tests\clean_v1.rs:3391:46:
+CLEAN_W11_RENAME: list absent new root: InvalidPlan
+
+---- quarantine_move_contract stdout ----
+
+thread 'quarantine_move_contract' (31016) panicked at tests\clean_v1.rs:1923:14:
+CLEAN_W11_RENAME: new/mixed-case root rejected: InvalidPlan
+
+---- quarantine_purge_contract stdout ----
+
+thread 'quarantine_purge_contract' (15632) panicked at tests\clean_v1.rs:2829:14:
+CLEAN_W11_RENAME: purge new root rejected: InvalidPlan
+
+---- quarantine_restore_contract stdout ----
+
+thread 'quarantine_restore_contract' (35836) panicked at tests\clean_v1.rs:2604:57:
+CLEAN_W11_RENAME: restore setup move: InvalidPlan
+
+
+failures:
+    clean_plan_contract
+    quarantine_inspect_and_list
+    quarantine_move_contract
+    quarantine_purge_contract
+    quarantine_restore_contract
+
+test result: FAILED. 6 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 219.25s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n3\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 39.51s
+     Running tests\clean_v1.rs (.local\w2-target\junk-clean\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`

@@ -1,0 +1,42 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-clean/Cargo.toml","--test","clean_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 11 tests
+test clean_handle_hardening ... ok
+test clean_no_follow ... ok
+test clean_partial_stop_journal ... ok
+test clean_plan_contract ... FAILED
+test clean_report_volume ... ok
+test clean_revalidation_skips ... ok
+test quarantine_inspect_and_list ... ok
+test quarantine_move_contract ... FAILED
+test quarantine_purge_contract ... ok
+test quarantine_restore_contract ... ok
+test quarantine_unlock_pair ... ok
+
+failures:
+
+---- clean_plan_contract stdout ----
+
+thread 'clean_plan_contract' (28292) panicked at tests\clean_v1.rs:282:9:
+CLEAN_W11_NESTED: execute accepted overlapping paths: Ok(CleanReport { report_version: "water.clean-report.v1", plan_id: "fixture-plan", started_at: "2026-11-07T07:16:59Z", ended_at: "2026-11-07T07:16:57Z", status: Completed, freed_bytes: "33", estimate_bytes: "49", volumes: [VolumeReport { root: "F:\\", free_before: "230020087808", free_after: "230020087808" }], items: [ItemReport { item_id: "first", status: Deleted, skip_reason: None, bytes_before: "16", bytes_freed: "16", failed_entries: 0 }, ItemReport { item_id: "sibling", status: Deleted, skip_reason: None, bytes_before: "17", bytes_freed: "17", failed_entries: 0 }, ItemReport { item_id: "second", status: Skipped, skip_reason: Some(Gone), bytes_before: "0", bytes_freed: "0", failed_entries: 0 }] })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- quarantine_move_contract stdout ----
+
+thread 'quarantine_move_contract' (22428) panicked at tests\clean_v1.rs:2050:9:
+CLEAN_W11_NESTED: quarantine accepted overlapping paths: Ok(QuarantineReport { report_version: "water.quarantine-report.v1", quarantine_id: "nested", started_at: "2026-11-07T07:17:00Z", ended_at: "2026-11-07T07:16:58Z", status: Completed, moved_bytes: "33", items: [MoveReport { item_id: "first", status: Moved, skip_reason: None, move_error: None, error_code: None, destination: Some("F:\\new\\smaltalk\\water\\.worktrees\\w11-n3\\.local\\w10-m4-w11-nested-move-27288-8e476029cccd0b9b\\.water-quarantine\\nested\\new\\smaltalk\\water\\.worktrees\\w11-n3\\.local\\w10-m4-w11-nested-move-27288-8e476029cccd0b9b\\root\\cache"), identity: Some(Identity { volume_serial: "C248BB02", file_id: "881e5400000019000000000000000000" }), bytes: "16" }, MoveReport { item_id: "sibling", status: Moved, skip_reason: None, move_error: None, error_code: None, destination: Some("F:\\new\\smaltalk\\water\\.worktrees\\w11-n3\\.local\\w10-m4-w11-nested-move-27288-8e476029cccd0b9b\\.water-quarantine\\nested\\new\\smaltalk\\water\\.worktrees\\w11-n3\\.local\\w10-m4-w11-nested-move-27288-8e476029cccd0b9b\\root\\cache-sibling"), identity: Some(Identity { volume_serial: "C248BB02", file_id: "8b1e5400000017000000000000000000" }), bytes: "17" }, MoveReport { item_id: "second", status: Skipped, skip_reason: Some(Gone), move_error: None, error_code: None, destination: None, identity: None, bytes: "0" }] })
+
+
+failures:
+    clean_plan_contract
+    quarantine_move_contract
+
+test result: FAILED. 9 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.87s
+
+
+--- stderr ---
+   Compiling water-junk-clean v0.1.0 (F:\new\smaltalk\water\.worktrees\w11-n3\packages\junk-clean)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.13s
+     Running tests\clean_v1.rs (.local\w2-target\junk-clean\debug\deps\clean_v1-607b5e28434d5f75.exe)
+error: test failed, to rerun pass `--test clean_v1`
