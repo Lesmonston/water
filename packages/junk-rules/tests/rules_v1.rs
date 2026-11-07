@@ -393,6 +393,169 @@ fn m35_resolve() {
     let rules = RuleSet::embedded();
     let base = resolve_plan(&rules, &folders, &[], CREATED_AT)
         .expect("RULES_M35_SESSIONS: default resolve");
+    let expected_paths: &[(&str, &[&str])] = &[
+        (
+            "vrchat-cache",
+            &[
+                r"C:\Users\u\AppData\LocalLow\VRChat\VRChat\Cache-WindowsPlayer\*",
+                r"C:\Users\u\AppData\LocalLow\VRChat\VRChat\TextureDiskCache-WindowsPlayer\*",
+            ],
+        ),
+        (
+            "wecom-upgrade-staging",
+            &[r"C:\Users\u\AppData\Roaming\Tencent\WXWork\upgrade\*"],
+        ),
+        (
+            "npm-global-reify-leftovers",
+            &[
+                r"C:\Users\u\AppData\Roaming\npm\node_modules\.*-*",
+                r"C:\Users\u\AppData\Roaming\npm\node_modules\@*\.*-*",
+            ],
+        ),
+        (
+            "wechat-xlog",
+            &[r"C:\Users\u\AppData\Roaming\Tencent\xwechat\log\*.xlog"],
+        ),
+        (
+            "chromium-component-crx-cache",
+            &[
+                r"C:\Users\u\AppData\Local\Google\Chrome\User Data\component_crx_cache",
+                r"C:\Users\u\AppData\Local\Microsoft\Edge\User Data\component_crx_cache",
+                r"C:\Users\u\AppData\Local\BraveSoftware\Brave-Browser\User Data\component_crx_cache",
+            ],
+        ),
+        (
+            "onedrive-logs",
+            &[r"C:\Users\u\AppData\Local\Microsoft\OneDrive\logs\*"],
+        ),
+        (
+            "copilot-sdk-runtimes",
+            &[r"C:\Users\u\AppData\Local\github-copilot-sdk\cli\copilot-sdk-runtime-*"],
+        ),
+        (
+            "claude-code-installer-downloads",
+            &[r"C:\Users\u\.claude\downloads\*"],
+        ),
+        (
+            "gpu-shader-cache",
+            &[
+                r"C:\Users\u\AppData\Local\NVIDIA\DXCache",
+                r"C:\Users\u\AppData\Local\NVIDIA\GLCache",
+                r"C:\Users\u\AppData\Local\D3DSCache",
+                r"C:\Users\u\AppData\Local\AMD\DxCache",
+                r"C:\Users\u\AppData\Local\AMD\GLCache",
+                r"C:\Users\u\AppData\Local\Intel\ShaderCache",
+                r"C:\Users\u\AppData\LocalLow\Intel\ShaderCache",
+                r"C:\Users\u\AppData\LocalLow\NVIDIA\DXCache",
+                r"C:\Users\u\AppData\LocalLow\NVIDIA\GLCache",
+            ],
+        ),
+    ];
+    for (id, paths) in expected_paths {
+        let rule = rules.rule(id).expect("RULES_W12_NEW: rule exists");
+        let targets: Vec<_> = base.targets.iter().filter(|t| t.rule_id == *id).collect();
+        assert_eq!(
+            targets.len(),
+            paths.len(),
+            "RULES_W12_NEW: {id} target count"
+        );
+        for (index, (target, path)) in targets.iter().zip(*paths).enumerate() {
+            let MatchSpec::Pattern { base, segments } = &target.match_spec else {
+                panic!("RULES_W12_NEW: {id} pattern target");
+            };
+            assert_eq!(
+                format!("{base}\\{}", segments.join("\\")),
+                *path,
+                "RULES_W12_NEW: {id} resolved path"
+            );
+            assert_eq!(
+                target.target_id,
+                format!("{id}#{}", index + 1),
+                "RULES_W12_NEW: target ID"
+            );
+            assert_eq!(target.group_id, *id, "RULES_W12_NEW: group ID");
+            assert_eq!(
+                (
+                    target.level,
+                    target.category,
+                    target.item_type,
+                    target.min_age_hours,
+                    target.keep_newest
+                ),
+                (
+                    rule.level,
+                    rule.category,
+                    rule.item_type,
+                    rule.min_age_hours,
+                    rule.keep_newest
+                ),
+                "RULES_W12_NEW: {id} resolved policy"
+            );
+            assert_eq!(
+                target.in_use, rule.in_use,
+                "RULES_W12_NEW: {id} resolved in-use policy"
+            );
+        }
+    }
+    // Exercise the production segment matcher through the public overlap validator,
+    // using concrete protected paths as probes. No test-side glob implementation.
+    let raw: Value = serde_json::from_str(include_str!("../rules/windows.json")).unwrap();
+    let npm = raw["rules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["rule_id"] == "npm-global-reify-leftovers")
+        .expect("RULES_W12_NEW: npm data");
+    for scope in [None, Some("@flick")] {
+        for (name, matches_name) in [
+            (".bin", false),
+            ("typescript", false),
+            ("ordinary-package", false),
+            (".hidden", false),
+            (".tool-a1b2", true),
+            (".package-lock.json", true),
+        ] {
+            let mut segments = vec!["npm", "node_modules"];
+            if let Some(scope) = scope {
+                segments.push(scope);
+            }
+            segments.push(name);
+            let guard = precedence_rule("npm-probe", "protected", "roaming_app_data", &segments);
+            let result = RuleSet::from_json(&wrap(vec![npm.clone(), guard]));
+            if matches_name {
+                let error = result.expect_err("RULES_W12_NEW: hidden hyphenated name matches");
+                assert_eq!(
+                    error.code, "RULES_PRECEDENCE",
+                    "RULES_W12_NEW: production matcher reached"
+                );
+            } else {
+                assert!(
+                    result.is_ok(),
+                    "RULES_W12_NEW: ordinary package or .bin must not match"
+                );
+            }
+        }
+    }
+    // A .package-lock.json name can match the glob, but the emitted plan only
+    // accepts directories. Verify that file exclusion survives the wire roundtrip.
+    let decoded = ScanPlan::from_json(&plan_to_json(&base)).expect("RULES_W12_NEW: plan roundtrip");
+    let npm_targets: Vec<_> = decoded
+        .targets
+        .iter()
+        .filter(|t| t.rule_id == "npm-global-reify-leftovers")
+        .collect();
+    assert_eq!(
+        npm_targets.len(),
+        2,
+        "RULES_W12_NEW: npm locators survive roundtrip"
+    );
+    for target in npm_targets {
+        assert_eq!(
+            target.item_type,
+            ItemType::Dir,
+            "RULES_W12_NEW: npm files excluded by directory-only plan"
+        );
+    }
     assert!(
         base.targets
             .iter()
@@ -696,8 +859,208 @@ fn m35_resolve() {
 
 fn m35_seeds() {
     let rules = RuleSet::embedded();
+    let new_rows = [
+        (
+            "vrchat-cache",
+            Category::AppLeftover,
+            Level::Confirm,
+            ItemType::Dir,
+            168,
+            0,
+            InUseMode::ProcessRunning,
+            vec!["vrchat.exe"],
+            Growth::Slow,
+            vec![
+                p(
+                    "user_profile",
+                    "AppData/LocalLow/VRChat/VRChat/Cache-WindowsPlayer/*",
+                ),
+                p(
+                    "user_profile",
+                    "AppData/LocalLow/VRChat/VRChat/TextureDiskCache-WindowsPlayer/*",
+                ),
+            ],
+        ),
+        (
+            "wecom-upgrade-staging",
+            Category::AppLeftover,
+            Level::Confirm,
+            ItemType::Any,
+            720,
+            0,
+            InUseMode::ProcessRunning,
+            vec!["wxwork.exe"],
+            Growth::OneOff,
+            vec![p("roaming_app_data", "Tencent/WXWork/upgrade/*")],
+        ),
+        (
+            "npm-global-reify-leftovers",
+            Category::DevCache,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::None,
+            vec![],
+            Growth::LeakProne,
+            vec![
+                p("roaming_app_data", "npm/node_modules/.*-*"),
+                p("roaming_app_data", "npm/node_modules/@*/.*-*"),
+            ],
+        ),
+        (
+            "wechat-xlog",
+            Category::CrashLog,
+            Level::Recommended,
+            ItemType::File,
+            168,
+            0,
+            InUseMode::None,
+            vec![],
+            Growth::Slow,
+            vec![p("roaming_app_data", "Tencent/xwechat/log/*.xlog")],
+        ),
+        (
+            "chromium-component-crx-cache",
+            Category::Browser,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            0,
+            InUseMode::ProcessRunning,
+            vec!["chrome.exe", "msedge.exe", "brave.exe"],
+            Growth::Slow,
+            vec![
+                p(
+                    "local_app_data",
+                    "Google/Chrome/User Data/component_crx_cache",
+                ),
+                p(
+                    "local_app_data",
+                    "Microsoft/Edge/User Data/component_crx_cache",
+                ),
+                p(
+                    "local_app_data",
+                    "BraveSoftware/Brave-Browser/User Data/component_crx_cache",
+                ),
+            ],
+        ),
+        (
+            "onedrive-logs",
+            Category::CrashLog,
+            Level::Recommended,
+            ItemType::Any,
+            168,
+            0,
+            InUseMode::None,
+            vec![],
+            Growth::Slow,
+            vec![p("local_app_data", "Microsoft/OneDrive/logs/*")],
+        ),
+        (
+            "copilot-sdk-runtimes",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Dir,
+            24,
+            1,
+            InUseMode::None,
+            vec![],
+            Growth::Slow,
+            vec![p(
+                "local_app_data",
+                "github-copilot-sdk/cli/copilot-sdk-runtime-*",
+            )],
+        ),
+        (
+            "claude-code-installer-downloads",
+            Category::AgentTool,
+            Level::Recommended,
+            ItemType::Any,
+            24,
+            0,
+            InUseMode::None,
+            vec![],
+            Growth::OneOff,
+            vec![p("user_profile", ".claude/downloads/*")],
+        ),
+    ];
+    assert_eq!(rules.rules().len(), 118, "RULES_W12_NEW: exact rule count");
+    for (index, (id, category, level, kind, age, keep, mode, processes, growth, locators)) in
+        new_rows.iter().enumerate()
+    {
+        let rule = rules.rule(id).expect("RULES_W12_NEW: new rule exists");
+        assert_eq!(
+            rules.rules()[110 + index].rule_id,
+            *id,
+            "RULES_W12_NEW: append order"
+        );
+        assert_eq!(
+            (
+                rule.category,
+                rule.level,
+                rule.item_type,
+                rule.min_age_hours,
+                rule.keep_newest,
+                rule.in_use.mode,
+                rule.growth
+            ),
+            (*category, *level, *kind, *age, *keep, *mode, *growth),
+            "RULES_W12_NEW: {id} frozen policy"
+        );
+        assert_eq!(
+            &rule.in_use.processes, processes,
+            "RULES_W12_NEW: {id} processes"
+        );
+        assert_eq!(
+            rule.in_use.root_levels, None,
+            "RULES_W12_NEW: no new root policy"
+        );
+        assert_eq!(
+            locator_summary(rule),
+            *locators,
+            "RULES_W12_NEW: {id} exact locators"
+        );
+        assert_eq!(rule.sources.len(), 1, "RULES_W12_NEW: survey source");
+        assert_eq!(
+            rule.sources[0].kind,
+            water_junk_rules::SourceKind::LocalObservation,
+            "RULES_W12_NEW: source kind"
+        );
+        assert_eq!(
+            rule.sources[0].ref_text, "2026-11-07 总控 C 盘只读调查",
+            "RULES_W12_NEW: source reference"
+        );
+        assert_eq!(
+            rule.sources[0].checked_on, "2026-11-07",
+            "RULES_W12_NEW: source date"
+        );
+        assert_eq!(
+            rule.fix_hint_zh.is_some(),
+            *growth == Growth::LeakProne,
+            "RULES_W12_NEW: fix hint policy"
+        );
+        for text in [
+            &rule.title_zh,
+            &rule.owner_zh,
+            &rule.what_zh,
+            &rule.why_zh,
+            &rule.after_zh,
+        ] {
+            for forbidden in [
+                "Water",
+                "垃圾",
+                "recommended",
+                "confirm",
+                "advisory",
+                "protected",
+            ] {
+                assert!(!text.contains(forbidden), "RULES_W12_NEW: human wording");
+            }
+        }
+    }
     assert_eq!(
-        rules.data_version, "2026-11-07.2",
+        rules.data_version, "2026-11-07.3",
         "RULES_M35_VERSION: embedded version"
     );
     // Independent frozen rows: ID | title | category | level | type | hours |
@@ -739,7 +1102,7 @@ system-tmp-chrome-profiles|系统盘 tmp 里的无头浏览器配置|system_temp
         .map(|line| line.split('|').collect())
         .collect();
     assert_eq!(rows.len(), 32, "RULES_M35_SEEDS: expected rows");
-    assert_eq!(rules.rules().len(), 110, "RULES_M35_SEEDS: total rows");
+    assert_eq!(rules.rules().len(), 118, "RULES_M35_SEEDS: total rows");
     let data: Value = serde_json::from_str(include_str!("../rules/windows.json")).unwrap();
     for (rule, row) in rules.rules()[78..].iter().zip(&rows) {
         assert_eq!(row.len(), 11, "RULES_M35_SEEDS: frozen row fields");
@@ -878,7 +1241,7 @@ system-tmp-chrome-profiles|系统盘 tmp 里的无头浏览器配置|system_temp
         },
     ];
     let plan = resolve_plan(&rules, &folders, &roots, CREATED_AT).unwrap();
-    assert_eq!(plan.targets.len(), 323, "RULES_M35_SEEDS: whole plan count");
+    assert_eq!(plan.targets.len(), 338, "RULES_M35_SEEDS: whole plan count");
     for (id, base) in [
         ("jest-cache#1", folders.system_temp.as_str()),
         ("jest-cache#4", folders.user_temp.as_str()),
@@ -896,7 +1259,7 @@ system-tmp-chrome-profiles|系统盘 tmp 里的无头浏览器配置|system_temp
     }
     assert_eq!(
         plan.targets.last().unwrap().target_id,
-        "system-tmp-chrome-profiles#1",
+        "claude-code-installer-downloads#1",
         "RULES_M35_SEEDS: whole plan last"
     );
     let last_old = plan
@@ -930,6 +1293,20 @@ system-tmp-chrome-profiles|系统盘 tmp 里的无头浏览器配置|system_temp
             } else {
                 expected_ids.push(format!("{}#{i}", row[0]));
             }
+        }
+    }
+    for (id, count) in [
+        ("vrchat-cache", 2),
+        ("wecom-upgrade-staging", 1),
+        ("npm-global-reify-leftovers", 2),
+        ("wechat-xlog", 1),
+        ("chromium-component-crx-cache", 3),
+        ("onedrive-logs", 1),
+        ("copilot-sdk-runtimes", 1),
+        ("claude-code-installer-downloads", 1),
+    ] {
+        for ordinal in 1..=count {
+            expected_ids.push(format!("{id}#{ordinal}"));
         }
     }
     assert_eq!(
@@ -2105,7 +2482,7 @@ fn rules_protection_precedence() {
     .expect("root shader caches must not collide with protected profiles");
     assert_eq!(subset_set.rules().len(), 6);
     let embedded = RuleSet::embedded();
-    assert_eq!(embedded.rules().len(), 110, "seed set must load");
+    assert_eq!(embedded.rules().len(), 118, "seed set must load");
 
     let agent_rules: Value = serde_json::from_str(include_str!("../rules/windows.json"))
         .expect("RULES_AGENT_TOOLS: embedded JSON");
@@ -2388,18 +2765,18 @@ fn rules_resolve_plan() {
     );
     let expected = expected_target_count(&rules, custom.len());
     assert_eq!(plan.targets.len(), expected);
-    assert_eq!(expected, 323);
+    assert_eq!(expected, 338);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.2",
+        plan.rules_data_version, "2026-11-07.3",
         "RULES_M35_VERSION: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.2",
+        plan.rules_data_version, "2026-11-07.3",
         "RULES_M3_WORDING: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.2",
+        plan.rules_data_version, "2026-11-07.3",
         "RULES_M3C_VERSION: plan data version"
     );
     assert_eq!(plan.created_at, CREATED_AT);
@@ -2929,7 +3306,7 @@ fn rules_seed_coverage() {
     m35_seeds();
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-11-07.2",
+        rules.data_version, "2026-11-07.3",
         "RULES_M3D_VERSION: embedded version"
     );
     let m3d_embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
@@ -2967,7 +3344,7 @@ fn rules_seed_coverage() {
         );
     }
     assert_eq!(
-        rules.data_version, "2026-11-07.2",
+        rules.data_version, "2026-11-07.3",
         "RULES_M3C_VERSION: embedded version"
     );
     assert_eq!(
@@ -3999,6 +4376,9 @@ fn seed_table() -> Vec<SeedSpec> {
             p("local_app_data", "AMD/DxCache"),
             p("local_app_data", "AMD/GLCache"),
             p("local_app_data", "Intel/ShaderCache"),
+            p("user_profile", "AppData/LocalLow/Intel/ShaderCache"),
+            p("user_profile", "AppData/LocalLow/NVIDIA/DXCache"),
+            p("user_profile", "AppData/LocalLow/NVIDIA/GLCache"),
         ],
     ));
     rows.push(seed(

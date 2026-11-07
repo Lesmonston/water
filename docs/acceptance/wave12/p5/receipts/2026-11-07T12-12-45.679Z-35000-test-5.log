@@ -1,0 +1,48 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... FAILED
+test rules_schema_strict ... ok
+test rules_seed_coverage ... FAILED
+
+failures:
+
+---- rules_resolve_plan stdout ----
+
+thread 'rules_resolve_plan' (35096) panicked at tests\rules_v1.rs:428:35:
+RULES_W12_NEW: rule exists
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rules_seed_coverage stdout ----
+
+thread 'rules_seed_coverage' (2196) panicked at tests\rules_v1.rs:797:5:
+assertion `left == right` failed: RULES_W12_NEW: exact rule count
+  left: 110
+ right: 118
+
+
+failures:
+    rules_resolve_plan
+    rules_seed_coverage
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w12-p5\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.98s
+     Running tests\rules_v1.rs (.local\w2-target\junk-rules\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`
