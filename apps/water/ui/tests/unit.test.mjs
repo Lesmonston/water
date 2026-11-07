@@ -5,7 +5,7 @@ import {bytes, formatBytes, byteDelta, countDelta, count, relativeTime, elapsed,
 import * as model from '../model.mjs';
 import * as ipc from '../ipc.mjs';
 const fixture = JSON.parse(readFileSync(new URL('../../../../contracts/checkup-v1/ui-fixtures.json', import.meta.url), 'utf8'));
-const m3c = {...fixture, ...JSON.parse(readFileSync(new URL('../../../../contracts/m3c-v1/ui-fixtures-m3c.json', import.meta.url), 'utf8'))};
+const m3c = JSON.parse(readFileSync(new URL('../../../../contracts/m3c-v1/ui-fixtures-m3c.json', import.meta.url), 'utf8'));
 
 test('ui_format_bytes_time', () => {
   assert.equal(formatBytes('0'), '0 MB', 'UI_W11_ZERO: zero bytes display as zero');
@@ -74,6 +74,15 @@ test('ui_format_bytes_time', () => {
 
 test('ui_v2_view_rules', () => {
   const f = JSON.parse(readFileSync(new URL('../../../../contracts/m35-v1/ui-fixtures-m35.json', import.meta.url), 'utf8'));
+  function checkPaths(value) {
+    if (typeof value === 'string') {
+      assert(!/[A-Za-z]:[\\/]new(?:[\\/]|$)/i.test(value), 'UI_W13_FIXTURES: no workspace directory directly under a drive root');
+      for (const match of value.matchAll(/[A-Za-z]:[\\/]Users[\\/]([^\\/\s，、；。]+)/gi)) {
+        assert(['alice', 'Public', 'Default'].includes(match[1]), 'UI_W13_FIXTURES: user directories use only the allowed example names');
+      }
+    } else if (value && typeof value === 'object') Object.values(value).forEach(checkPaths);
+  }
+  for (const sample of [fixture, m3c, f]) checkPaths(sample);
   const v = structuredClone(f.v2_conclusion_typical); v.cards.reverse();
   assert.deepEqual(model.viewCards(v), v.cards, 'UI_V2_CONCLUSION: service order retained');
   assert.equal(model.viewCards(v).length, v.cards.length, 'UI_V2_CONCLUSION: every card retained');
@@ -93,7 +102,7 @@ test('ui_v2_view_rules', () => {
 test('ui_ipc_boundary', async () => {
   const calls = [], original = globalThis.__TAURI__;
   const cases = {
-    app_state:[], scan_start:[], scan_cancel:['scan-a'], scan_progress:[], scan_result:['scan-a'], group_detail:['custom:water:cachedir-tagged'], clean_prepare:[['group-a', 'custom:water:cachedir-tagged']], clean_start:['plan-a', 'token-a'], clean_stop:[], clean_progress:[], clean_result:['clean-a'], trends:[], history_list:[], locations_get:[], locations_set_category:['agent_tool', false], custom_root_add:[], custom_root_remove:['root-a'], skip_add:['i-000201'], skip_remove:['s-000001'], skip_unit_add:['cv-1', 'card:codex-runtimes'], diagnostics_get:[], app_info:[]
+    app_state:[], scan_start:[], scan_cancel:['scan-a'], scan_progress:[], scan_result:['scan-a'], group_detail:['custom:flick:cachedir-tagged'], clean_prepare:[['group-a', 'custom:flick:cachedir-tagged']], clean_start:['plan-a', 'token-a'], clean_stop:[], clean_progress:[], clean_result:['clean-a'], trends:[], history_list:[], locations_get:[], locations_set_category:['agent_tool', false], custom_root_add:[], custom_root_remove:['root-a'], skip_add:['i-000201'], skip_remove:['s-000001'], skip_unit_add:['cv-1', 'card:codex-runtimes'], diagnostics_get:[], app_info:[]
   };
   const keys = {scan_cancel:['scanId'], scan_result:['scanId'], group_detail:['groupId'], clean_prepare:['groupIds'], clean_start:['planId', 'confirmToken'], clean_result:['cleanId'], locations_set_category:['category', 'enabled'], custom_root_remove:['rootId'], skip_add:['itemId'], skip_remove:['skipId'], skip_unit_add:['conclusionVersion', 'unitId']};
   const newCases = {
@@ -129,7 +138,7 @@ test('ui_ipc_boundary', async () => {
     await ipc.clean_prepare({dedupeId:'dup-1', dedupeVersion:'dv-1'}); assert.deepEqual(calls.at(-1).args, {dedupeId:'dup-1', dedupeVersion:'dv-1'});
     await ipc.group_items('m:cachedir-tagged', 'r:0123456789abcdef', null);
     assert.deepEqual(calls.at(-1).args, {groupId:'m:cachedir-tagged', rowId:'r:0123456789abcdef', query:null});
-    for (const unitId of ['card:custom:drive-f:custom-avd-snapshots', 'card:m:cachedir-tagged', 'r:59e431c1522f4cab', 'custom:water:cachedir-tagged']) {
+    for (const unitId of ['card:custom:drive-f:custom-avd-snapshots', 'card:m:cachedir-tagged', 'r:59e431c1522f4cab', 'custom:flick:cachedir-tagged']) {
       await ipc.skip_unit_add('cv-16Z-5d2b-1', unitId);
       assert.deepEqual(calls.at(-1), {command:'skip_unit_add', args:{conclusionVersion:'cv-16Z-5d2b-1', unitId}}, 'UI_W12_SKIP: skip_unit_add sends exactly the conclusion version and the unit ID');
     }

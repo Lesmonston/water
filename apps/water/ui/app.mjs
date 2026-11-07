@@ -200,7 +200,17 @@ const a = {
   category:(id, enabled) => run(async () => { s.locations = await ipc.locations_set_category(id, enabled); }),
   session:(id, enabled, days) => run(async () => { s.locations = await ipc.locations_set_session_cleanup(id, enabled, days); markStale(); }),
   trust:(id, trusted) => run(async () => { s.locations = await ipc.manifest_trust(id, trusted); markStale(); }),
-  removeSkip:id => run(async () => { s.locations = await ipc.skip_remove(id); markStale(); }),
+  removeSkip:id => run(async () => {
+    s.locations = await ipc.skip_remove(id);
+    if (s.conclusion) {
+      try { await readConclusion(); }
+      catch (error) {
+        if (error?.code !== 'not_found') throw error;
+        s.conclusion = null;
+        if (['results', 'details'].includes(s.mode)) s.mode = 'home';
+      }
+    }
+  }),
   markFixed:(id, fixed) => run(async () => { s.trends = await ipc.cluster_mark_fixed(id, fixed); }),
   historyDetail:entry => run(async () => {
     if (s.historyOpen === entry.id) { s.historyOpen = null; return; } s.historyOpen = entry.id;

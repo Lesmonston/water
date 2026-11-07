@@ -2,7 +2,7 @@ import {add, el, heading, card, button, row, toggle, tag} from './common.mjs';
 import {formatBytes, localDateKey} from '../format.mjs';
 import {about} from './about.mjs';
 export function locations(s, a) {
-  const current = s.route.split('/')[1], titles = {content:'扫描内容', skip:'跳过名单', decl:'项目声明', about:'关于与隐私'}, page = add(el('section', 'screen'), heading(titles[current], '设置 · 改了下次体检生效'));
+  const current = s.route.split('/')[1], titles = {content:'扫描内容', skip:'跳过名单', decl:'项目声明', about:'关于与隐私'}, page = add(el('section', 'screen'), heading(titles[current], current === 'skip' ? '设置 · 移除后立即生效' : '设置 · 改了下次体检生效'));
   const grid = el('div', 'settings-grid'), nav = card('', 'settings-nav');
   for (const [key, title] of Object.entries(titles)) {
     const b = button(title, () => a.navigate(`settings/${key}`), key === current ? 'settings-link on' : 'settings-link', `settings-${key}`); if (key === current) b.setAttribute('aria-current', 'page'); add(nav, b);
