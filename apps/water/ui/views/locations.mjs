@@ -35,6 +35,6 @@ export function locations(s, a) {
     }
     if (!value.manifests.length) add(body, card('尚未发现项目声明'));
   } else add(body, about(s));
-  const privacy = add(card('隐私', 'dark main-card'), row('本地体检', '一般体检只读名字、大小、时间和属性'), row('不联网', '不上传任何数据'), row('清理由你确认', '隔离不会释放空间；永久删除不能恢复'), row('项目声明优先', '声明保护的内容不会清理'), el('p', 'sub bottom', `Water ${s.app?.app_version ?? ''} · 记录只存在这台电脑上`));
+  const privacy = add(card('隐私', 'dark main-card'), row('本地体检', '一般体检只读名字、大小、时间和属性'), row('不联网', '不上传任何数据'), row('清理由你确认', '隔离不会释放空间；永久删除不能恢复'), row('项目声明优先', '声明保护的内容不会清理'), el('p', 'sub bottom', `Flick ${s.app?.app_version ?? ''} · 记录只存在这台电脑上`));
   return add(page, add(grid, body, privacy));
 }

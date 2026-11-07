@@ -8,7 +8,9 @@ const fixture = JSON.parse(readFileSync(new URL('../../../../contracts/checkup-v
 const m3c = {...fixture, ...JSON.parse(readFileSync(new URL('../../../../contracts/m3c-v1/ui-fixtures-m3c.json', import.meta.url), 'utf8'))};
 
 test('ui_format_bytes_time', () => {
-  assert.equal(formatBytes('0'), '<1 MB');
+  assert.equal(formatBytes('0'), '0 MB', 'UI_W11_ZERO: zero bytes display as zero');
+  assert.equal(byteDelta('0'), '0 MB', 'UI_W11_ZERO: zero delta has no plus sign');
+  assert.equal(formatBytes('1'), '<1 MB', 'UI_W11_ZERO: positive sub-MB bytes remain below one MB');
   assert.equal(formatBytes('1048575'), '<1 MB');
   assert.equal(formatBytes('1048576'), '1 MB');
   assert.equal(formatBytes('859832320'), '820 MB');

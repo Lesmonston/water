@@ -117,7 +117,7 @@ async function reset(options = {}, route = 'home') {
   if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
   injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(f)},${JSON.stringify(options)})`})).identifier;
   await browser.goto(`${base}/index.html?case=${++sequence}#${route}`);
-  await wait(options.unavailable ? 'document.body.textContent.includes("无法连接 Water 服务")' : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
+  await wait(options.unavailable ? 'document.body.textContent.includes("无法连接 Flick 服务")' : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
   await pause(100);
 }
 async function key(value, shift = false) {
@@ -175,6 +175,11 @@ after(async () => { try { if (browser) await browser.close(); } finally { if (se
 
 test('ui_v2_home_scan', async () => {
   await reset();
+  assert.equal(await evalJs('document.title'), 'Flick · 磁盘体检', 'UI_W11_BRAND: document title uses Flick');
+  assert.equal(await evalJs('document.querySelector(".brand").textContent'), 'Flick', 'UI_W11_BRAND: top brand uses Flick');
+  assert.equal(await evalJs('document.querySelector(".brand use").getAttribute("href")'), '#i-flick', 'UI_W11_BRAND: top brand uses the Flick mark');
+  assert.equal(await evalJs('document.querySelectorAll("#i-berg, #berg-facets").length'), 0, 'UI_W11_BRAND: retired iceberg and mask are absent');
+  assert.deepEqual(await evalJs('(()=>{const mark=document.querySelector("#i-flick"), path=mark.querySelector("path");return [mark.getAttribute("viewBox"),mark.children.length,path.getAttribute("d"),getComputedStyle(path).fill,getComputedStyle(path).stroke]})()'), ['0 0 48 48', 1, 'M12 30.5 C19 22.5 29 13.5 41 8 C32 16 24 27.5 15.8 38.3 A5 5 0 1 1 12 30.5 Z', 'rgb(17, 20, 24)', 'none'], 'UI_W11_BRAND: frozen single path is solid ink with no stroke');
   assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), formatBytes(f.v2_app_state_quarantine.quarantine.bytes), 'UI_V2_HOME: persistent quarantine amount');
   assert(await evalJs('document.body.textContent.includes("这次检查哪里？")'), 'UI_V2_HOME: frozen title');
   await checkPrimary(); await shot('home');
@@ -205,6 +210,15 @@ test('ui_v2_home_scan', async () => {
   await click('scan-stop');
   await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_HOME');
   assert.equal(await evalJs('document.querySelectorAll("[data-key=poll-retry]").length'), 0, 'UI_V2_HOME: successful stop resumes polling to completion');
+  // Service-owned text is renamed by N8; keep the frozen fixture and screenshot inputs intact.
+  const renamedTrends = structuredClone(f.v2_trends);
+  for (const forecast of renamedTrends.forecast) if (forecast.note_zh) forecast.note_zh = forecast.note_zh.replaceAll('Water', 'Flick');
+  await reset({trends:renamedTrends});
+  assert(!(await evalJs('document.body.innerText')).includes('Water'), 'UI_W11_BRAND: home has no visible Water name');
+  await reset({unavailable:true});
+  assert(!(await evalJs('document.body.innerText')).includes('Water'), 'UI_W11_BRAND: unavailable page has no visible Water name');
+  assert.equal(await evalJs('document.querySelector("#notice span").textContent'), '无法连接 Flick 服务', 'UI_W11_BRAND: unavailable notice uses Flick');
+  assert.equal(await evalJs('document.querySelector(".empty h2").textContent'), '无法连接 Flick 服务', 'UI_W11_BRAND: unavailable home uses Flick');
 });
 
 test('ui_v2_conclusion', async () => {
@@ -234,6 +248,17 @@ test('ui_v2_conclusion', async () => {
   await results({missingCardClue:true}); await click('card-menu-leak:7b30fa8fd7ceb684');
   assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('复制线索给 agent'), 'UI_V2_CONCLUSION: missing clue cannot offer empty clipboard copy');
   assert.equal(await control('return c.clipboard.length'), 0, 'UI_V2_CONCLUSION: missing clue never copies an empty string'); await key('Escape');
+  await reset();
+  await control('c.conclusion.status="partial";c.conclusion.plan.chosen_bytes="0"');
+  await click('view-results'); await pageIs('results');
+  const partialNote = ' · 部分完成：有的位置没有权限，或时间到了';
+  const partialSubtitle = await evalJs('document.querySelector(".conclusion .heading .eyebrow").textContent');
+  assert(partialSubtitle.endsWith(partialNote), 'UI_W11_PARTIAL: partial conclusion ends with the exact coverage note');
+  assert.equal(await evalJs('(()=>{const chosen=[...document.querySelectorAll(".conclusion .heading .metric")].find(n=>n.querySelector(".sub").textContent==="你选的");return [...chosen.querySelector(".number").children].map(n=>n.textContent).join(" ")})()'), '0 MB', 'UI_W11_ZERO: chosen-zero header metric displays zero');
+  await control('c.conclusion.status="completed"'); await click('rescan'); await click('view-results'); await pageIs('results');
+  const completedSubtitle = await evalJs('document.querySelector(".conclusion .heading .eyebrow").textContent');
+  assert(!completedSubtitle.includes('部分完成'), 'UI_W11_PARTIAL: completed conclusion has no partial note');
+  assert.equal(partialSubtitle, completedSubtitle + partialNote, 'UI_W11_PARTIAL: scope and time stay intact before the suffix');
 });
 
 test('ui_v2_drawer_details', async () => {
@@ -461,7 +486,7 @@ test('ui_v2_pages_layout_a11y', async () => {
   await browser.size(1240, 820);
   const css = readFileSync(join(ui, 'styles/app.css'), 'utf8'), tokens = readFileSync(join(ui, 'styles/tokens.css'));
   assert(!css.includes('--w-'), 'UI_V2_PAGES: no old token references'); assert.deepEqual(tokens, readFileSync(join(root, 'docs/design/water-ui-v3/tokens.css')), 'UI_V2_PAGES: v3 tokens exact');
-  await reset({unavailable:true}); assert(await evalJs('document.body.textContent.includes("无法连接 Water 服务")'), 'UI_V2_PAGES: unavailable state');
+  await reset({unavailable:true}); assert(await evalJs('document.body.textContent.includes("无法连接 Flick 服务")'), 'UI_V2_PAGES: unavailable state');
   await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]}); await reset(); assert.equal(await evalJs('getComputedStyle(document.querySelector(".btn")).transitionDuration'), '0s', 'UI_V2_PAGES: reduced motion');
   await safeCalls();
   await results(); await click('nav-settings'); await wait('document.querySelector("[data-key=setting-browser]")');
