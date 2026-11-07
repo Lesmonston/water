@@ -1,4 +1,4 @@
-# Water desktop host
+# Flick desktop host
 
 Windows desktop host for the verified `../ui` frontend. `run(service_backend)`
 wires 36 IPC commands: 35 thin adapters to `water_service::Service` through
@@ -76,7 +76,7 @@ preserves explicit nulls for omitted row/search values.
 
 `quarantine_reveal` privately calls `quarantine_locate` with a target ID and
 validates its returned path before opening anything. Only absolute disk paths
-ending in `.water-quarantine` or its 1–48 character alphanumeric/hyphen ID child
+ending in `.flick-quarantine` or `.water-quarantine`, or their 1–48 character alphanumeric/hyphen ID child
 are accepted, case insensitively. Ambiguous spellings, shell delimiters, traversal,
 files and leaf reparse points are rejected. The real `ExplorerOpener` in
 `src/opener.rs` rechecks the folder, reads `SystemRoot`, checks its `explorer.exe`
@@ -89,7 +89,13 @@ does not provide a handle-based guarantee against concurrent path replacement.
 `WATER_DATA_DIR` overrides the data location. Otherwise Tauri's local-data path is
 resolved to its real local disk path, stripping a verbatim disk prefix and
 canonicalizing again to verify the meaning is unchanged, then extended by
-`Water`; WebView uses its `webview` child. Override paths are
+`Flick`; WebView uses its `webview` child. If Flick is absent and the sibling
+`Water` is a plain directory, the host attempts one rename of Water to Flick.
+If that fails, an existing valid Flick wins; otherwise a still-valid Water is
+used for this launch and migration is retried next time. The fallback never
+recreates a missing Water root. Existing Flick directories take priority without
+inspecting Water; old links are neither followed nor renamed. No contents are
+copied, merged or deleted. Overrides bypass migration entirely. Override paths are
 never resolved through links. Paths must be absolute local disk paths; UNC and
 device namespaces are rejected. Metadata checks reject reparse points beneath
 the resolved base, at the data directory and at the WebView directory. Creation proceeds one directory
@@ -108,14 +114,16 @@ cancellation. No picker state is retained. Its six error variants have the exact
 Chinese mappings specified by addendum 01. Tests call it only with `"relative"`,
 which fails before any dialog can open.
 
-`icons/icon.ico` retains the accepted G4 iceberg application icon. UI assets are read-only. The
+`flick.exe` uses the Flick window title and the exact icon from
+`docs/design/flick-brand/flick-app-icon.ico`. Package and library names remain
+`water-desktop` and `water_desktop`. UI assets are read-only. The
 current frontendDist also embeds frontend tests, as acknowledged by HOST section 7.
 
 Run only the assigned controller gate from the worktree root:
 
 ```powershell
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M5 --mode check
-node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W10-M5 --mode test
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W11-N2 --mode check
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W11-N2 --mode test
 ```
 
 The unique `host_v1` target has five tests, with synthetic data only under this
@@ -140,12 +148,12 @@ code explicitly. A partial initial query also consumes the bounded wait's limit.
 They never
 open a window or picker and never scan real user locations.
 
-The native final gate has a ticket-wide one-window budget. Its nine steps run a
-checkup, preview, confirmation, cleanup and history through the UI. The seven
+The native final gate has a ticket-wide one-window budget. Its 17 steps run a
+checkup, preview, confirmation, cleanup, quarantine and permanent purge through the UI. The seven
 categories are disabled and only a synthetic fixture under this worktree's
-`.local/w10-m5-native/` is selectable; protected locations are measured read-only.
-It archives five window screenshots and verifies fixture deletion and retained
-guard files, one scan, snapshot, plan, clean and journal, a private WebView profile
+`.local/w11-n2-native/` is selectable; protected locations are measured read-only.
+It archives the assigned window screenshots and verifies fixture deletion and retained
+guard files, one scan, snapshot, plan and clean, the clean and purge journals, a private WebView profile
 and child process exit. Do not launch the binary or a picker manually. All registry packages
 come from the accepted AC lock and build offline with one job. macOS, release
 packaging and the real picker UI remain unverified. Known M1 limitations are in
@@ -157,5 +165,6 @@ normal backend. It does not launch a second instance, inject startup failure,
 request a real system shutdown or close the window during active cleanup.
 Tests use a recording Opener, including an owned junction rejection fixture;
 neither tests nor the native gate click “打开文件夹” or launch Explorer.
-The baseline UI and service do not exercise exclusions or persistent skips in
-this native check. New M3.5 commands use fake backends until M7 integration.
+The baseline UI and service retain their Water names in this host-only native
+check. The fixture enters the baseline service's `.water-quarantine` before
+permanent purge. Exclusions and persistent skips are not exercised by this flow.

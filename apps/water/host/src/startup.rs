@@ -19,8 +19,8 @@ pub enum StartupError {
 impl fmt::Display for StartupError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
-            Self::AlreadyRunning => "Water 已经在运行。",
-            Self::Failed => "Water 暂时无法启动。",
+            Self::AlreadyRunning => "Flick 已经在运行。",
+            Self::Failed => "Flick 暂时无法启动。",
         })
     }
 }

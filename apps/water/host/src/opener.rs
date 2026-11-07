@@ -47,10 +47,12 @@ pub(crate) fn valid_quarantine_path(path: &str) -> bool {
     }
     let mut parts = path.rsplit('\\');
     let last = parts.next().unwrap_or_default();
-    let quarantine = last.eq_ignore_ascii_case(".water-quarantine")
-        || (parts
-            .next()
-            .is_some_and(|p| p.eq_ignore_ascii_case(".water-quarantine"))
+    let is_quarantine = |name: &str| {
+        name.eq_ignore_ascii_case(".flick-quarantine")
+            || name.eq_ignore_ascii_case(".water-quarantine")
+    };
+    let quarantine = is_quarantine(last)
+        || (parts.next().is_some_and(is_quarantine)
             && (1..=48).contains(&last.len())
             && last.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-'));
     quarantine && plain_metadata(Path::new(path)).is_some_and(|metadata| metadata.is_dir())

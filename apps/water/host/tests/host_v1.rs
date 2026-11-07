@@ -19,8 +19,77 @@ use water_process_scan::InUseSpec;
 use water_scope_registry::v1::RegistryError;
 use water_service::{DriveInfo, FolderPicker, IpcError, Platform, Service, ServiceConfig};
 
+fn assert_w11_rename() {
+    let raw = include_str!("../tauri.conf.json");
+    assert!(
+        validate_config(raw).is_ok(),
+        "HOST_W11_RENAME Flick config accepted"
+    );
+    let mut config: Value = serde_json::from_str(raw).expect("HOST_W11_RENAME config JSON");
+    assert_eq!(
+        config["productName"], "Flick",
+        "HOST_W11_RENAME product name"
+    );
+    config["productName"] = json!("Water");
+    assert!(
+        validate_config(&config.to_string()).is_err(),
+        "HOST_W11_RENAME old product name rejected"
+    );
+    let manifest = include_str!("../Cargo.toml");
+    let binary = manifest
+        .split_once("[[bin]]")
+        .expect("HOST_W11_RENAME bin section")
+        .1
+        .split("[[test]]")
+        .next()
+        .unwrap();
+    assert_eq!(
+        binary.trim(),
+        "name = \"flick\"\npath = \"src/main.rs\"",
+        "HOST_W11_RENAME exact binary declaration"
+    );
+    let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(3)
+        .unwrap();
+    assert_eq!(
+        include_bytes!("../icons/icon.ico").as_slice(),
+        fs::read(tree.join("docs/design/flick-brand/flick-app-icon.ico"))
+            .expect("HOST_W11_RENAME brand icon"),
+        "HOST_W11_RENAME exact icon bytes"
+    );
+    assert!(
+        include_str!("../src/lib.rs").contains(".title(\"Flick\")"),
+        "HOST_W11_RENAME window title"
+    );
+    assert_eq!(
+        StartupError::AlreadyRunning.to_string(),
+        "Flick 已经在运行。",
+        "HOST_W11_RENAME running message"
+    );
+    assert_eq!(
+        StartupError::Failed.to_string(),
+        "Flick 暂时无法启动。",
+        "HOST_W11_RENAME startup failure"
+    );
+    assert_eq!(
+        DataDirectoryError.to_string(),
+        "HOST_DATA_DIRECTORY：无法安全打开 Flick 数据目录。",
+        "HOST_W11_RENAME data failure"
+    );
+    assert_eq!(
+        UnavailableBackend
+            .call("app_state", json!({}))
+            .unwrap_err()
+            .message_zh,
+        "Flick 服务暂时不可用。",
+        "HOST_W11_RENAME unavailable message"
+    );
+}
+
 #[test]
 fn host_config_boundary() {
+    assert_w11_rename();
     let raw = include_str!("../tauri.conf.json");
     let cap_raw = include_str!("../capabilities/main.json");
     let expected_csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
@@ -29,7 +98,7 @@ fn host_config_boundary() {
     assert_eq!(
         config,
         json!({
-            "productName": "Water", "version": "0.1.0", "identifier": "app.water.desktop",
+            "productName": "Flick", "version": "0.1.0", "identifier": "app.water.desktop",
             "build": {"frontendDist": "../ui"},
             "app": {"windows": [], "withGlobalTauri": true, "security": {
                 "csp": expected_csp, "assetProtocol": {"enable": false}, "capabilities": ["main"]
@@ -119,7 +188,7 @@ fn host_config_boundary() {
     assert!(
         validate_config(&raw.replacen(
             "\"productName\":",
-            "\"productName\":\"Water\",\"productName\":",
+            "\"productName\":\"Flick\",\"productName\":",
             1
         ))
         .is_err(),
@@ -498,7 +567,7 @@ fn host_command_registry() {
     for result in exercise(&UnavailableBackend) {
         assert_eq!(
             serde_json::to_value(result.unwrap_err()).unwrap(),
-            json!({"code": "unavailable", "message_zh": "Water 服务暂时不可用。"}),
+            json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。"}),
             "HOST_COMMANDS unavailable reply"
         );
     }
@@ -885,6 +954,55 @@ fn assert_m35_reveal() {
         2,
         "HOST_M35_REVEAL exactly two valid opens"
     );
+    let flick = fixture.root.join(".flick-quarantine");
+    let flick_numbered = flick.join("20261107-AbC-1");
+    fs::create_dir_all(&flick_numbered).expect("HOST_W11_REVEAL fixture");
+    for path in [&flick, &flick_numbered] {
+        let path = path_text(path).replace(".flick-quarantine", ".FlIcK-QuArAnTiNe");
+        let backend = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: Ok(json!({"path":path})),
+        };
+        let before = opener.paths.lock().unwrap().len();
+        assert_eq!(
+            cmd_quarantine_reveal(&backend, &opener, "flick-root".into()),
+            Ok(json!({})),
+            "HOST_W11_REVEAL new mixed-case root or numbered directory"
+        );
+        assert_eq!(
+            *backend.calls.lock().unwrap(),
+            [("quarantine_locate".into(), json!({"targetId":"flick-root"}))],
+            "HOST_W11_REVEAL exact locate request"
+        );
+        let opened = opener.paths.lock().unwrap();
+        assert_eq!(
+            opened.len(),
+            before + 1,
+            "HOST_W11_REVEAL one open per request"
+        );
+        assert_eq!(
+            opened.last(),
+            Some(&path),
+            "HOST_W11_REVEAL exact path argument"
+        );
+    }
+    let backend = Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Ok(json!({"path":path_text(&ordinary)})),
+    };
+    let before = opener.paths.lock().unwrap().len();
+    assert_eq!(
+        cmd_quarantine_reveal(&backend, &opener, "ordinary".into())
+            .expect_err("HOST_W11_REVEAL other name rejected")
+            .code,
+        "invalid",
+        "HOST_W11_REVEAL other name invalid"
+    );
+    assert_eq!(
+        opener.paths.lock().unwrap().len(),
+        before,
+        "HOST_W11_REVEAL other name never opens"
+    );
     let failure = IpcFailure {
         code: "not_found".into(),
         message_zh: "服务原样未找到。".into(),
@@ -1141,8 +1259,239 @@ fn junction(link: &Path, target: &Path, root: &Path) {
     );
 }
 
+// Read only this test's synthetic plain files; preserve directory names as well as bytes.
+fn w11_snapshot(path: &Path) -> Vec<(PathBuf, Option<Vec<u8>>)> {
+    fn visit(root: &Path, path: &Path, entries: &mut Vec<(PathBuf, Option<Vec<u8>>)>) {
+        for entry in fs::read_dir(path).expect("HOST_W11_DATA_MOVE snapshot directory") {
+            let path = entry.expect("HOST_W11_DATA_MOVE snapshot entry").path();
+            let meta = fs::symlink_metadata(&path).expect("HOST_W11_DATA_MOVE snapshot metadata");
+            assert!(
+                !meta.file_type().is_symlink(),
+                "HOST_W11_DATA_MOVE snapshot plain fixture"
+            );
+            let bytes = if meta.is_dir() {
+                None
+            } else {
+                Some(fs::read(&path).expect("HOST_W11_DATA_MOVE snapshot bytes"))
+            };
+            entries.push((path.strip_prefix(root).unwrap().to_path_buf(), bytes));
+            if meta.is_dir() {
+                visit(root, &path, entries);
+            }
+        }
+    }
+    let mut entries = vec![];
+    visit(path, path, &mut entries);
+    entries.sort();
+    entries
+}
+
+fn w11_seed(path: &Path) {
+    fs::create_dir_all(path.join("webview")).expect("HOST_W11_DATA_MOVE seed directories");
+    fs::write(path.join("settings.json"), b"synthetic settings\x00\xff")
+        .expect("HOST_W11_DATA_MOVE seed settings");
+    fs::write(
+        path.join("webview/profile.bin"),
+        b"synthetic webview\x00\xfe",
+    )
+    .expect("HOST_W11_DATA_MOVE seed webview");
+}
+
+fn assert_w11_data_move() {
+    let mut fixture = WiringFixture::new();
+    let old_link = fixture.root.join("junction-base/Water");
+    let outcome = std::panic::catch_unwind(|| {
+        let base = fixture.root.join("only-old");
+        let old = base.join("Water");
+        let new = base.join("Flick");
+        w11_seed(&old);
+        let original = w11_snapshot(&old);
+        let moved = prepare_data_directories(None, &base).expect("HOST_W11_DATA_MOVE only old");
+        assert_eq!(
+            moved.data, new,
+            "HOST_W11_DATA_MOVE only old moves to Flick"
+        );
+        assert_eq!(
+            moved.webview,
+            new.join("webview"),
+            "HOST_W11_DATA_MOVE webview follows"
+        );
+        assert!(
+            !old.exists(),
+            "HOST_W11_DATA_MOVE old name removed, never recreated"
+        );
+        assert_eq!(
+            w11_snapshot(&new),
+            original,
+            "HOST_W11_DATA_MOVE all names and bytes moved intact"
+        );
+
+        let base = fixture.root.join("both");
+        let old = base.join("Water");
+        let new = base.join("Flick");
+        w11_seed(&old);
+        w11_seed(&new);
+        fs::write(new.join("new-only"), b"new wins").expect("HOST_W11_DATA_MOVE seed new");
+        let original = w11_snapshot(&old);
+        let current = w11_snapshot(&new);
+        let chosen = prepare_data_directories(None, &base).expect("HOST_W11_DATA_MOVE both exist");
+        assert_eq!(chosen.data, new, "HOST_W11_DATA_MOVE existing Flick wins");
+        assert_eq!(
+            w11_snapshot(&old),
+            original,
+            "HOST_W11_DATA_MOVE existing Water untouched"
+        );
+        assert_eq!(
+            w11_snapshot(&new),
+            current,
+            "HOST_W11_DATA_MOVE no merging into Flick"
+        );
+
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
+            let base = fixture.root.join("held-old");
+            let old = base.join("Water");
+            let new = base.join("Flick");
+            w11_seed(&old);
+            let original = w11_snapshot(&old);
+            let held = fs::OpenOptions::new()
+                .read(true)
+                .share_mode(1)
+                .open(old.join("settings.json"))
+                .expect("HOST_W11_DATA_MOVE hold own file without delete sharing");
+            let chosen = prepare_data_directories(None, &base)
+                .expect("HOST_W11_DATA_MOVE rename failure fallback");
+            assert_eq!(
+                chosen.data, old,
+                "HOST_W11_DATA_MOVE rename failure uses old this time"
+            );
+            assert_eq!(
+                chosen.webview,
+                old.join("webview"),
+                "HOST_W11_DATA_MOVE fallback webview"
+            );
+            assert!(
+                !new.exists(),
+                "HOST_W11_DATA_MOVE failed rename creates no empty Flick"
+            );
+            assert_eq!(
+                w11_snapshot(&old),
+                original,
+                "HOST_W11_DATA_MOVE held Water unchanged"
+            );
+            drop(held);
+            let retried = prepare_data_directories(None, &base)
+                .expect("HOST_W11_DATA_MOVE retry after close");
+            assert_eq!(
+                retried.data, new,
+                "HOST_W11_DATA_MOVE next attempt migrates"
+            );
+            assert!(
+                !old.exists(),
+                "HOST_W11_DATA_MOVE retry does not recreate Water"
+            );
+            assert_eq!(
+                w11_snapshot(&new),
+                original,
+                "HOST_W11_DATA_MOVE retry retains all bytes"
+            );
+
+            let base = old_link.parent().unwrap();
+            fs::create_dir(base).expect("HOST_W11_DATA_MOVE junction base");
+            let target = fixture.root.join("old-junction-target");
+            w11_seed(&target);
+            let original = w11_snapshot(&target);
+            junction(&old_link, &target, &fixture.root);
+            let chosen = prepare_data_directories(None, base)
+                .expect("HOST_W11_DATA_MOVE old junction ignored");
+            assert_eq!(
+                chosen.data,
+                base.join("Flick"),
+                "HOST_W11_DATA_MOVE junction uses new directory"
+            );
+            assert!(
+                fs::symlink_metadata(&old_link)
+                    .expect("HOST_W11_DATA_MOVE old junction retained")
+                    .file_attributes()
+                    & 0x400
+                    != 0,
+                "HOST_W11_DATA_MOVE old junction not renamed or replaced"
+            );
+            assert_eq!(
+                w11_snapshot(&target),
+                original,
+                "HOST_W11_DATA_MOVE junction target untouched"
+            );
+            assert_eq!(
+                w11_snapshot(&chosen.data),
+                vec![(PathBuf::from("webview"), None)],
+                "HOST_W11_DATA_MOVE no copying from junction"
+            );
+        }
+
+        let base = fixture.root.join("override-base");
+        let old = base.join("Water");
+        w11_seed(&old);
+        let original = w11_snapshot(&old);
+        let override_path = fixture.root.join("chosen-override");
+        let chosen = prepare_data_directories(Some(&override_path), &base)
+            .expect("HOST_W11_DATA_MOVE override");
+        assert_eq!(
+            chosen.data, override_path,
+            "HOST_W11_DATA_MOVE override wins"
+        );
+        assert!(
+            !base.join("Flick").exists(),
+            "HOST_W11_DATA_MOVE override creates no Flick"
+        );
+        assert_eq!(
+            w11_snapshot(&old),
+            original,
+            "HOST_W11_DATA_MOVE override leaves old intact"
+        );
+
+        let base = fixture.root.join("neither");
+        let chosen =
+            prepare_data_directories(None, &base).expect("HOST_W11_DATA_MOVE neither exists");
+        assert_eq!(
+            chosen.data,
+            base.join("Flick"),
+            "HOST_W11_DATA_MOVE neither creates Flick"
+        );
+        assert_eq!(
+            w11_snapshot(&chosen.data),
+            vec![(PathBuf::from("webview"), None)],
+            "HOST_W11_DATA_MOVE fresh private webview"
+        );
+        assert!(
+            !base.join("Water").exists(),
+            "HOST_W11_DATA_MOVE fresh startup never creates Water"
+        );
+        let override_only = fixture.root.join("override-only");
+        let unused_base = fixture.root.join("unused-base");
+        prepare_data_directories(Some(&override_only), &unused_base)
+            .expect("HOST_W11_DATA_MOVE override with absent base");
+        assert!(
+            !unused_base.exists(),
+            "HOST_W11_DATA_MOVE override never creates old or default base"
+        );
+    });
+    #[cfg(windows)]
+    if fs::symlink_metadata(&old_link).is_ok() {
+        fs::remove_dir(&old_link).expect("HOST_W11_DATA_MOVE unlink only owned old junction");
+    }
+    fixture
+        .cleanup()
+        .expect("HOST_W11_DATA_MOVE owned fixture cleanup");
+    if let Err(panic) = outcome {
+        std::panic::resume_unwind(panic);
+    }
+}
+
 #[test]
 fn host_data_directory() {
+    assert_w11_data_move();
     let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
         .nth(3)
@@ -1154,9 +1503,9 @@ fn host_data_directory() {
     fs::create_dir(&root).expect("HOST_DATA_DIRECTORY unique fixture");
     let canonical_root = fs::canonicalize(&root).unwrap();
     let junction = root.join("junction");
-    let signal = root.join("local-app-data/Water/activate.signal");
-    let linked_water = root.join("linked-water-base/Water");
-    let linked_webview = root.join("linked-webview-base/Water/webview");
+    let signal = root.join("local-app-data/Flick/activate.signal");
+    let linked_water = root.join("linked-water-base/Flick");
+    let linked_webview = root.join("linked-webview-base/Flick/webview");
     let outcome = std::panic::catch_unwind(|| {
         let override_path = root.join("覆盖/new/data");
         let fallback = root.join("local-app-data");
@@ -1188,12 +1537,12 @@ fn host_data_directory() {
             prepare_data_directories(None, &fallback).expect("HOST_DATA_DIRECTORY fallback");
         assert_eq!(
             default.data,
-            fallback.join("Water"),
-            "HOST_DATA_DIRECTORY default Water directory"
+            fallback.join("Flick"),
+            "HOST_DATA_DIRECTORY default Flick directory"
         );
         assert_eq!(
             default.webview,
-            fallback.join("Water/webview"),
+            fallback.join("Flick/webview"),
             "HOST_DATA_DIRECTORY default webview"
         );
         let first = acquire_instance_lock(&default.data).expect("HOST_SINGLE_INSTANCE first lock");
@@ -1333,12 +1682,12 @@ fn host_data_directory() {
         );
         assert_eq!(
             StartupError::AlreadyRunning.to_string(),
-            "Water 已经在运行。",
+            "Flick 已经在运行。",
             "HOST_SINGLE_INSTANCE message"
         );
         assert_eq!(
             StartupError::Failed.to_string(),
-            "Water 暂时无法启动。",
+            "Flick 暂时无法启动。",
             "HOST_SINGLE_INSTANCE failure message"
         );
         for invalid in [
@@ -1396,12 +1745,12 @@ fn host_data_directory() {
                 .expect("HOST_DATA_JUNCTION resolve default base");
             assert_eq!(
                 resolved.data,
-                target.join("Water"),
+                target.join("Flick"),
                 "HOST_DATA_JUNCTION default data is under real base"
             );
             assert_eq!(
                 resolved.webview,
-                target.join("Water/webview"),
+                target.join("Flick/webview"),
                 "HOST_DATA_JUNCTION default webview is under real base"
             );
             assert!(
@@ -1437,11 +1786,11 @@ fn host_data_directory() {
                 "HOST_DATA_JUNCTION dotted base stays in place"
             );
             assert!(
-                !ordinary.join("Water").exists(),
-                "HOST_DATA_JUNCTION does not create Water in the stripped directory"
+                !ordinary.join("Flick").exists(),
+                "HOST_DATA_JUNCTION does not create Flick in the stripped directory"
             );
             assert!(
-                prepare_data_directories(Some(&junction.join("Water")), &fallback).is_err(),
+                prepare_data_directories(Some(&junction.join("Flick")), &fallback).is_err(),
                 "HOST_DATA_JUNCTION override through junction remains rejected"
             );
             assert!(
@@ -1455,11 +1804,11 @@ fn host_data_directory() {
             self::junction(&linked_water, &water_target, &root);
             assert!(
                 prepare_data_directories(None, water_base).is_err(),
-                "HOST_DATA_JUNCTION Water itself remains protected"
+                "HOST_DATA_JUNCTION Flick itself remains protected"
             );
             assert!(
                 fs::read_dir(&water_target).unwrap().next().is_none(),
-                "HOST_DATA_JUNCTION linked Water target untouched"
+                "HOST_DATA_JUNCTION linked Flick target untouched"
             );
             fs::create_dir_all(linked_webview.parent().unwrap()).unwrap();
             self::junction(&linked_webview, &water_target, &root);
@@ -2153,7 +2502,7 @@ fn host_service_wiring() {
     let released = cmd_clean_stop(&slot).expect_err("HOST_BACKEND_RELEASE unavailable after take");
     assert_eq!(
         serde_json::to_value(released).unwrap(),
-        json!({"code": "unavailable", "message_zh": "Water 服务暂时不可用。"}),
+        json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。"}),
         "HOST_BACKEND_RELEASE unavailable value"
     );
     assert!(
@@ -2429,7 +2778,7 @@ fn host_service_wiring() {
     for command in COMMANDS.into_iter().chain(["unknown"]) {
         assert_eq!(
             serde_json::to_value(unavailable.call(command, json!({})).unwrap_err()).unwrap(),
-            json!({"code": "unavailable", "message_zh": "Water 服务暂时不可用。"}),
+            json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。"}),
             "HOST_STARTUP_VISIBLE failed service still has unavailable backend"
         );
     }
