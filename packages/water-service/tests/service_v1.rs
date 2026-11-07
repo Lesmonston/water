@@ -4208,9 +4208,193 @@ fn m35_safety_facts() {
     );
 }
 
+fn m14_program_directories() {
+    let f = Fixture::new();
+    f.seed();
+    for path in [
+        "selected/apps/Bar/Bar-1.2.0.exe",
+        "selected/apps/Barley/Foo-setup.exe",
+        "selected/prog/App/unins000.exe",
+        "selected/prog/App/App-setup.exe",
+        "selected/downloads/Foo-setup.exe",
+        "selected/downloads/install-service.exe",
+        "selected/downloads/cli-arm64.exe",
+        "selected/downloads/MostLogin-setup.exe",
+        "selected/downloads/Git-2.47.0-64-bit.exe",
+    ] {
+        f.file(path, 100);
+    }
+    for n in 0..12 {
+        f.file(&format!("selected/prog/App/cache/verify-A{n:05}/data"), 100);
+    }
+    f.age_all(NOW - 8 * 86400);
+    let app = |name: &str, location: Option<String>| water_installed_apps::App {
+        scope: "user".into(),
+        key: name.into(),
+        name: name.into(),
+        version: Some("1.2".into()),
+        install_location: location,
+    };
+    *f.fake.apps.lock().unwrap() = Some(water_installed_apps::AppList {
+        apps_version: "water.installed-apps.v1".into(),
+        collected_at: NOW.to_string(),
+        apps: vec![
+            app(
+                "Bar",
+                Some(slash(&f.root.join("selected/apps/Bar")).to_ascii_uppercase()),
+            ),
+            app("Root", Some("F:\\".into())),
+            app("Xbox Service", None),
+            app("GitHub CLI", None),
+            app("MostLogin", None),
+            app("Git", None),
+            app("Git 2024", None),
+        ],
+        truncated: false,
+        unreadable_keys: 0,
+    });
+    let s = source_service(&f, false);
+    let id = m35_add(&s, &f, "selected");
+    let scan = m35_scan(&s, json!([id]));
+    let saved = scan_saved(&f, &scan);
+    let items = saved["result"]["items"].as_array().unwrap();
+    let at = |rel: &str| {
+        items
+            .iter()
+            .find(|i| i["path"] == slash(&f.root.join(rel)))
+            .unwrap_or_else(|| panic!("SERVICE_M35_SCOPE: missing {rel}"))
+    };
+    for (rel, reason) in [
+        (
+            "selected/apps/Bar/Bar-1.2.0.exe",
+            "在已安装程序 Bar 的安装目录里",
+        ),
+        (
+            "selected/prog/App/App-setup.exe",
+            "在程序目录 App 里（有卸载程序）",
+        ),
+        (
+            "selected/prog/App/unins000.exe",
+            "在程序目录 App 里（有卸载程序）",
+        ),
+    ] {
+        let i = at(rel);
+        assert_eq!(
+            i["eligible"], false,
+            "SERVICE_M35_SCOPE: program file {rel}"
+        );
+        assert_eq!(
+            i["ineligible_reason"], reason,
+            "SERVICE_M35_SCOPE: first reason {rel}"
+        );
+        assert_eq!(
+            saved["item_notes"][i["item_id"].as_str().unwrap()][0],
+            reason,
+            "SERVICE_M35_SCOPE: first note {rel}"
+        );
+    }
+    for rel in [
+        "selected/downloads/Foo-setup.exe",
+        "selected/apps/Barley/Foo-setup.exe",
+    ] {
+        assert_eq!(
+            at(rel)["eligible"],
+            true,
+            "SERVICE_M35_SCOPE: unrelated installer {rel}"
+        );
+    }
+    for rel in [
+        "selected/downloads/install-service.exe",
+        "selected/downloads/cli-arm64.exe",
+    ] {
+        if let Some(i) = items.iter().find(|i| i["path"] == slash(&f.root.join(rel))) {
+            assert!(
+                !saved["item_notes"][i["item_id"].as_str().unwrap()]
+                    .to_string()
+                    .contains("对应的软件已经装好"),
+                "SERVICE_M35_SCOPE: partial app name {rel}"
+            );
+        }
+    }
+    for (rel, text) in [
+        (
+            "selected/downloads/MostLogin-setup.exe",
+            "对应的软件已经装好：MostLogin 1.2",
+        ),
+        (
+            "selected/downloads/Git-2.47.0-64-bit.exe",
+            "对应的软件已经装好：Git 1.2",
+        ),
+    ] {
+        let i = at(rel);
+        assert_eq!(
+            saved["item_notes"][i["item_id"].as_str().unwrap()],
+            json!([text]),
+            "SERVICE_M35_SCOPE: whole name and first match {rel}"
+        );
+    }
+    let group = saved["result"]["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["cluster"]["parent"] == slash(&f.root.join("selected/prog/App/cache")))
+        .expect("SERVICE_M35_SCOPE: application cluster discovered");
+    let members = items
+        .iter()
+        .filter(|i| i["group_id"] == group["group_id"])
+        .collect::<Vec<_>>();
+    assert_eq!(
+        members.len(),
+        12,
+        "SERVICE_M35_SCOPE: application cluster members"
+    );
+    assert!(
+        members.iter().all(|i| i["eligible"] == false
+            && i["ineligible_reason"] == "在程序目录 App 里（有卸载程序）"),
+        "SERVICE_M35_SCOPE: cluster protected by ancestor"
+    );
+    let c = call(&s, "conclusion_get", json!({}));
+    assert!(
+        !c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["group_id"] == group["group_id"]),
+        "SERVICE_M35_SCOPE: protected cluster has no card"
+    );
+    let clue = format!(
+        "cl-{}",
+        &util::digest(group["group_id"].as_str().unwrap())[..12]
+    );
+    assert!(
+        !c["clues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["clue_id"] == clue),
+        "SERVICE_M35_SCOPE: protected cluster has no clue"
+    );
+
+    // The same production supplement still detects uninstallers when the registry is unavailable.
+    *f.fake.apps.lock().unwrap() = None;
+    let scan = m35_scan(&s, json!([id]));
+    let saved = scan_saved(&f, &scan);
+    let app_item = saved["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["path"] == slash(&f.root.join("selected/prog/App/App-setup.exe")))
+        .unwrap();
+    assert_eq!(
+        app_item["ineligible_reason"], "在程序目录 App 里（有卸载程序）",
+        "SERVICE_M35_SCOPE: no installed list still checks uninstallers"
+    );
+}
+
 #[test]
 fn m35_scope_and_plan() {
     m35_safety_facts();
+    m14_program_directories();
     let f = Fixture::new();
     f.seed();
     f.file("project/output/data", 123);
@@ -4581,9 +4765,280 @@ fn m35_scope_and_plan() {
     }
 }
 
+fn m14_conclusion_text() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, false);
+    let scan = scanned(&s);
+    let base = scan_saved(&f, &scan);
+    let link = slash(&f.root.join("synthetic-reference"));
+    let mut saved = base.clone();
+    let items = saved["result"]["items"].as_array_mut().unwrap();
+    for (n, i) in items.iter_mut().take(4).enumerate() {
+        i["referenced_count"] = json!(1);
+        i["referenced_by"] = json!([if n % 2 == 0 {
+            link.clone()
+        } else {
+            link.to_ascii_uppercase()
+        }]);
+    }
+    let sources = items.iter().take(4).cloned().collect::<Vec<_>>();
+    let bytes = sources
+        .iter()
+        .map(|i| util::bytes(&i["unique_bytes"]))
+        .sum::<u64>();
+    let text = format!(
+        "{link} 引用了 4 项，共 {}；改指别处后这些才能清",
+        m35::amount(bytes)
+    );
+    let clue_id = format!("cl-ref-{}", &util::digest(&link.to_ascii_lowercase())[..12]);
+    m35_replace_record(&s, saved.clone());
+    let c = call(&s, "conclusion_get", json!({}));
+    assert_eq!(
+        c["clues"],
+        json!([{"clue_id":clue_id,"text_zh":text,
+        "copy_text":format!("{text}\n{}", sources.iter().map(|i| i["path"].as_str().unwrap()).collect::<Vec<_>>().join("\n"))}]),
+        "SERVICE_M35_CONCLUSION: four references merge case insensitively"
+    );
+    assert_eq!(c["more_clues"], 0, "SERVICE_M35_CONCLUSION: merged count");
+    let items = saved["result"]["items"].as_array_mut().unwrap();
+    for n in 4..21 {
+        let mut i = sources[0].clone();
+        i["item_id"] = json!(format!("synthetic-reference-item-{n}"));
+        i["path"] = json!(slash(&f.root.join(format!("synthetic-item-{n}"))));
+        items.push(i);
+    }
+    m35_replace_record(&s, saved);
+    let c = call(&s, "conclusion_get", json!({}));
+    let copy = c["clues"][0]["copy_text"].as_str().unwrap();
+    assert_eq!(
+        copy.lines().count(),
+        22,
+        "SERVICE_M35_CONCLUSION: reference copy capped at 20 paths"
+    );
+    assert_eq!(
+        copy.lines().last(),
+        Some("…等 21 项"),
+        "SERVICE_M35_CONCLUSION: reference overflow count"
+    );
+
+    // Use a scanner-created cluster, then inject only metadata for the presentation cases.
+    for n in 0..12 {
+        f.file(&format!("windows/Temp/verify-A{n:05}/data"), 100);
+    }
+    f.age_all(NOW - 20 * 86400);
+    let scan = scanned(&s);
+    let mut saved = scan_saved(&f, &scan);
+    saved["finished_at"] = json!(util::timestamp(UNIX_EPOCH + Duration::from_secs(NOW)));
+    let group = saved["result"]["groups"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|g| !g["cluster"].is_null())
+        .expect("SERVICE_M35_CONCLUSION: leak fixture");
+    let gid = group["group_id"].clone();
+    group["cluster"]["kind"] = json!("file");
+    group["cluster"]["parent"] = json!(slash(
+        &f.root
+            .join("123e4567-e89b-12d3-a456-426614174000/subagents")
+    ));
+    let mut ids = Vec::new();
+    for i in saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .filter(|i| i["group_id"] == gid)
+    {
+        ids.push(i["item_id"].as_str().unwrap().to_owned());
+        i["newest_activity"] = json!(util::timestamp(
+            UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400)
+        ));
+    }
+    for id in &ids {
+        saved["item_created"][id] = json!(util::timestamp(
+            UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400)
+        ));
+        saved["item_notes"][id] = json!(["备注一", "备注一", "备注二", "备注三", "备注四"]);
+    }
+    saved["item_created"][&ids[0]] = json!(util::timestamp(
+        UNIX_EPOCH + Duration::from_secs(NOW - 14 * 86400)
+    ));
+    saved["item_created"][&ids[1]] = json!(util::timestamp(
+        UNIX_EPOCH + Duration::from_secs(NOW - 14 * 86400 - 1)
+    ));
+    saved["item_created"]
+        .as_object_mut()
+        .unwrap()
+        .remove(&ids[2]);
+    let i = saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|i| i["item_id"] == ids[2])
+        .unwrap();
+    i["newest_activity"] = json!(util::timestamp(
+        UNIX_EPOCH + Duration::from_secs(NOW - 10 * 86400)
+    ));
+    m35_replace_record(&s, saved.clone());
+    let c = call(&s, "conclusion_get", json!({}));
+    let clue = &c["clues"][0];
+    assert!(
+        clue["text_zh"]
+            .as_str()
+            .unwrap()
+            .ends_with("最近 14 天新增 2 个"),
+        "SERVICE_M35_CONCLUSION: actual recent creations and fallback"
+    );
+    let original_copy = clue["copy_text"].clone();
+    let card = c["cards"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["group_id"] == gid)
+        .unwrap();
+    assert_eq!(
+        card["title_zh"], "…\\subagents 里有 12 个同模板文件，已经不长了",
+        "SERVICE_M35_CONCLUSION: file cluster and UUID title"
+    );
+    for (n, i) in saved["result"]["items"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .filter(|i| i["group_id"] == gid)
+        .enumerate()
+    {
+        i["newest_activity"] = json!(util::timestamp(
+            UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400 + n as u64)
+        ));
+    }
+    for id in &ids {
+        saved["item_created"][id] = json!(util::timestamp(
+            UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400)
+        ));
+    }
+    for (parent, title) in [
+        ("abcdef0/subagents", "…\\subagents"),
+        ("12345678/subagents", "…\\subagents"),
+        ("1234567/subagents", "…\\subagents"),
+        ("en/image", "en\\image"),
+        ("abcdef/subagents", "abcdef\\subagents"),
+        (
+            "123e4567-e89b-12d3-a456-42661417400g/subagents",
+            "123e4567-e89b-12d3-a456-42661417400g\\subagents",
+        ),
+    ] {
+        let group = saved["result"]["groups"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|g| g["group_id"] == gid)
+            .unwrap();
+        group["cluster"]["parent"] = json!(slash(&f.root.join(parent)));
+        m35_replace_record(&s, saved.clone());
+        let c = call(&s, "conclusion_get", json!({}));
+        let card = c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["group_id"] == gid)
+            .unwrap();
+        assert_eq!(
+            card["title_zh"],
+            format!("{title} 里有 12 个同模板文件，已经不长了"),
+            "SERVICE_M35_CONCLUSION: opaque segment {parent}"
+        );
+        let date =
+            util::timestamp(UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400))[..10].to_owned();
+        let evidence = card["evidence_zh"].as_str().unwrap();
+        assert_eq!(
+            evidence,
+            format!(
+                "12 项 · {date} · {} · 备注一；备注二；等 2 条",
+                slash(&f.root.join("windows/Temp"))
+            ),
+            "SERVICE_M35_CONCLUSION: date and unique note evidence"
+        );
+        assert!(
+            c["clues"][0]["text_zh"]
+                .as_str()
+                .unwrap()
+                .ends_with("最近 14 天没有新增"),
+            "SERVICE_M35_CONCLUSION: no recent creations"
+        );
+    }
+    assert!(
+        original_copy
+            .as_str()
+            .unwrap()
+            .starts_with("检查清单\n模板："),
+        "SERVICE_M35_CONCLUSION: leak checklist preserved"
+    );
+
+    // Scope labels come from the saved scan, including protected rows; repeated titles appear once.
+    let proto_g = base["result"]["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["item_count"].as_u64().unwrap() > 0)
+        .unwrap();
+    let proto_i = base["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == proto_g["group_id"])
+        .unwrap();
+    let mut folded = base.clone();
+    folded["scope"] = json!([
+        {"location_id":"one","kind":"folder","label_zh":"位置一","path":null},
+        {"location_id":"two","kind":"folder","label_zh":"位置二","path":null}
+    ]);
+    let mut groups = Vec::new();
+    let mut items = Vec::new();
+    for level in ["advisory", "protected"] {
+        for loc in ["one", "two", "unknown"] {
+            let mut g = proto_g.clone();
+            let mut i = proto_i.clone();
+            let gid = format!("custom:{loc}:{level}");
+            g["group_id"] = json!(gid);
+            g["level"] = json!(level);
+            i["group_id"] = json!(gid);
+            i["item_id"] = json!(format!("{loc}-{level}"));
+            groups.push(g);
+            items.push(i);
+        }
+    }
+    folded["result"]["groups"] = json!(groups);
+    folded["result"]["items"] = json!(items);
+    m35_replace_record(&s, folded);
+    let c = call(&s, "conclusion_get", json!({}));
+    for kind in ["advisory", "protected"] {
+        let fold = c["folds"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|f| f["kind"] == kind)
+            .unwrap();
+        let rows = fold["rows"].as_array().unwrap();
+        assert_eq!(
+            rows.iter()
+                .map(|r| r["note_zh"].clone())
+                .collect::<Vec<_>>(),
+            vec![json!("位置一"), json!("位置二"), Value::Null],
+            "SERVICE_M35_CONCLUSION: {kind} scope labels"
+        );
+        let title = rows[0]["title_zh"].as_str().unwrap();
+        assert_eq!(
+            fold["text_zh"].as_str().unwrap().matches(title).count(),
+            1,
+            "SERVICE_M35_CONCLUSION: {kind} distinct titles"
+        );
+    }
+}
+
 #[test]
 fn m35_conclusion_cards() {
     m35_selection_layers();
+    m14_conclusion_text();
     let f = Fixture::new();
     f.seed();
     for n in 0..7 {
@@ -4750,9 +5205,10 @@ fn m35_conclusion_cards() {
             items.len() >= 4,
             "SERVICE_M35_CONCLUSION: four clue sources"
         );
-        for item in items.iter_mut().take(4) {
+        for (n, item) in items.iter_mut().take(4).enumerate() {
             item["referenced_count"] = json!(1);
-            item["referenced_by"] = json!([slash(&f.root.join("synthetic-reference"))]);
+            item["referenced_by"] =
+                json!([slash(&f.root.join(format!("synthetic-reference-{n}")))]);
         }
         m35_replace_record(&s, saved);
         let c = call(&s, "conclusion_get", json!({}));

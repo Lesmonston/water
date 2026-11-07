@@ -10,6 +10,7 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     hash::{BuildHasherDefault, Hash, Hasher},
     sync::Arc,
+    time::Duration,
 };
 use water_junk_scan::{Item, Level};
 
@@ -765,9 +766,14 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
     let mut title = format!("{} · {}", u.title, m35::amount(n));
     if let Some(cluster) = &first_group.cluster {
         title = format!(
-            "{} 里有 {} 个同模板目录，{}",
+            "{} 里有 {} 个同模板{}，{}",
             tail2(&cluster.parent),
             cluster.member_count,
+            if cluster.kind == "file" {
+                "文件"
+            } else {
+                "目录"
+            },
             if cluster_state(s, r, first_group) == "growing" {
                 "还在长"
             } else {
@@ -816,6 +822,8 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
                 .filter_map(|i| r.saved["unfinished"][&i.item_id].as_str()),
         );
     }
+    let mut seen = BTreeSet::new();
+    notes.retain(|note| seen.insert(*note));
     let oldest = items
         .iter()
         .map(|i| i.newest_activity.as_str())
@@ -826,6 +834,13 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
         .map(|i| i.newest_activity.as_str())
         .max()
         .unwrap_or("");
+    let oldest = oldest.get(..10).unwrap_or(oldest);
+    let newest = newest.get(..10).unwrap_or(newest);
+    let dates = if oldest == newest {
+        oldest.to_owned()
+    } else {
+        format!("{oldest} ～ {newest}")
+    };
     let fixed = s
         .settings
         .fixed_marks
@@ -843,10 +858,9 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
             .count()
     });
     let evidence = format!(
-        "{} 项 · {} ～ {} · {}{}{}{}",
+        "{} 项 · {} · {}{}{}{}",
         items.len(),
-        oldest,
-        newest,
+        dates,
         items
             .first()
             .map(|i| m35::parent(&i.path))
@@ -859,7 +873,11 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
         if notes.is_empty() {
             String::new()
         } else {
-            format!(" · {}", notes.join("；"))
+            let mut text = notes.iter().take(2).copied().collect::<Vec<_>>().join("；");
+            if notes.len() > 2 {
+                text.push_str(&format!("；等 {} 条", notes.len() - 2));
+            }
+            format!(" · {text}")
         },
         after_fixed
             .map(|n| format!(" · 标记已修后新增 {n} 项"))
@@ -877,7 +895,22 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
 fn tail2(path: &str) -> String {
     let mut v = path.rsplit('\\').take(2).collect::<Vec<_>>();
     v.reverse();
-    v.join("\\")
+    v.into_iter()
+        .map(|part| {
+            let hex = |s: &str| s.bytes().all(|b| b.is_ascii_hexdigit());
+            let uuid =
+                part.split('-').map(str::len).eq([8, 4, 4, 4, 12]) && part.split('-').all(hex);
+            if uuid
+                || (part.len() >= 7 && hex(part))
+                || (part.len() >= 8 && part.bytes().all(|b| b.is_ascii_digit()))
+            {
+                "…"
+            } else {
+                part
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\\")
 }
 
 fn row_items<'a>(r: &'a Record, row: &Row) -> Vec<&'a Item> {
@@ -1628,6 +1661,11 @@ pub(crate) fn clusters(core: &Core, s: &State, r: &Record) -> Vec<Value> {
 fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
     let mut candidates = Vec::<(u64, String, String, String)>::new();
     let mut detached = BTreeMap::<String, Vec<&Item>>::new();
+    let mut referenced = BTreeMap::<String, Vec<&Item>>::new();
+    let recent_since = r.saved["finished_at"]
+        .as_str()
+        .and_then(util::parse_time)
+        .and_then(|at| at.checked_sub(Duration::from_secs(14 * 86400)));
     for g in &r.result.groups {
         if let Some(cluster) = &g.cluster {
             let members = r
@@ -1636,13 +1674,22 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
                 .iter()
                 .filter(|i| i.group_id == g.group_id)
                 .collect::<Vec<_>>();
+            if !members.is_empty() && members.iter().all(|i| m35::program_directory_blocked(i)) {
+                continue;
+            }
             let mut days = BTreeMap::<String, u64>::new();
+            let mut recent = 0;
             for i in &members {
                 let at = r.saved["item_created"][&i.item_id]
                     .as_str()
                     .unwrap_or(&i.newest_activity);
                 if let Some(day) = at.get(..10) {
                     *days.entry(day.into()).or_default() += 1;
+                }
+                if recent_since
+                    .is_some_and(|since| util::parse_time(at).is_some_and(|at| at >= since))
+                {
+                    recent += 1;
                 }
             }
             let mut root = cluster.parent.clone();
@@ -1655,11 +1702,15 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
                 root = m35::parent(&root);
             }
             let text = format!(
-                "{} 里有 {} 个 {}，每天新增约 {} 个",
+                "{} 里有 {} 个 {}，{}",
                 cluster.parent,
                 cluster.member_count,
                 cluster.template,
-                cluster.member_count / 14
+                if recent == 0 {
+                    "最近 14 天没有新增".into()
+                } else {
+                    format!("最近 14 天新增 {recent} 个")
+                }
             );
             let copy = format!(
                 "检查清单\n模板：{}\n数量：{}\n总量：{}\n最近 14 天创建分布：{}\n最新一个：{}\n所在仓库根：{}\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。",
@@ -1694,20 +1745,16 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
             detached.entry(m35::parent(&i.path)).or_default().push(i);
         }
         if i.referenced_count > 0 {
-            let text = format!(
-                "{} 指向 {}，改指别处后可清",
-                i.referenced_by
-                    .first()
-                    .map(String::as_str)
-                    .unwrap_or("联接"),
-                i.path
-            );
-            candidates.push((
-                util::number(&i.unique_bytes),
-                format!("cl-{}", &util::digest(&i.item_id)[..12]),
-                text.clone(),
-                text,
-            ));
+            referenced
+                .entry(
+                    i.referenced_by
+                        .first()
+                        .map(String::as_str)
+                        .unwrap_or("联接")
+                        .to_ascii_lowercase(),
+                )
+                .or_default()
+                .push(i);
         }
         if i.odd_count > 0 {
             let text = format!(
@@ -1722,6 +1769,37 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
                 text,
             ));
         }
+    }
+    for (key, items) in referenced {
+        let link = items[0]
+            .referenced_by
+            .first()
+            .map(String::as_str)
+            .unwrap_or("联接");
+        let bytes = items.iter().map(|i| util::number(&i.unique_bytes)).sum();
+        let text = format!(
+            "{link} 引用了 {} 项，共 {}；改指别处后这些才能清",
+            items.len(),
+            m35::amount(bytes)
+        );
+        let mut copy = format!(
+            "{text}\n{}",
+            items
+                .iter()
+                .take(20)
+                .map(|i| i.path.as_str())
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+        if items.len() > 20 {
+            copy.push_str(&format!("\n…等 {} 项", items.len()));
+        }
+        candidates.push((
+            bytes,
+            format!("cl-ref-{}", &util::digest(&key)[..12]),
+            text,
+            copy,
+        ));
     }
     for (parent, items) in detached {
         let text = format!(
@@ -1752,6 +1830,8 @@ fn clues(_core: &Core, _s: &State, r: &Record) -> Vec<Value> {
 
 fn folds(core: &Core, r: &Record) -> Vec<Value> {
     let mut out = Vec::new();
+    let scope: Vec<m35::Location> =
+        serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
     for (kind, level) in [
         ("advisory", Level::Advisory),
         ("protected", Level::Protected),
@@ -1774,15 +1854,26 @@ fn folds(core: &Core, r: &Record) -> Vec<Value> {
         if groups.is_empty() {
             continue;
         }
-        let rows=groups.iter().take(10).map(|g|json!({"title_zh":r.projection().details[&g.group_id]["group"]["title_zh"],"bytes":g.unique_bytes,"note_zh":null})).collect::<Vec<_>>();
+        let rows = groups.iter().take(10).map(|g| {
+            let note = g.group_id.strip_prefix("custom:").and_then(|s| s.split_once(':'))
+                .and_then(|(id, _)| scope.iter().find(|l| l.location_id == id))
+                .map(|l| l.label_zh.as_str());
+            json!({"title_zh":r.projection().details[&g.group_id]["group"]["title_zh"],"bytes":g.unique_bytes,"note_zh":note})
+        }).collect::<Vec<_>>();
         let bytes = groups
             .iter()
             .map(|g| util::number(&g.unique_bytes))
             .sum::<u64>();
-        let names = rows
+        let mut seen = BTreeSet::new();
+        let names = groups
             .iter()
+            .filter_map(|g| {
+                r.projection().details[&g.group_id]["group"]["title_zh"]
+                    .as_str()
+                    .map(str::to_owned)
+            })
+            .filter(|name| seen.insert(name.clone()))
             .take(3)
-            .filter_map(|v| v["title_zh"].as_str())
             .collect::<Vec<_>>()
             .join("、");
         out.push(json!({"kind":kind,"text_zh":format!("{} {}：{names}",m35::amount(bytes),if kind=="protected"{"受保护"}else{"只统计、不清理"}),"bytes":bytes.to_string(),"rows":rows}));
