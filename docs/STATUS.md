@@ -481,6 +481,12 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **计划**：用户：“按计划出单”，即[第十一波计划](dispatch/wave11/PLAN.md)，收尾与改名合成一波、八张单、分两批；数据目录搬家失败时这次照旧用旧目录、下次再试。
     - **进度**：出单准备到“预列旧断言”时，用户要压缩上下文，先写[第 23 份交接](CONTROLLER-HANDOFF-20261107-23.md)，第 3 节是入口。
     - **订正**：下午几处估写的时间（第 85～87 条、收口报告、第十波计划与清单）已按本机时钟改正。
+89. **第十一波出单**（11-07 约 15:45 JST）：
+    - **基线** `ccc584b3`：冻结契约 [RENAME-FLICK](../contracts/w11-v1/RENAME-FLICK.md)（含两个出票前探针：旧程序开着数据目录里的文件时整目录改名失败，关掉后成功；WebView 数据与单实例不依赖产品名与程序名）、[第十一波规则](dispatch/W11-WORKER-RULES.md)、两个检查器认 `WATER-W11-`。
+    - **工单**：N1 界面（astra）、N2 宿主、N3 执行器、N4～N7 规则、扫描、项目声明、查重（同一个执行者按顺序），都是 READY；N8 服务 HOLD，等 N3、N5、N6 合入。旧断言已逐包预列进各单。见[第十一波清单](dispatch/wave11/manifest.json)。
+    - **派前 baseline**：七张都通过（`docs/acceptance/wave11/controller/preflight-20261107/`）。第一次 N1、N6、N7 没过，都是清单生成的错（冻结哈希按仓库字节算、`outputRootExists` 照抄了新包单），改后重跑通过。
+    - **Water 仓库自己的项目声明** `.water-cleanup.json`：6 类可清（工作树里的构建产物、复制的离线依赖、临时目录、测试浏览器、整机夹具、检查回执），都要确认、有天数门槛；保护 `.offline-cache` 与 `docs`。用合入后的项目声明包读过一次：有效。
+    - **下一步**：等用户外贴；交回后逐张验收，合入顺序 N4～N7、N3 → N8 → N2 → N1。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。
