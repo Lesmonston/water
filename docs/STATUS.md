@@ -522,6 +522,12 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - [整体计划](PLAN-OPEN-SOURCE-20261107.md)第 6 节写了拍板结果：第十二波扩大范围；轻门不再重建验收树；跳过记“这个位置上的这一类”；许可证照推荐 `MIT OR Apache-2.0`，放代码前再确认。
     - **公开仓库** [`dfan0519-tech/flick`](https://github.com/dfan0519-tech/flick)：公开、空的，没有分支、没有文件。不加为工作仓库的远端；第十三波导出与隐私扫描都通过后，问过用户再推第一个提交。工作仓库 `dfan0519-tech/water` 仍是私有。
     - **下一步**：按定稿写第十二波（跳过设计照用草稿第 1 节，范围加 B、C 与 E 的代码部分）。
+96. **第十二波出单**（11-07 约 21:10 JST，用户：“开始写第十二波”）：
+    - **基线** `6fd29e34`：冻结契约 [W12](../contracts/w12-v1/W12.md)（一波一份）、[第十二波规则](dispatch/W12-WORKER-RULES.md)、两个检查器认 `WATER-W12-`；执行器的 `journal_error` 与 `JournalFailed` 由总控先写进基线（行为不变；执行器 11、服务 12 个测试过，服务一次只因计时失败、重跑通过）。
+    - **五张单一批出完**：P1 执行器（重门）、P2 服务（中门）、P3 宿主（轻门含整机）、P4 界面（astra，轻门含截图）、P5 规则（轻门），都是 READY，baseline 一次全过。见[第十二波计划](dispatch/wave12/PLAN.md)与[清单](dispatch/wave12/manifest.json)。
+    - **C 盘只读调查**（子代理，只看名字、大小与时间）：规则认不出、可再生的约 33 GB，VRChat 缓存一项 26 GB；挑 8 条新规则、扩 1 条进 P5。原始表格有真实路径，留在本机 `.local/w12-prep/`。
+    - **总控同时做**：安装包（本机 NSIS）、CI（只在公开仓库跑）、整合一条命令。
+    - **下一步**：等用户外贴；交回后照新的验收分档收单，合入顺序 P1 → P2 → P3 → P4 → P5。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。
