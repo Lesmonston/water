@@ -184,9 +184,14 @@ function seedFixture(dataDir) {
   const settings = {settings_version: 'water.settings.v1', categories: Object.fromEntries(f.categoriesOff.map(c => [c, false])), custom_roots: [{root_id: 'fixture', path: dir, added_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z')}]};
   writeFileSync(join(dataDir, 'settings.json'), JSON.stringify(settings, null, 2) + '\n', {flag: 'wx'});
   record.nativeFixture = {dir: relative(root, dir).split(sep).join('/'), files: f.files.length, agedTo: when.toISOString()};
-  if (f.flow === 'quarantine-purge') record.nativeFixture.quarantineRootExisted = existsSync(dir.slice(0, 3) + '.water-quarantine');
+  // Wave 11 (Flick): new moves go to .flick-quarantine; a task names its root with nativeQuarantineName (older
+  // manifests keep .water-quarantine). The other name is recorded too and must not appear during the run.
+  if (f.flow === 'quarantine-purge') Object.assign(record.nativeFixture, {quarantineRootExisted: existsSync(quarantineRoot(dir)), otherQuarantineRootExisted: existsSync(otherQuarantineRoot(dir))});
   return dir;
 }
+const quarantineName = () => task.nativeQuarantineName ?? '.water-quarantine';
+const quarantineRoot = dir => dir.slice(0, 3) + quarantineName();
+const otherQuarantineRoot = dir => dir.slice(0, 3) + (quarantineName() === '.water-quarantine' ? '.flick-quarantine' : '.water-quarantine');
 function checkFixture(dataDir, dir) {
   const f = task.nativeFixture, size = e => e.text !== undefined ? Buffer.byteLength(e.text) : e.bytes;
   for (const p of f.gone) assert(!existsSync(join(dir, p)), 'Fixture path not deleted: ' + p);
@@ -205,7 +210,7 @@ function checkFixture(dataDir, dir) {
 // quarantine, and the steps then permanently delete that batch. The quarantine root is created on the fixture's
 // drive for the run; when it did not exist before, the purge must leave none behind.
 function checkQuarantineFlow(dataDir, dir) {
-  const f = task.nativeFixture, qroot = dir.slice(0, 3) + '.water-quarantine';
+  const f = task.nativeFixture, qroot = quarantineRoot(dir), other = otherQuarantineRoot(dir);
   const cleans = readdirSync(join(dataDir, 'cleans')); assert.equal(cleans.length, 1, 'Exactly one clean record expected');
   const stored = json(join(dataDir, 'cleans', cleans[0])), rec = stored.report, moves = stored.quarantine_reports ?? [];
   record.nativeClean = {status: rec.status, freedBytes: rec.freed_bytes, items: rec.items.map(i => ({status: i.status, bytesBefore: i.bytes_before, bytesFreed: i.bytes_freed, failed: i.failed_entries})),
@@ -226,6 +231,8 @@ function checkQuarantineFlow(dataDir, dir) {
   assert.equal(purges[0].bytes, String(f.purgedBytes), 'Purged bytes differ from the quarantined fixture item');
   record.nativeQuarantineRoot = {path: qroot, existedBefore: record.nativeFixture.quarantineRootExisted, existsAfter: existsSync(qroot)};
   if (!record.nativeFixture.quarantineRootExisted) assert(!existsSync(qroot), 'The purge left an empty quarantine root behind: ' + qroot);
+  record.nativeOtherQuarantineRoot = {path: other, existedBefore: record.nativeFixture.otherQuarantineRootExisted, existsAfter: existsSync(other)};
+  if (!record.nativeFixture.otherQuarantineRootExisted) assert(!existsSync(other), 'The run created the other quarantine root: ' + other);
 }
 // One owned window per task. Hosts with nativeSteps (wired, F3) are driven through the steps by the
 // wired observer and may read real data through the app; afterwards the service store is checked.
