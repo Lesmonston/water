@@ -2333,7 +2333,7 @@ fn m35_plan_templates() {
         ".tmp_w35b",
         "apk_backup",
         "apk_F1.apk",
-        "climbmao-1.5.2-vc24-emu.apk.parts",
+        "sampleapp-1.5.2-vc24-emu.apk.parts",
         "verify-abcdef",
         "7mzKFP",
         "550e8400-e29b-41d4-a716-446655440000",

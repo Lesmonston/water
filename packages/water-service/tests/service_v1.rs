@@ -7085,7 +7085,7 @@ fn m35_session_unlocks() {
         f.seed();
         let session = f.file("user_profile/.claude/projects/project/old.jsonl", 19);
         let cache = f.file(
-            "user_profile/.grok2/AppData/Local/npm-cache/_cacache/entry",
+            "user_profile/.grok3/AppData/Local/npm-cache/_cacache/entry",
             23,
         );
         f.age_all(NOW - 40 * 86400);
