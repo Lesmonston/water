@@ -452,6 +452,12 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
     - **派单**：用户原话“12是astra，14是sol”，即 M12→M13 给 astra（执行者自报 Codex GPT-6），M14 给 sol。
     - **M12 受阻**（`5f2b1885`）：工单让负控只改规则数据，检查器却要求改 `src/`，属总控疏漏。
     - **处理**：检查器改为读任务的 `negativeControlPaths`。给 astra 同一个对话贴一句续做，不出补单。
+84. **M12～M14 验收合入**（11-07 13:50 JST，用户：“收活”）：
+    - **结果**：三张都在新验收树上过了全部 final（M14 的 test final 只因计时重跑一次）。
+    - **变异**：M12 3/3；M13 6/7，存活的 c3 是 `build_clusters` 处的双保险，等价；M14 8/8。
+    - **合入**：依次合入 M12 `de1bf0e5`、M13 `0886186c`、M14 `467f9e43`。
+    - **下一步**：第八次整合、release、在 D 盘与 `F:\Mirasim-A` 同位置复验，然后收口。
+    - 见[验收报告](acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md)第 16 节。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

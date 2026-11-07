@@ -2490,7 +2490,7 @@
       "branch": "worker/water-w10-m12",
       "baseCommit": "98f9678e6a49bb63b87272644dae15c721384d9c",
       "snapshotRef": "refs/tags/water-w10-m12-base-20261107",
-      "status": "BLOCKED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "dispatchedAt": "2026-11-07T03:17:00Z",
       "startedAt": null,
@@ -2563,9 +2563,7 @@
       "issuedAt": "2026-11-07T03:03:59Z",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m12/2026-11-07T03-03-07.873Z-25592-baseline-result.json",
       "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order)",
-      "blockedCommit": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
-      "workerSelfReport": "Codex (GPT-6)",
-      "blockedReason": "ticket section 4 puts both negative controls in rules/windows.json, but checkup-wave-check.mjs required every Rust red-ncN to change <outputRoot>/src (line 189); controller ticket/checker mismatch",
+      "workerSelfReport": "Codex GPT-6 (user arranged astra)",
       "negativeControlPaths": [
         "packages/junk-rules/src",
         "packages/junk-rules/rules/windows.json"
@@ -2574,12 +2572,22 @@
         "fromCommit": "5f2b1885d750e78e2bbfe95bb2ce719e0ca64b04",
         "how": "reply in the same conversation; no addendum (scope unchanged)",
         "checkerFix": "checkup-wave-check.mjs reads task.negativeControlPaths (default <outputRoot>/src)"
-      }
+      },
+      "submittedHead": "d16fbefba32d453a2786e23607e4d3ac86487cfe",
+      "implementationCommit": "eb2026c633041dfdafcb6025d55555df8de83f23",
+      "mergeCommit": "de1bf0e5",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "section": "16",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m12/",
+        "summary": "round 1 after the checker fix (blocked 5f2b1885, head d16fbefb, code eb2026c6): audit 0 problems, only the three ticket data changes, 6 pre-listed old assertions; fresh tree lock, check, real and test finals passed; nc1, nc2 and controller c1 (*installer* widened to *install* in place) caught"
+      },
+      "carryOverLater": []
     },
     {
       "id": "WATER-W10-M13",
       "title": "扫描补修：泄漏簇不认会话、备份与程序资源",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w10-m13",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w10-m13",
@@ -2720,7 +2728,20 @@
       "issuedAt": "2026-11-07T03:03:59Z",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m13/2026-11-07T03-03-15.661Z-9728-baseline-result.json",
       "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order)",
-      "note": "starts after M12 in the same astra conversation; tree 98f9678e/0 when recorded"
+      "note": "starts after M12 in the same astra conversation; tree 98f9678e/0 when recorded",
+      "submittedHead": "19fca064a6ee91d7ed36700413812d069443ce4c",
+      "implementationCommit": "0cdff543826ee37b76b5e54b9a6b0271e9df74fe",
+      "workerSelfReport": "Codex GPT-6 (user arranged astra)",
+      "mergeCommit": "0886186c",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "section": "16",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m13/",
+        "summary": "round 1 (head 19fca064, code 0cdff543): audit 0 problems, shared cluster_candidate_allowed in potential_children and build_clusters, no old assertion changed; fresh tree lock, check, real and test finals passed; nc1-nc3, c1 (.jsonl), c2 (backup), c4 (one ancestor short) caught; c3 (skip the check at the build_clusters call site) survives as an equivalent mutant: every candidate already passed it in potential_children"
+      },
+      "carryOverLater": [
+        "equivalent: the cluster_candidate_allowed call in build_clusters is defence in depth (all candidates come from potential_children, streaming.rs 673-698); no test can tell it apart (controller c3)"
+      ]
     },
     {
       "kind": "service",
@@ -2869,7 +2890,7 @@
       "branch": "worker/water-w10-m14",
       "baseCommit": "98f9678e6a49bb63b87272644dae15c721384d9c",
       "snapshotRef": "refs/tags/water-w10-m14-base-20261107",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "readyOn": "2026-11-07",
       "dispatchedAt": "2026-11-07T03:17:00Z",
       "startedAt": null,
@@ -2984,7 +3005,21 @@
       "source": "docs/acceptance/wave10/controller/WATER-M35-CLOSE-20261107.md",
       "issuedAt": "2026-11-07T03:03:59Z",
       "baselineEvidence": "docs/acceptance/wave10/controller/preflight-20261107/m14/2026-11-07T03-03-23.835Z-21532-baseline-result.json",
-      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order); worker tree head/changed files 98f9678e/1 when recorded at 2026-11-07T03:18:03Z"
+      "dispatchEvidence": "user chat 2026-11-07 ~12:17 JST: \"12是astra，14是sol\" (the M12 paste line also covers M13, in order); worker tree head/changed files 98f9678e/1 when recorded at 2026-11-07T03:18:03Z",
+      "submittedHead": "8b4da83785acd43e93d36be4ac0fbe412519365b",
+      "implementationCommit": "b35ca69475f68f18633700f2712081659e0be6f9",
+      "workerSelfReport": "Codex GPT-6",
+      "mergeCommit": "467f9e43",
+      "controllerReview": {
+        "report": "docs/acceptance/wave10/controller/WATER-W10-REVIEW-20261105.md",
+        "section": "16",
+        "evidence": "docs/acceptance/wave10/controller/accept-20261105/m14/",
+        "summary": "round 1 (head 8b4da837, code b35ca694): audit 0 problems, IPC shape unchanged, only the pre-listed old assertion block changed; fresh tree lock, check and real finals passed, test final passed on a timing-only rerun; nc1-nc3 and controller c1-c5 all caught (c5 redone after the first mutation did not compile)"
+      },
+      "carryOverLater": [
+        "LOW: a merged link clue ends with \"…等 N 项\" where N is the total, not the remainder",
+        "by design: the program-folder check is conservative; a real installer next to an uninstaller (D:\\11\\MostLogin-setup.exe in the close recheck) is held back too"
+      ]
     }
   ],
   "bundles": [

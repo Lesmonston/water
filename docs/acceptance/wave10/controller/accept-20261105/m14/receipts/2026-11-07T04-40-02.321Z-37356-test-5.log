@@ -1,0 +1,18 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m14\packages\water-service)
+error[E0282]: type annotations needed for `BTreeSet<_>`
+   --> src\conclusion.rs:825:9
+    |
+825 |     let mut seen = BTreeSet::new();
+    |         ^^^^^^^^   --------------- type must be known at this point
+    |
+help: consider giving `seen` an explicit type, where the type for type parameter `T` is specified
+    |
+825 |     let mut seen: BTreeSet<T> = BTreeSet::new();
+    |                 +++++++++++++
+
+For more information about this error, try `rustc --explain E0282`.
+error: could not compile `water-service` (lib) due to 1 previous error

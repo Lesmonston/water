@@ -73,7 +73,7 @@ M3.5 收口时总控用 release 版做了真实只读体检，见[收口报告](
 
 本单的负控改的是 `rules/windows.json`，不是 `src/`（本单只改数据）。做法：改一处 → `--mode red-ncN` → `git checkout` 恢复原字节 → 立即 `--mode test`。
 
-11-07 12:25 补：检查器原来要求 Rust 负控必须改 `src/`，与上面冲突（执行者受阻回执 `5f2b1885`）。总控已改检查器：按 manifest 里本单的 `negativeControlPaths`（`packages/junk-rules/src` 或 `packages/junk-rules/rules/windows.json`）判断。不禁止改测试、失败标记、恢复后变绿等别的核验都不变。从 `5f2b1885` 续做，不用重跑 baseline。
+11-07 12:25 补：检查器原来要求 Rust 负控必须改 `src/`，与上面冲突（执行者受阻回执 `5f2b1885`）。总控已改检查器：按 manifest 里本单的 `negativeControlPaths`（`packages/junk-rules/src` 或 `packages/junk-rules/rules/windows.json`）判断。禁止改测试、失败标记、恢复后变绿等别的核验都不变（原文误写成“不禁止改测试”，执行者按续做句的“不许改测试”执行）。从 `5f2b1885` 续做，不用重跑 baseline。
 
 ## 5. 命令（在工作树根目录执行）
 

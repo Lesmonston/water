@@ -1,0 +1,39 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... ok
+test m35_conclusion_cards ... FAILED
+test m35_quarantine ... ok
+test m35_rows_and_detail ... ok
+test m35_scope_and_plan ... ok
+test m35_trends_history ... ok
+test service_clean_flow ... ok
+test service_hardening ... ok
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_conclusion_cards stdout ----
+
+thread 'm35_conclusion_cards' (3672) panicked at tests\service_v1.rs:4797:5:
+assertion `left == right` failed: SERVICE_M35_CONCLUSION: four references merge case insensitively
+  left: Array [Object {"clue_id": String("cl-ref-1111a6cb6c71"), "copy_text": String("F:\\NEW\\SMALTALK\\WATER\\.WORKTREES\\ACCEPT-W10-M14\\.LOCAL\\W3-F1-FIXTURES\\SERVICE-D1F2B2ADB0CC2F03\\SYNTHETIC-REFERENCE 引用了 1 项，共 <1 MB；改指别处后这些才能清\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\local_app_data\\Google\\Chrome\\User Data\\Default\\Cache"), "text_zh": String("F:\\NEW\\SMALTALK\\WATER\\.WORKTREES\\ACCEPT-W10-M14\\.LOCAL\\W3-F1-FIXTURES\\SERVICE-D1F2B2ADB0CC2F03\\SYNTHETIC-REFERENCE 引用了 1 项，共 <1 MB；改指别处后这些才能清")}, Object {"clue_id": String("cl-ref-0807205603a9"), "copy_text": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\synthetic-reference 引用了 1 项，共 <1 MB；改指别处后这些才能清\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\user_profile\\.codex\\sessions"), "text_zh": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\synthetic-reference 引用了 1 项，共 <1 MB；改指别处后这些才能清")}, Object {"clue_id": String("cl-ref-6385557e1e11"), "copy_text": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\synthetic-reference 引用了 1 项，共 <1 MB；改指别处后这些才能清\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\user_profile\\.codex\\.tmp\\marketplaces\\.staging\\marketplace-upgrade-old"), "text_zh": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\synthetic-reference 引用了 1 项，共 <1 MB；改指别处后这些才能清")}]
+ right: Array [Object {"clue_id": String("cl-ref-1b0334c54a03"), "copy_text": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\synthetic-reference 引用了 4 项，共 <1 MB；改指别处后这些才能清\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\user_profile\\.codex\\.tmp\\marketplaces\\.staging\\marketplace-upgrade-old\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\user_profile\\.claude\\projects\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\user_profile\\.codex\\sessions\nF:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\local_app_data\\Google\\Chrome\\User Data\\Default\\Cache"), "text_zh": String("F:\\new\\smaltalk\\water\\.worktrees\\accept-w10-m14\\.local\\w3-f1-fixtures\\service-d1f2b2adb0cc2f03\\synthetic-reference 引用了 4 项，共 <1 MB；改指别处后这些才能清")}]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    m35_conclusion_cards
+
+test result: FAILED. 11 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 85.43s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\accept-w10-m14\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.49s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-9bbb9d8e6bfc9f25.exe)
+error: test failed, to rerun pass `--test service_v1`
