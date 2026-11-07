@@ -1,6 +1,6 @@
 {
   "rules_version": "water.junk-rules.v1",
-  "data_version": "2026-11-07.1",
+  "data_version": "2026-11-07.2",
   "rules": [
     {
       "rule_id": "codex-marketplace-staging",
@@ -406,7 +406,7 @@
       },
       "growth": "slow",
       "what_zh": "Claude Code 保存的对话正文，用来续接上次工作和找回改过的内容。",
-      "why_zh": "删了就没法接着聊，也难以找回当时的改动。Water 不会清理这类数据。",
+      "why_zh": "删了就没法接着聊，也难以找回当时的改动。Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -448,7 +448,7 @@
       },
       "growth": "slow",
       "what_zh": "Claude Code 在改文件前留下的快照，用来对照或找回旧内容。",
-      "why_zh": "这是你的工作痕迹，不是临时缓存。Water 不会清理这类数据。",
+      "why_zh": "这是你的工作痕迹，不是临时缓存。Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -489,7 +489,7 @@
       },
       "growth": "slow",
       "what_zh": "Cursor 保存在本机的聊天记录，用来回顾对话和继续未完成的工作。",
-      "why_zh": "清掉就无法从这里找回这些对话。Water 不会清理这类数据。",
+      "why_zh": "清掉就无法从这里找回这些对话。Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -530,7 +530,7 @@
       },
       "growth": "slow",
       "what_zh": "Codex 各配置目录里保存的会话记录。",
-      "why_zh": "这是对话历史，不是升级残留。Water 不会清理这类数据。",
+      "why_zh": "这是对话历史，不是升级残留。Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -571,7 +571,7 @@
       },
       "growth": "slow",
       "what_zh": "Grok 保存在本机的会话记录。",
-      "why_zh": "清掉就无法从这里续接这些对话。Water 不会清理这类数据。",
+      "why_zh": "清掉就无法从这里续接这些对话。Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -1745,7 +1745,7 @@
       },
       "growth": "slow",
       "what_zh": "Google Chrome 保存的登录状态、网站本地数据和自动填充信息。",
-      "why_zh": "清掉之后需要重新登录许多网站，Water 不会清理这类数据。",
+      "why_zh": "清掉之后需要重新登录许多网站，Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -2125,7 +2125,7 @@
       },
       "growth": "slow",
       "what_zh": "Microsoft Edge 保存的登录状态、网站本地数据和自动填充信息。",
-      "why_zh": "清掉之后需要重新登录许多网站，Water 不会清理这类数据。",
+      "why_zh": "清掉之后需要重新登录许多网站，Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -2505,7 +2505,7 @@
       },
       "growth": "slow",
       "what_zh": "Brave 保存的登录状态、网站本地数据和自动填充信息。",
-      "why_zh": "清掉之后需要重新登录许多网站，Water 不会清理这类数据。",
+      "why_zh": "清掉之后需要重新登录许多网站，Flick 不会清理这类数据。",
       "after_zh": "这里只统计占用，不会进入清理计划。",
       "fix_hint_zh": null,
       "sources": [
@@ -2544,7 +2544,7 @@
       "growth": "one_off",
       "what_zh": "Chrome 下载到本机的端侧模型，用来在电脑上做部分智能功能。",
       "why_zh": "直接删除后，Chrome 往往会再下载回来。若要停用，需要先在浏览器设置里关掉相关功能。",
-      "after_zh": "Water 不会在应用内删除它，只提示占用和做法。",
+      "after_zh": "Flick 不会在应用内删除它，只提示占用和做法。",
       "fix_hint_zh": null,
       "sources": [
         {
@@ -2929,7 +2929,7 @@
       },
       "growth": "slow",
       "what_zh": "Windows 用来在设备之间共享更新和商店内容的缓存。",
-      "why_zh": "清理通常需要系统自己的磁盘清理或管理员权限，Water 只提示占用。",
+      "why_zh": "清理通常需要系统自己的磁盘清理或管理员权限，Flick 只提示占用。",
       "after_zh": "可在系统磁盘清理里勾选传递优化文件。应用内不会删除。",
       "fix_hint_zh": null,
       "sources": [
@@ -2971,7 +2971,7 @@
       },
       "growth": "slow",
       "what_zh": "Windows 更新已经下载、等待安装或安装后留下的文件。",
-      "why_zh": "正在更新时不要动。清理通常要系统工具或管理员权限，Water 只提示占用。",
+      "why_zh": "正在更新时不要动。清理通常要系统工具或管理员权限，Flick 只提示占用。",
       "after_zh": "应用内不会删除。需要时请用系统自带的更新或磁盘清理。",
       "fix_hint_zh": null,
       "sources": [
@@ -3191,7 +3191,7 @@
       "growth": "slow",
       "what_zh": "uv 的版本化缓存，里面还有锁和可能被多个环境共用的内容。",
       "why_zh": "官方不允许直接改这个目录。若要清理，请自己运行 uv 提供的缓存命令。",
-      "after_zh": "Water 只提示占用，不会在应用内删除。按官方命令清理后，下次会重新填充需要的缓存。",
+      "after_zh": "Flick 只提示占用，不会在应用内删除。按官方命令清理后，下次会重新填充需要的缓存。",
       "fix_hint_zh": null,
       "sources": [
         {
@@ -3232,7 +3232,7 @@
       "growth": "slow",
       "what_zh": "pnpm 给多个项目共用的软件包仓库，项目里的依赖常常以链接指向这里。",
       "why_zh": "直接删除会打断这些链接。若要瘦身，请自己运行 pnpm 的仓库清理命令。",
-      "after_zh": "Water 只提示占用，不会在应用内删除。按官方命令清理后，未再引用的内容才会被收走。",
+      "after_zh": "Flick 只提示占用，不会在应用内删除。按官方命令清理后，未再引用的内容才会被收走。",
       "fix_hint_zh": null,
       "sources": [
         {
@@ -3564,7 +3564,7 @@
       },
       "growth": "one_off",
       "what_zh": "本机缓存的模型文件，体积往往很大，重新下载也要很久。",
-      "why_zh": "不是临时文件。Water 只提示占用，不在应用内删除。",
+      "why_zh": "不是临时文件。Flick 只提示占用，不在应用内删除。",
       "after_zh": "若你在对应工具里清理，下次使用同一模型会重新下载。",
       "fix_hint_zh": null,
       "sources": [
@@ -3600,7 +3600,7 @@
       },
       "growth": "one_off",
       "what_zh": "Ollama 下载到本机的模型权重。",
-      "why_zh": "重新下载耗时很长。Water 只提示占用，不在应用内删除。",
+      "why_zh": "重新下载耗时很长。Flick 只提示占用，不在应用内删除。",
       "after_zh": "若你用 Ollama 自己的命令移除模型，下次还要用时需要重新拉取。",
       "fix_hint_zh": null,
       "sources": [
@@ -3723,7 +3723,7 @@
       },
       "growth": "slow",
       "what_zh": "Windows 在系统范围内保存的错误报告目录。",
-      "why_zh": "清理往往需要管理员权限，Water 只提示占用。",
+      "why_zh": "清理往往需要管理员权限，Flick 只提示占用。",
       "after_zh": "应用内不会删除。可用系统自带的磁盘清理处理。",
       "fix_hint_zh": null,
       "sources": [
@@ -3835,7 +3835,7 @@
       },
       "growth": "slow",
       "what_zh": "资源管理器用来记住文件夹图标和缩略图的目录。",
-      "why_zh": "这个位置还可能夹着其它资源管理器状态。Water 只提示占用，不在应用内删除。",
+      "why_zh": "这个位置还可能夹着其它资源管理器状态。Flick 只提示占用，不在应用内删除。",
       "after_zh": "若用系统工具重建缩略图，浏览文件夹时会重新生成预览。",
       "fix_hint_zh": null,
       "sources": [
@@ -4125,7 +4125,7 @@
       },
       "growth": "slow",
       "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
-      "why_zh": "里面可能有还没提交的改动，Water 不读文件内容，无法确认，所以只列出、不提供清理。",
+      "why_zh": "里面可能有还没提交的改动，Flick 不读文件内容，无法确认，所以只列出、不提供清理。",
       "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
       "fix_hint_zh": null,
       "sources": [
@@ -4169,7 +4169,7 @@
       },
       "growth": "slow",
       "what_zh": "名字叫 node_modules，但旁边没有像项目的文件，多半是全局安装的命令行工具、桌面程序解包出的文件，或某个程序自带的依赖。",
-      "why_zh": "删掉可能让对应的工具或程序打不开。Water 无法确认它属于谁，所以不提供清理，仅供参考。",
+      "why_zh": "删掉可能让对应的工具或程序打不开。Flick 无法确认它属于谁，所以不提供清理，仅供参考。",
       "after_zh": "确认是不再用的工具后，用安装它的方式卸载，例如 npm uninstall -g。",
       "fix_hint_zh": null,
       "sources": [
@@ -5878,7 +5878,7 @@
       },
       "growth": "slow",
       "what_zh": "名字像下载分段，但没有足够大的同名完整文件作对照。",
-      "why_zh": "可能还没下完或仍需续传，Water 无法仅凭名字确认，所以不提供清理。",
+      "why_zh": "可能还没下完或仍需续传，Flick 无法仅凭名字确认，所以不提供清理。",
       "after_zh": "请在下载工具中核对任务状态后决定。",
       "fix_hint_zh": null,
       "sources": [
@@ -6016,7 +6016,7 @@
       },
       "growth": "slow",
       "what_zh": "Audition 生成的转换音频副本，工程可能直接引用其中的文件。",
-      "why_zh": "本次清理曾发现工程引用其中五个；Water 不读工程内容，不能断定可删。",
+      "why_zh": "本次清理曾发现工程引用其中五个；Flick 不读工程内容，不能断定可删。",
       "after_zh": "请在工程内核对媒体引用，不提供应用内清理。",
       "fix_hint_zh": null,
       "sources": [
@@ -6056,7 +6056,7 @@
       },
       "growth": "slow",
       "what_zh": "达芬奇等视频软件的渲染缓存、代理或优化媒体。",
-      "why_zh": "这些文件可能被工程直接引用；Water 不读工程内容，无法确认可删。",
+      "why_zh": "这些文件可能被工程直接引用；Flick 不读工程内容，无法确认可删。",
       "after_zh": "请从对应软件中管理缓存或代理媒体，不提供应用内清理。",
       "fix_hint_zh": null,
       "sources": [
@@ -6127,7 +6127,7 @@
       },
       "growth": "slow",
       "what_zh": "Windows 在系统盘上用于虚拟内存的页面文件。",
-      "why_zh": "这是系统正在管理的文件，Water 不删除也不替你修改设置。",
+      "why_zh": "这是系统正在管理的文件，Flick 不删除也不替你修改设置。",
       "after_zh": "按实际内存用量调整上限后需要重启，设置过小可能影响程序。",
       "fix_hint_zh": null,
       "sources": [

@@ -697,7 +697,7 @@ fn m35_resolve() {
 fn m35_seeds() {
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-11-07.1",
+        rules.data_version, "2026-11-07.2",
         "RULES_M35_VERSION: embedded version"
     );
     // Independent frozen rows: ID | title | category | level | type | hours |
@@ -1139,7 +1139,7 @@ fn git_worktree_json() -> Value {
         "in_use": {"mode":"none","processes":[]},
         "growth": "slow",
         "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
-        "why_zh": "里面可能有还没提交的改动，Water 不读文件内容，无法确认，所以只列出、不提供清理。",
+        "why_zh": "里面可能有还没提交的改动，Flick 不读文件内容，无法确认，所以只列出、不提供清理。",
         "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
         "fix_hint_zh": null,
         "sources": [
@@ -1241,7 +1241,7 @@ fn m3d_fallback_json(id: &str) -> Value {
             json!({"kind":"dir_name","names":["node_modules"]}),
             6,
             "名字叫 node_modules，但旁边没有像项目的文件，多半是全局安装的命令行工具、桌面程序解包出的文件，或某个程序自带的依赖。",
-            "删掉可能让对应的工具或程序打不开。Water 无法确认它属于谁，所以不提供清理，仅供参考。",
+            "删掉可能让对应的工具或程序打不开。Flick 无法确认它属于谁，所以不提供清理，仅供参考。",
             "确认是不再用的工具后，用安装它的方式卸载，例如 npm uninstall -g。",
             "10-29 场景复现 docs/acceptance/wave8/controller/WATER-M3-REPLAY-20261101.md：npm 全局目录、Electron 解包目录、Mirasim 程序目录被认成项目依赖",
         ),
@@ -2391,15 +2391,15 @@ fn rules_resolve_plan() {
     assert_eq!(expected, 323);
     assert_eq!(plan.plan_version, "water.scan-plan.v1");
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.1",
+        plan.rules_data_version, "2026-11-07.2",
         "RULES_M35_VERSION: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.1",
+        plan.rules_data_version, "2026-11-07.2",
         "RULES_M3_WORDING: plan data version"
     );
     assert_eq!(
-        plan.rules_data_version, "2026-11-07.1",
+        plan.rules_data_version, "2026-11-07.2",
         "RULES_M3C_VERSION: plan data version"
     );
     assert_eq!(plan.created_at, CREATED_AT);
@@ -2864,6 +2864,34 @@ fn rules_resolve_plan() {
 
 #[test]
 fn rules_seed_coverage() {
+    fn check_rename(value: &Value) -> usize {
+        match value {
+            Value::Object(fields) => fields
+                .iter()
+                .map(|(name, value)| {
+                    if name.ends_with("_zh") && !value.is_null() {
+                        let text = value.as_str().expect("RULES_W11_RENAME: text field");
+                        assert!(
+                            !text.contains("Water"),
+                            "RULES_W11_RENAME: {name} contains the old product name"
+                        );
+                        text.matches("Flick").count()
+                    } else {
+                        check_rename(value)
+                    }
+                })
+                .sum(),
+            Value::Array(values) => values.iter().map(check_rename).sum(),
+            _ => 0,
+        }
+    }
+    let renamed: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_W11_RENAME: embedded JSON");
+    assert_eq!(
+        check_rename(&renamed["rules"]),
+        23,
+        "RULES_W11_RENAME: exact product-name occurrence count"
+    );
     let installer_rules = RuleSet::embedded();
     let installer = installer_rules
         .rule("installer-files")
@@ -2901,7 +2929,7 @@ fn rules_seed_coverage() {
     m35_seeds();
     let rules = RuleSet::embedded();
     assert_eq!(
-        rules.data_version, "2026-11-07.1",
+        rules.data_version, "2026-11-07.2",
         "RULES_M3D_VERSION: embedded version"
     );
     let m3d_embedded: Value = serde_json::from_str(include_str!("../rules/windows.json"))
@@ -2939,7 +2967,7 @@ fn rules_seed_coverage() {
         );
     }
     assert_eq!(
-        rules.data_version, "2026-11-07.1",
+        rules.data_version, "2026-11-07.2",
         "RULES_M3C_VERSION: embedded version"
     );
     assert_eq!(
