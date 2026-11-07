@@ -85,6 +85,7 @@ pub(crate) fn excluded(name: &str) -> bool {
     [
         ".git",
         ".water-quarantine",
+        ".flick-quarantine",
         "$Recycle.Bin",
         "System Volume Information",
     ]

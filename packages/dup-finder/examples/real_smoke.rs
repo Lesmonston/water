@@ -7,7 +7,13 @@ impl DupObserver for Quiet {
 fn main() {
     let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(4)
+        .find(|ancestor| {
+            ancestor.join("docs").is_dir()
+                && ancestor
+                    .join(".git")
+                    .metadata()
+                    .is_ok_and(|m| m.is_file() || m.is_dir())
+        })
         .expect("repository");
     let options = DupOptions {
         roots: vec![repo.join("docs").to_string_lossy().into_owned()],

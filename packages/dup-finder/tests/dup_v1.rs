@@ -199,6 +199,46 @@ fn dup_contract() {
     ] {
         f.write(&format!("scan/{folder}/hidden.bin"), &data);
     }
+    for folder in [".flick-quarantine", ".FLICK-Quarantine"] {
+        let rename = Fixture::new();
+        let root = rename.dir("scan");
+        rename.write("scan/a.bin", &data);
+        rename.write("scan/b.bin", &data);
+        let hidden = rename.write(&format!("scan/{folder}/hidden.bin"), &data);
+        let result = scan(&options(&[&root], 65537));
+        assert_eq!(
+            (
+                result.files_listed,
+                result.candidate_files,
+                result.groups.len()
+            ),
+            (2, 2, 1),
+            "DUP_W11_RENAME: {folder} excluded from listing and candidates"
+        );
+        assert_eq!(
+            result.groups[0].copies.len(),
+            2,
+            "DUP_W11_RENAME: {folder} does not add a duplicate copy"
+        );
+        assert!(
+            result.groups.iter().flat_map(|g| &g.copies).all(|c| {
+                c.path != hidden.to_string_lossy()
+                    && !c
+                        .hard_link_paths
+                        .iter()
+                        .any(|p| p == &hidden.to_string_lossy())
+            }),
+            "DUP_W11_RENAME: {folder} hidden file never enters any group"
+        );
+        let selected = scan(&options(&[hidden.parent().unwrap()], 1));
+        assert!(
+            selected.files_listed == 0
+                && selected.candidate_files == 0
+                && selected.groups.is_empty()
+                && selected.skipped.access_denied == 0,
+            "DUP_W11_RENAME: {folder} excluded when selected as the root"
+        );
+    }
     let outside = f.dir("outside");
     f.write("outside/copy.bin", &data);
     f.junction(root.join("link"), &outside);
