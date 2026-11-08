@@ -36,6 +36,17 @@ items or at least 1 GiB per day. Rates still use the exact elapsed interval.
 
 `scan` remains the default-options wrapper around `scan_full`. All modes read names and metadata only; directory listings are shared across pattern, marker, discovery and measurement work. Allocation sizes and creation times come from the same directory enumeration, with file-identity deduplication within each item.
 
+`ScanObserver::on_root_done` receives a `RootProgress` for each distinct root in
+`scan` and `scan_full`. Pattern bases and marker or discovery roots are deduplicated
+without ASCII case sensitivity; fallback markers do not add roots. The event
+preserves the first target's spelling, counts `roots_done` from 1 to the fixed
+`roots_total`, and includes the current `visited_entries` count. Quarantine and
+`.git` roots are reported first, in plan order. Other skipped roots are reported
+when reached; walked roots are reported after their subtree finishes. Cancellation
+or an exhausted budget leaves unfinished roots unreported. The callback defaults
+to an empty implementation. Existing `on_progress` behavior is unchanged, and
+`space_overview` does not emit root events.
+
 `scan_full` can additionally report leak clusters, junction references and declaration file locations (`.flick-cleanup.json` and `.water-cleanup.json`, Flick first when both exist in one directory). It never parses declaration contents or follows a reparse point. Cluster membership and names are descriptive; use checks, valuable-file decisions and actual cleaning belong to the service/executor. `.flick-quarantine`, `.water-quarantine` and `.git` are never scan targets. Both quarantine names are matched without ASCII case sensitivity and remain included in `space_overview`.
 
 Junctions with both hidden and system attributes are omitted from the reference index, including when used as scan roots. Junctions with only one of these attributes remain indexed. An item is referenced only when an external indexed junction's final target equals the item or lies inside it; targets above the item do not count. Comparisons follow path segments without ASCII case sensitivity.
