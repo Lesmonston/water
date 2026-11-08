@@ -1,6 +1,8 @@
-WATER-W14-S1 补单 01 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w14-s1/docs/dispatch/reports/WATER-W14-S1-REPORT.md
+WATER-W14-S1 补单 01 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w14-s1/docs/dispatch/reports/WATER-W14-S1-REPORT.md
 
-# WATER-W14-S1 受阻回执
+# WATER-W14-S1 回执（原单与补单 01）
+
+当前结论见文末“第 5 节补充续做：第 A 段已完成”。原单和此前补单的受阻记录保留为历史。
 
 2026-11-08。实际执行模型：Codex（GPT-6）；未使用子代理或其它执行者。
 
@@ -217,3 +219,30 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --
 - 本段新增词汇：`Nothing selected`（未选择）、`Unnamed item`（未命名项）、`Unknown date`（未知日期）、`Session cleanup settings`（会话清理设置）、`trust in the project declaration`（项目声明的信任）、`Protected and reference only`（受保护与仅供参考）。原单回执中的其它译法沿用。
 
 没有修改示例、宿主、扫描包、规则包、契约、检查器、依赖或锁文件；没有真实数据扫描、真实清理、窗口、选择框、浏览器或下载，没有使用子代理。只在本分支新增提交，未 push、改远端、持久 Git 配置或改写历史。最后一次 test 已退出，核对时未发现剩余 Cargo、Rustc 或本票 service_v1 进程；没有执行杀进程操作。macOS 未验证。保存本报告后停止本票修改，待总控补齐示例文件范围。
+
+### 第 5 节补充续做：第 A 段已完成
+
+2026-11-08。按权威补单新增的第 5 节，在原树 `worker/water-w14-s1` 从干净的 `67dffed702f98217e3a6d6785bc4c983ac34a7bb` 续做。实际模型仍为 Codex（GPT-6），没有子代理。
+
+**第 A 段实现提交：`ce4091b073838e68a90f9646460e6ea2228de622`。在该干净提交上，check 与 test 依次全部通过。** 本报告单独提交，不夹带产品变更。
+
+本次仅修改新增白名单文件 `packages/water-service/examples/service_smoke.rs` 的三处：
+
+1. 缺少数据目录的错误增加 `message_en: "A data directory is required"`。
+2. 体检超时的错误增加 `message_en: "The checkup did not finish"`。
+3. 轮询从“非 `running` 立即退出”改为只在 `completed`、`partial`、`cancelled`、`failed` 四个既有最终状态退出；`running` 和 `finishing` 均继续等，沿用原有超时和轮询间隔。
+
+本轮没有修改测试或迁移其它断言；前文第 A 段的旧断言迁移表仍有效。`IpcError` 的 `code`、`message_zh`、`message_en` 三个字段、公开函数和类型签名、IPC 命令名与键均保持第 A 段接口。
+
+在工作树根执行的最后两次检查如下，均无 `--final`：
+
+| 命令 | 结果 | 本树 `.local/checks/WATER-W14-S1/` 下回执 |
+|---|---|---|
+| `node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --mode check` | 退出 0，passed；fmt 与 Clippy `--all-targets -- -D warnings` 通过 | `2026-11-08T12-54-57.226Z-42780-check-result.json` |
+| `node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --mode test` | 退出 0，passed；12 通过、0 失败、0 ignored、0 filtered | `2026-11-08T12-56-05.153Z-33772-test-result.json` |
+
+两份回执的前后 HEAD 都是 `ce4091b073838e68a90f9646460e6ea2228de622`，检查后的工作树状态均为空。最后一次 Clippy 日志为 `2026-11-08T12-54-57.226Z-42780-check-6.log`，最后一次 Cargo 测试日志为 `2026-11-08T12-56-05.153Z-33772-test-5.log`；测试运行 99.20 秒。无计时失败或重跑。
+
+补单 02 仍需在总控合入 J2 后接 `on_root_done`，按根目录完成数计算规则阶段，处理兜底目标及提前结束，更新位置和类别的完成状态，完成原单三条负控、全部 final、真实只读冒烟与 `archive`。本段沿用获准的阶段终点过渡做法。
+
+本轮未运行 `real`、负控、任何 final 或 archive，未向归档证据目录写文件。真实机器冒烟及 macOS 保持未验证；示例通过全目标编译，其真实运行留待后续验证。没有改宿主、扫描包、规则包、契约、依赖、锁文件或检查器，没有开窗口、对话框、浏览器或下载，没有真实清理。只新增本分支提交，未推送或改写历史。测试已正常退出，结束核对未发现剩余 Cargo、Rustc 或本票 service_v1 进程。第 A 段执行完成，提交本报告后停止本票修改，等待总控收单及补单 02。
