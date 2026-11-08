@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "wave": "water-wave14-english-progress-onescreen",
+  "status": "READY_R1_J1_U1",
+  "controller": "Claude",
+  "controllerRoot": "F:/new/smaltalk/water",
+  "controllerBranch": "main",
+  "helpers": {
+    "-R1": "scripts/checkup-wave-check.mjs",
+    "-J1": "scripts/checkup-wave-check.mjs",
+    "-U1": "scripts/checkup-wave-check.mjs",
+    "-S1": "scripts/desktop-wave-check.mjs",
+    "-H1": "scripts/desktop-wave-check.mjs"
+  },
+  "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+  "baseTag": "water-w14-r1-base-20261108 (one tag per task, all on this commit)",
+  "plan": "docs/dispatch/wave14/PLAN.md",
+  "overallPlan": "docs/PLAN-OPEN-SOURCE-20261107.md",
+  "workerRules": "docs/dispatch/W14-WORKER-RULES.md",
+  "commonRules": "docs/dispatch/WORKER-RULES.md",
+  "contract": "contracts/w14-v1/W14.md",
+  "userDecision": "2026-11-08: leftovers \"全部出第十四波工单\"; \"这一轮还需要做英文界面，做语言切换。做完了再提交\"; language follows the system on first run, English covers everything, agent copy text follows the UI language, UI changes dispatched directly; after looking at the installed beta: main pages on one screen, real scan progress with a next step, no filler captions, coloured blocks instead of stems",
+  "offlineCache": {
+    "core": "F:/new/smaltalk/water/.offline-cache/core/registry",
+    "desktop": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+    "copiedFrom": [
+      "F:/new/smaltalk/water/.worktrees/a/.local/cargo-home/registry",
+      "F:/new/smaltalk/water/.worktrees/ac/.local/desktop-cargo-home/registry"
+    ],
+    "check": "diff -rq byte-identical, 11159 files"
+  },
+  "frozenFiles": [
+    {
+      "path": "docs/decisions/ADR-018-device-junk-checkup-and-in-app-cleanup.md",
+      "sha256": "1195b17c469b3abe290f4d334628fa36583ca7f20c46349aaf1071ff839a0579"
+    },
+    {
+      "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+      "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+    },
+    {
+      "path": "contracts/checkup-v1/MODEL.md",
+      "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+    },
+    {
+      "path": "contracts/checkup-v1/IPC.md",
+      "sha256": "4ab99732dd264f1cacc27301d7c5edddf1f207d8eaa6f16de512d39b8ef1f291"
+    },
+    {
+      "path": "contracts/m3c-v1/IPC-M3C.md",
+      "sha256": "dcaba0f4ab3083f549ce888bd3cd6140099c77c3a77a38ae6230cfb196b5da1b"
+    },
+    {
+      "path": "contracts/m35-v1/IPC-M35.md",
+      "sha256": "17aa1aba62ce5ca22b3207f82d4ba4d67db722035ff542e0a632fd6ad12c44fb"
+    },
+    {
+      "path": "contracts/desktop-bootstrap-mirror-v1/MIRROR.json",
+      "sha256": "494e2b42e0803ba79170ffc162e8ac4938add6284b17dfdeb1f78fb527455e0f"
+    },
+    {
+      "path": "contracts/w11-v1/RENAME-FLICK.md",
+      "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+    },
+    {
+      "path": "contracts/w12-v1/W12.md",
+      "sha256": "8b60498922953eed047e29608efc36cc36aa4cb50c5dbbea502c6236ebdcb570"
+    },
+    {
+      "path": "contracts/w13-v1/W13.md",
+      "sha256": "eb978b7eb75b90348fe6724c3b8f92609ec5c7b0a61c46e422098145d74b89ea"
+    },
+    {
+      "path": "docs/dispatch/WORKER-RULES.md",
+      "sha256": "e578f86200d3f492782f451ba84fa0a1a0b60e4806fefb36dd561504aca90a78"
+    },
+    {
+      "path": "docs/dispatch/W14-WORKER-RULES.md",
+      "sha256": "0bb4b2b18356db433c3d48411c3503f9eae5b013bcb0b8fdc9cb4b347e8ea0a6"
+    },
+    {
+      "path": "contracts/w14-v1/W14.md",
+      "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+    }
+  ],
+  "readyReport": "docs/dispatch/wave14/PLAN.md",
+  "tasks": [
+    {
+      "kind": "rust",
+      "outputRoot": "packages/junk-rules",
+      "packageName": "water-junk-rules",
+      "testTarget": "rules_v1",
+      "expectedTests": [
+        "rules_schema_strict",
+        "rules_protection_precedence",
+        "rules_resolve_plan",
+        "rules_seed_coverage"
+      ],
+      "testFiles": [
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "env-only",
+      "nativeModule": null,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "id": "WATER-W14-R1",
+      "title": "规则：英文字段与接口",
+      "slot": "w14-r1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w14-r1",
+      "branch": "worker/water-w14-r1",
+      "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+      "snapshotRef": "refs/tags/water-w14-r1-base-20261108",
+      "status": "READY",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "every rule gets English fields (title/owner/what/why/after required, in_use/fix_hint/advice/retention paired with the Chinese ones), length limits, no CJK in English fields; Rule and RuleText expose them for the service; data_version 2026-11-08.2",
+      "report": "docs/dispatch/reports/WATER-W14-R1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave14/r1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W14-R1-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W14-R1-RULES-20261108.md",
+      "spec": "contracts/w14-v1/W14.md",
+      "proofTargets": {
+        "nc1": "RULES_W14_EN",
+        "nc2": "RULES_W14_EN"
+      },
+      "modelHint": "Rules: W14 sections 0, 2 and 7; src/rules.rs parser and struct, rules/windows.json for all 118 rules; nc1 edits rules data, nc2 edits src/rules.rs.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W14-WORKER-RULES.md",
+        "contracts/w14-v1/W14.md",
+        "contracts/m35-v1/RULES-M35.md",
+        "packages/junk-rules/src/rules.rs",
+        "packages/junk-rules/rules/windows.json",
+        "packages/junk-rules/tests/rules_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w14-v1/W14.md",
+          "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/checkup-v1/RULES.md",
+          "sha256": "11bbc3652d4e722618875e16bdca28676553fade0fb38e754316f053ce925949"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/RULES-M3C.md",
+          "sha256": "2fe859274ca3c8c6a3ca9533d30eb4b16deb2a1801c3c1463f2f976a23e28220"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/junk-rules/",
+        "docs/acceptance/wave14/r1/"
+      ],
+      "readyOn": "2026-11-08",
+      "defaultExecutor": "sol",
+      "negativeControlPaths": [
+        "packages/junk-rules/rules/windows.json",
+        "packages/junk-rules/src/rules.rs"
+      ],
+      "productionFiles": [
+        "packages/junk-rules/Cargo.toml",
+        "packages/junk-rules/Cargo.lock",
+        "packages/junk-rules/README.md",
+        "packages/junk-rules/rules/windows.json"
+      ],
+      "issuedAt": "2026-11-08T08:28:02.463Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave14/PLAN.md",
+      "returnedHead": "504bd856890e599b1dfa66260b64320dec79d53f",
+      "candidateImplementation": "5e8332871a045e51597121406860eb872b8c00f4",
+      "blockedReport": "docs/dispatch/reports/WATER-W13-R1-REPORT.md",
+      "blockedReason": "test --final proof audit: Missing valid negative control nc1. Controller manifest omission: the generator drops productionFiles carried over from W12-P5 and R1 only re-added negativeControlPaths, so rules/windows.json was outside the production snapshot and red and green had the same productionHash. Worker receipts confirmed; both NCs failed RULES_W13_SOURCES as intended.",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/r1/"
+    },
+    {
+      "id": "WATER-W14-J1",
+      "title": "扫描：显卡缓存的 cache.db、真实冒烟、测试措辞",
+      "status": "READY",
+      "slot": "w14-j1",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w14-j1",
+      "branch": "worker/water-w14-j1",
+      "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+      "snapshotRef": "refs/tags/water-w14-j1-base-20261108",
+      "ticket": "docs/dispatch/tickets/WATER-W14-J1-SCAN-20261108.md",
+      "report": "docs/dispatch/reports/WATER-W14-J1-REPORT.md",
+      "spec": "contracts/w14-v1/W14.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_W14_GPU",
+        "nc2": "SCAN_W14_GPU",
+        "nc3": "SCAN_W14_GPU"
+      },
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W14-J1-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave14/j1/"
+      ],
+      "evidenceDir": "docs/acceptance/wave14/j1/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W14-WORKER-RULES.md",
+        "contracts/w14-v1/W14.md",
+        "contracts/w13-v1/W13.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/examples/real_smoke.rs",
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "medium",
+      "purpose": "cache.db directly inside a known GPU cache folder is not a valuable file (other *.db and other folders unchanged); the real smoke skips junctions that vanish before the attribute re-read and reports a seen-and-skipped count; two W13 junction assertions say what they check",
+      "modelHint": "Scan: W14 sections 0 and 5; valuable() in src/scan.rs, examples/real_smoke.rs, tests in m35_rules_names and the SCAN_W13_JUNCTIONS block; three NCs on the exception.",
+      "frozenFiles": [
+        {
+          "path": "contracts/w14-v1/W14.md",
+          "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+        },
+        {
+          "path": "contracts/w13-v1/W13.md",
+          "sha256": "eb978b7eb75b90348fe6724c3b8f92609ec5c7b0a61c46e422098145d74b89ea"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "DeviceIoControl",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "readyOn": "2026-11-08",
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-08T08:28:02.490Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave14/PLAN.md",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/j1/"
+    },
+    {
+      "kind": "ui",
+      "outputRoot": "apps/water/ui",
+      "testFiles": [
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "unitTestFiles": [
+        "apps/water/ui/tests/unit.test.mjs"
+      ],
+      "browserTestFiles": [
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "expectedTests": [
+        "ui_format_bytes_time",
+        "ui_v2_view_rules",
+        "ui_ipc_boundary"
+      ],
+      "tokensSource": "docs/design/water-ui-v3/tokens.css",
+      "fixtures": "contracts/m35-v1/ui-fixtures-m35.json",
+      "browserHelper": "scripts/acceptance/native-vw-private-browser.mjs",
+      "screenshotDirEnv": "WATER_W2_SHOTS_DIR",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedBrowserTests": [
+        "ui_v2_home_scan",
+        "ui_v2_conclusion",
+        "ui_v2_drawer_details",
+        "ui_v2_confirm_done",
+        "ui_v2_quarantine_dedupe",
+        "ui_v2_pages_layout_a11y"
+      ],
+      "requiredScreenshots": [
+        "v4-zh-home-1240x820.png",
+        "v4-zh-home-new-1240x820.png",
+        "v4-zh-intro-1240x820.png",
+        "v4-zh-scan-1240x820.png",
+        "v4-zh-scan-space-1240x820.png",
+        "v4-zh-scan-finishing-1240x820.png",
+        "v4-zh-results-1240x820.png",
+        "v4-zh-results-decided-1240x820.png",
+        "v4-zh-results-folds-1240x820.png",
+        "v4-zh-results-stale-1240x820.png",
+        "v4-zh-results-empty-1240x820.png",
+        "v4-zh-results-replanned-1240x820.png",
+        "v4-zh-menu-1240x820.png",
+        "v4-zh-drawer-1240x820.png",
+        "v4-zh-drawer-big-1240x820.png",
+        "v4-zh-details-1240x820.png",
+        "v4-zh-confirm-1240x820.png",
+        "v4-zh-confirm-direct-1240x820.png",
+        "v4-zh-cleaning-1240x820.png",
+        "v4-zh-done-1240x820.png",
+        "v4-zh-quarantine-1240x820.png",
+        "v4-zh-quarantine-leftover-1240x820.png",
+        "v4-zh-dedupe-menu-1240x820.png",
+        "v4-zh-dedupe-intro-1240x820.png",
+        "v4-zh-dedupe-1240x820.png",
+        "v4-zh-trends-1240x820.png",
+        "v4-zh-history-1240x820.png",
+        "v4-zh-settings-1240x820.png",
+        "v4-zh-settings-decl-1240x820.png",
+        "v4-zh-settings-language-1240x820.png",
+        "v4-zh-settings-about-1240x820.png",
+        "v4-zh-settings-skip-1240x820.png",
+        "v4-en-home-1240x820.png",
+        "v4-en-intro-1240x820.png",
+        "v4-en-scan-1240x820.png",
+        "v4-en-scan-space-1240x820.png",
+        "v4-en-scan-finishing-1240x820.png",
+        "v4-en-results-1240x820.png",
+        "v4-en-drawer-1240x820.png",
+        "v4-en-details-1240x820.png",
+        "v4-en-confirm-1240x820.png",
+        "v4-en-cleaning-1240x820.png",
+        "v4-en-done-1240x820.png",
+        "v4-en-quarantine-1240x820.png",
+        "v4-en-dedupe-1240x820.png",
+        "v4-en-trends-1240x820.png",
+        "v4-en-history-1240x820.png",
+        "v4-en-settings-1240x820.png",
+        "v4-en-settings-language-1240x820.png",
+        "v4-en-settings-about-1240x820.png",
+        "v4-zh-home-1040x720.png",
+        "v4-zh-scan-1040x720.png",
+        "v4-zh-results-1040x720.png",
+        "v4-en-home-1040x720.png",
+        "v4-en-scan-1040x720.png",
+        "v4-en-results-1040x720.png"
+      ],
+      "allowedModes": [
+        "baseline",
+        "check",
+        "test",
+        "browser",
+        "archive",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "browser"
+      ],
+      "realMode": null,
+      "browserBudget": 1,
+      "realDataPermission": "none; IPC fixtures only",
+      "id": "WATER-W14-U1",
+      "title": "界面：中英切换、主页面一屏放下、体检进度与方块图",
+      "slot": "w14-u1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w14-u1",
+      "branch": "worker/water-w14-u1",
+      "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+      "snapshotRef": "refs/tags/water-w14-u1-base-20261108",
+      "status": "READY",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "string table with zh and en and a language setting that follows the system first; service *_en fields, message_en and copy_text_en used in English; main pages fit 1240x820 and 1040x720 without page scrolling in both languages; filler captions removed; scan page follows running/space/finishing with a next step and shows category blocks instead of stems; a stale plan after a skip is prepared again when the conclusion is still fresh",
+      "report": "docs/dispatch/reports/WATER-W14-U1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave14/u1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W14-U1-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W14-U1-UI-20261108.md",
+      "spec": "contracts/w14-v1/W14.md",
+      "proofTargets": {
+        "nc1": "UI_W14_EN",
+        "nc2": "UI_W14_PROGRESS"
+      },
+      "modelHint": "UI: W14 sections 0, 1, 6 and 7; own English fake data under apps/water/ui/tests; shared fixtures and tokens.css stay byte-identical; two browser NCs.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W14-WORKER-RULES.md",
+        "contracts/w14-v1/W14.md",
+        "contracts/m35-v1/UI-M35.md",
+        "apps/water/ui/app.mjs",
+        "apps/water/ui/format.mjs",
+        "apps/water/ui/views/scan.mjs",
+        "apps/water/ui/views/charts.mjs",
+        "apps/water/ui/views/locations.mjs",
+        "apps/water/ui/tests/unit.test.mjs",
+        "apps/water/ui/tests/browser.test.mjs",
+        "docs/design/water-ui-v3/mockup.html"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w14-v1/W14.md",
+          "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+        },
+        {
+          "path": "contracts/m35-v1/UI-M35.md",
+          "sha256": "8292e85d7327af22ee3f2304ff9953241ee3602c82f738741b8af626ad9d19e4"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "17aa1aba62ce5ca22b3207f82d4ba4d67db722035ff542e0a632fd6ad12c44fb"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "dcaba0f4ab3083f549ce888bd3cd6140099c77c3a77a38ae6230cfb196b5da1b"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "4ab99732dd264f1cacc27301d7c5edddf1f207d8eaa6f16de512d39b8ef1f291"
+        },
+        {
+          "path": "contracts/checkup-v1/UI.md",
+          "sha256": "dbc92ff9de2f388d94c7210541662e5c0f9052084afdf4b795805768710cb52b"
+        },
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "8b60498922953eed047e29608efc36cc36aa4cb50c5dbbea502c6236ebdcb570"
+        },
+        {
+          "path": "docs/design/water-ui-v3/DESIGN.md",
+          "sha256": "0da4340331085f9131872e95879236e67ae44ddf5aa57cef1dd517b4124e5d69"
+        },
+        {
+          "path": "docs/design/water-ui-v3/tokens.css",
+          "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697"
+        },
+        {
+          "path": "docs/design/flick-brand/BRAND.md",
+          "sha256": "3cf5f070f2d2cbce0b18116e14a84b8413421f631da3f23675fc90de777b561e"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "23bd1559abae0bcce6fc2db7cb91aed95a1b5da09b8637399d00ead4380eb837"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "720635058a73fe516aa297e9fd85b91a6cce66f1453ac2db42ae63d2ed7e5a0c"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "6062f0d7cadd5e880529ffb5745d9f0d2f94d5822ae11c434724e0b1c6554fd1"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/ui/",
+        "docs/acceptance/wave14/u1/"
+      ],
+      "readyOn": "2026-11-08",
+      "defaultExecutor": "user-assigned UI executor",
+      "browserProofs": [
+        "nc1",
+        "nc2"
+      ],
+      "issuedAt": "2026-11-08T08:28:02.506Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave14/PLAN.md",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/u1/"
+    }
+  ],
+  "mergeOrder": [
+    "WATER-W14-R1",
+    "WATER-W14-J1",
+    "WATER-W14-U1",
+    "WATER-W14-S1",
+    "WATER-W14-H1"
+  ]
+}
