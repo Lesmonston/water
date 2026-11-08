@@ -1,0 +1,41 @@
+use crate::IpcFailure;
+use water_contracts::v1::OpaqueId;
+use water_native_picker::v1::{PickerError, PickerOptions, select_scope};
+use water_scope_registry::v1::Registry;
+
+fn unavailable() -> IpcFailure {
+    IpcFailure {
+        code: "unavailable".into(),
+        message_zh: "系统文件夹选择框暂时打不开。".into(),
+        message_en: String::new(),
+    }
+}
+
+pub fn picker_failure(error: &PickerError) -> IpcFailure {
+    match error {
+        PickerError::UnsupportedPlatform => unavailable(),
+        PickerError::ApartmentUnavailable => unavailable(),
+        PickerError::DialogFailed => unavailable(),
+        PickerError::Root(_) => invalid(),
+        PickerError::Source(_) => invalid(),
+        PickerError::InvalidSelection => invalid(),
+    }
+}
+
+fn invalid() -> IpcFailure {
+    IpcFailure {
+        code: "invalid".into(),
+        message_zh: "这个文件夹不能加入体检，请换一个。".into(),
+        message_en: "This folder cannot be added to the checkup. Choose another folder.".into(),
+    }
+}
+
+/// F3 supplies a Tauri-resolved home directory. Not registered as an IPC command.
+pub fn pick_folder(initial_directory: &str) -> Result<Option<String>, IpcFailure> {
+    let options = PickerOptions::new(initial_directory).map_err(|e| picker_failure(&e))?;
+    let mut registry = Registry::new(1).map_err(|_| unavailable())?;
+    let scope_id = OpaqueId::new("water-pick-folder").map_err(|_| unavailable())?;
+    select_scope(&mut registry, &scope_id, &options)
+        .map(|selected| selected.map(|selected| selected.root_path().to_owned()))
+        .map_err(|e| picker_failure(&e))
+}

@@ -1,0 +1,17 @@
+{
+  "productName": "Flick",
+  "version": "0.1.0",
+  "identifier": "app.water.desktop",
+  "build": { "frontendDist": "../ui" },
+  "app": {
+    "windows": [],
+    "withGlobalTauri": true,
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "assetProtocol": { "enable": false },
+      "capabilities": ["main"]
+    }
+  },
+  "bundle": { "active": false, "publisher": "Flick", "copyright": "Copyright (c) 2026 Flick contributors" },
+  "plugins": {}
+}

@@ -1,0 +1,83 @@
+{
+  "task": "WATER-W14-H1",
+  "reviewedAt": "2026-11-08T14:10:51.179Z",
+  "basis": "Static code inspection; native mode has not been run.",
+  "commonRule": {
+    "file": "F:\\new\\smaltalk\\water\\docs\\dispatch\\WORKER-RULES.md",
+    "sha256": "e578f86200d3f492782f451ba84fa0a1a0b60e4806fefb36dd561504aca90a78",
+    "lines": [
+      {
+        "line": 51,
+        "text": "- 测试的隔离根一律在本树 `.local/` 下，**不得**在任何盘根建 `.water-quarantine`。"
+      }
+    ]
+  },
+  "ticket": {
+    "file": "F:\\new\\smaltalk\\water\\docs\\dispatch\\tickets\\WATER-W14-H1-HOST-20261108.md",
+    "sha256": "aedb4b46bb8c8c7c787a8a9bc41865d8e562e4d3d98cabb370e61a08defbe241",
+    "lines": [
+      {
+        "line": 81,
+        "text": "- 之后反复用 `lock`、`check`、`test`，做完负控；提交干净实现后依次跑 `check --final`、`test --final`、`native --final`，再 `archive`。"
+      },
+      {
+        "line": 82,
+        "text": "- `native` 由检查器开**一个** Flick 窗口，跑第十一次整合用过的 31 步夹具流程（第一次打开的说明页、一次体检、跳过一组再撤回、清理进隔离区、永久删除），只碰本树夹具；只开一次。"
+      },
+      {
+        "line": 92,
+        "text": "- 原生窗口只有检查器的 `native --final` 一次；选择框 0；浏览器 0；安装包只编不运行。cargo 离线、单线程、私有 target。"
+      }
+    ]
+  },
+  "helper": {
+    "file": "F:\\new\\smaltalk\\water\\scripts\\desktop-wave-check.mjs",
+    "sha256": "e06144dbce72d90449c7343f1450caef078999ccb7bda350825830e603eb22b8",
+    "lines": [
+      {
+        "line": 192,
+        "text": "const quarantineName = () => task.nativeQuarantineName ?? '.water-quarantine';"
+      },
+      {
+        "line": 193,
+        "text": "const quarantineRoot = dir => dir.slice(0, 3) + quarantineName();"
+      },
+      {
+        "line": 247,
+        "text": "  const fixtureDir = task.nativeFixture ? seedFixture(dataDir) : null;"
+      },
+      {
+        "line": 248,
+        "text": "  const started = Date.now(), child = spawn(exe, [], {cwd: root, env: {...env, WATER_DATA_DIR: dataDir}, windowsHide: false, stdio: ['ignore', 'pipe', 'pipe']});"
+      }
+    ]
+  },
+  "service": {
+    "file": "F:\\new\\smaltalk\\water\\.worktrees\\w14-h1\\packages\\water-service\\src\\quarantine.rs",
+    "sha256": "f94fb828583712afd2cc0e0e2830a43fcce53f66571021bb46cc5b04c80d1e8d",
+    "lines": [
+      {
+        "line": 411,
+        "text": "    let base = core.platform.quarantine_base(drive);"
+      },
+      {
+        "line": 414,
+        "text": "        .unwrap_or_else(|| format!(\"{drive}.flick-quarantine\"));"
+      }
+    ]
+  },
+  "platform": {
+    "file": "F:\\new\\smaltalk\\water\\.worktrees\\w14-h1\\packages\\water-service\\src\\lib.rs",
+    "sha256": "5108b1afe4399775f6e113a7fa750a2dbcab960322aac450bdba220821b0a286",
+    "lines": [
+      {
+        "line": 98,
+        "text": "    fn quarantine_base(&self, _root: &str) -> Option<String> {"
+      }
+    ]
+  },
+  "inferredQuarantineRoot": "F:\\.flick-quarantine",
+  "requiredIsolationRoot": "This worktree's .local directory",
+  "nativeWindowReservationExists": false,
+  "action": "Do not run native. Finish permitted checks and submit a blocked report for a controller correction."
+}
