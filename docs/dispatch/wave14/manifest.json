@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave14-english-progress-onescreen",
-  "status": "DISPATCHED_R1_J1_U1",
+  "status": "R1_J1_VERIFIED_U1_ADDENDUM_S1_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -628,6 +628,259 @@
           "why": "controller acceptance and independent review: English plurals (medium), zero-byte categories and clipped legends in the block charts, unknown location state stops polling, replanNotice set without a reopened dialog, first paint language flip, native names in the language picker, format helpers unused by views, clipped text on the results page"
         }
       ]
+    },
+    {
+      "kind": "service",
+      "outputRoot": "packages/water-service",
+      "packageName": "water-service",
+      "testTarget": "service_v1",
+      "testFiles": [
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "service-smoke",
+      "nativeModule": "native_windows.rs",
+      "allowedEnv": [],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-cleanup-manifest",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/cleanup-manifest",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-dup-finder",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/dup-finder",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-installed-apps",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/installed-apps",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-clean",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-clean",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-scan",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedFfiNote": "desktop-wave-check does not enforce FFI; SERVICE-M35 section 2 allows only SHQueryRecycleBinW as a new system function, checked by hand at acceptance",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "expectedTests": [
+        "service_ipc_contract",
+        "service_scan_views",
+        "service_clean_flow",
+        "service_trends_locations",
+        "service_storage_safety",
+        "service_hardening",
+        "m35_scope_and_plan",
+        "m35_conclusion_cards",
+        "m35_rows_and_detail",
+        "m35_clean_split",
+        "m35_quarantine",
+        "m35_trends_history"
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; clean disabled in the real smoke",
+      "id": "WATER-W14-S1",
+      "title": "服务：英文、错误与真实体检进度",
+      "slot": "w14-s1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w14-s1",
+      "branch": "worker/water-w14-s1",
+      "baseCommit": "5f6ff198f1822c1ae3508588d239f73c12e11533",
+      "snapshotRef": "refs/tags/water-w14-s1-base-20261108",
+      "status": "READY",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "every IPC *_zh has an *_en sibling (copy_text_en, message_en on IpcError), rule texts from the R1 fields, runtime sentences in English, new records store both languages, old records read with _en = _zh; logic no longer keyed on Chinese sentences; scan progress gets finishing and per-location space states, unchanged labels, found_bytes without space bytes, a monotonic percent with the W14 3.3 weights; trends test independent of real scan time",
+      "report": "docs/dispatch/reports/WATER-W14-S1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave14/s1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W14-S1-REPORT.md"
+      ],
+      "gate": "medium",
+      "ticket": "docs/dispatch/tickets/WATER-W14-S1-SERVICE-20261108.md",
+      "spec": "contracts/w14-v1/W14.md",
+      "proofTargets": {
+        "nc1": "SERVICE_W14_EN",
+        "nc2": "SERVICE_W14_PROGRESS",
+        "nc3": "SERVICE_W14_PROGRESS"
+      },
+      "modelHint": "Service: W14 sections 0, 1, 2.2, 3 and 7; host keeps two IpcError literals until H1; shape() ignores *_en on both sides; three NCs (one _en, space bytes in found_bytes, drive done before space).",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W14-WORKER-RULES.md",
+        "contracts/w14-v1/W14.md",
+        "packages/water-service/src/lib.rs",
+        "packages/water-service/src/service.rs",
+        "packages/water-service/src/views.rs",
+        "packages/water-service/src/conclusion.rs",
+        "packages/water-service/src/m35.rs",
+        "packages/junk-rules/src/rules.rs",
+        "packages/water-service/tests/service_v1.rs"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w14-v1/W14.md",
+          "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+        },
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "8b60498922953eed047e29608efc36cc36aa4cb50c5dbbea502c6236ebdcb570"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "17aa1aba62ce5ca22b3207f82d4ba4d67db722035ff542e0a632fd6ad12c44fb"
+        },
+        {
+          "path": "contracts/m35-v1/SERVICE-M35.md",
+          "sha256": "39ba60f15086b7fefa504bae362dbe5a9c468250052567263269b233f069dd94"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "dcaba0f4ab3083f549ce888bd3cd6140099c77c3a77a38ae6230cfb196b5da1b"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C.md",
+          "sha256": "29a337e90705adcd28bf98419139efeaf88bcc709e1fa0fc022f28405fcafc26"
+        },
+        {
+          "path": "contracts/m3c-v1/SERVICE-M3C-ADD-01.md",
+          "sha256": "a001a4fc0771304cd8da6e21222b3c95b6fbd47146d35cc23de9216b9d182830"
+        },
+        {
+          "path": "contracts/checkup-v1/ui-fixtures.json",
+          "sha256": "23bd1559abae0bcce6fc2db7cb91aed95a1b5da09b8637399d00ead4380eb837"
+        },
+        {
+          "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+          "sha256": "720635058a73fe516aa297e9fd85b91a6cce66f1453ac2db42ae63d2ed7e5a0c"
+        },
+        {
+          "path": "contracts/m35-v1/ui-fixtures-m35.json",
+          "sha256": "6062f0d7cadd5e880529ffb5745d9f0d2f94d5822ae11c434724e0b1c6554fd1"
+        },
+        {
+          "path": "contracts/m35-v1/CLEAN-M35.md",
+          "sha256": "9a7a43d758668fc4b6da0db1ef90d6500318ba7df907d01355adfd737012dee5"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "4ab99732dd264f1cacc27301d7c5edddf1f207d8eaa6f16de512d39b8ef1f291"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "docs/decisions/ADR-019-project-declarations-and-quarantine.md",
+          "sha256": "005709e26035f08e3729303c8ebed961b7c23c3b4e02ec28ab8823a36b885e97"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "allowedPrefixes": [
+        "packages/water-service/",
+        "docs/acceptance/wave14/s1/"
+      ],
+      "hint": "Service, batch 2 on main after N3, N5, N6; section 1.8 nested-item dedupe is nc3; line numbers rechecked on this base.",
+      "readyOn": "2026-11-08",
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-08T10:33:50.707Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave14/PLAN.md",
+      "productionFiles": [
+        "packages/water-service/Cargo.toml",
+        "packages/water-service/Cargo.lock",
+        "packages/water-service/README.md",
+        "packages/water-service/examples/service_smoke.rs"
+      ],
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/s1/"
     }
   ],
   "mergeOrder": [
