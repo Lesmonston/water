@@ -1,0 +1,65 @@
+{"binary":"C:\\Program Files\\nodejs\\node.exe","args":["--test","--test-concurrency=1","--test-reporter=tap","apps/water/ui/tests/browser.test.mjs"],"exitCode":1,"error":null}
+--- stdout ---
+TAP version 13
+# Subtest: ui_v2_home_scan
+ok 1 - ui_v2_home_scan
+  ---
+  duration_ms: 8347.4169
+  type: 'test'
+  ...
+# Subtest: ui_v2_conclusion
+ok 2 - ui_v2_conclusion
+  ---
+  duration_ms: 5059.9252
+  type: 'test'
+  ...
+# Subtest: ui_v2_drawer_details
+ok 3 - ui_v2_drawer_details
+  ---
+  duration_ms: 5311.9149
+  type: 'test'
+  ...
+# Subtest: ui_v2_confirm_done
+ok 4 - ui_v2_confirm_done
+  ---
+  duration_ms: 12500.0903
+  type: 'test'
+  ...
+# Subtest: ui_v2_quarantine_dedupe
+ok 5 - ui_v2_quarantine_dedupe
+  ---
+  duration_ms: 20569.7076
+  type: 'test'
+  ...
+# Subtest: ui_v2_pages_layout_a11y
+not ok 6 - ui_v2_pages_layout_a11y
+  ---
+  duration_ms: 16174.753
+  type: 'test'
+  location: 'F:\\new\\smaltalk\\water\\.worktrees\\w14-u1\\apps\\water\\ui\\tests\\browser.test.mjs:647:1'
+  failureType: 'testCodeFailure'
+  error: 'Browser expression threw'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    Object.evaluate (file:///F:/new/smaltalk/water/.worktrees/w14-u1/scripts/acceptance/native-vw-private-browser.mjs:38:7)
+    async englishPage (file:///F:/new/smaltalk/water/.worktrees/w14-u1/apps/water/ui/tests/browser.test.mjs:207:16)
+    async inspect (file:///F:/new/smaltalk/water/.worktrees/w14-u1/apps/water/ui/tests/browser.test.mjs:763:109)
+    async TestContext.<anonymous> (file:///F:/new/smaltalk/water/.worktrees/w14-u1/apps/water/ui/tests/browser.test.mjs:764:27)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 69063.3748
+
+--- stderr ---

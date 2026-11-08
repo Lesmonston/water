@@ -1,0 +1,39 @@
+import {t, serviceText, listText, notesText} from './strings.mjs';
+import {add, el, heading, metric, card, button, row, menu, tag} from './common.mjs';
+import {dial, stems, proportions} from './charts.mjs';
+import {formatBytes, percent, dateOnly, dateTime} from '../format.mjs';
+import {clusterStates} from '../model.mjs';
+export function trends(s, a) {
+  const data = s.trends, page = el('section', 'screen');
+  if (!data) return add(page, heading(t('trends'), t('loading')));
+  const system = s.app?.drives.find(d => d.is_system), f = data.forecast.find(f => f.root === system?.root), days = f?.days_to_full;
+  const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;
+  const title = hasDaily(f) && days > 0 && days <= 90 ? t('driveFullIn', {drive:t('drive', {letter:system.root.slice(0, 1)}), n:days}) : t('spaceTrends');
+  add(page, heading(title, t('checkupRecords'), hasDaily(f) ? [metric(f.bytes_per_day, t('dailyUse')), metric(f.basis_days, t('basisDays'), true)] : []));
+  add(page, proportions(data.forecast.filter(hasDaily).map(f => ({title:t('driveDaily', {drive:t('drive', {letter:f.root.slice(0, 1)})}), bytes:f.bytes_per_day}))));
+  for (const value of data.forecast) if (!hasDaily(value)) add(page, el('p', 'sub forecast-note', `${t('drive', {letter:value.root.slice(0, 1)})} · ${serviceText(value, 'note') ?? t('noForecast')}`));
+  const grid = el('div', 'with-hero'), left = el('div', 'trend-content');
+  add(left, add(card(t('driveAvailableSpace', {drive:t('drive', {letter:system?.root.slice(0, 1) ?? ''})})), stems(data.points.filter(p => p.root === system?.root).map(p => ({bytes:p.free_bytes, label:dateOnly(p.at)})), t('recordedForecast'), hasDaily(f) && days > 0 && days <= 90 ? days : 0)));
+  const clusters = card(t('keepsGrowing'));
+  for (const c of data.clusters) {
+    const entries = [[t('markFixed'), () => a.markFixed(c.group_id, true)]];
+    if (serviceText(c, 'copy_text')) entries.push([t('copyAgentLead'), () => a.copy(serviceText(c, 'copy_text'))]);
+    add(clusters, row(serviceText(c, 'title'), serviceText(c, 'rate'), tag(clusterStates[c.state], c.state === 'growing' ? 'hot' : ''), menu(t('menu', {name:serviceText(c, 'title')}), entries, `cluster-${c.group_id}`)));
+  }
+  add(left, clusters);
+  const others = card(t('otherDrives'));
+  for (const other of data.forecast.filter(f => f !== data.forecast.find(x => x.root === system?.root))) {
+    const drive = s.app?.drives.find(d => d.root === other.root), prediction = serviceText(other, 'note') ?? (other.days_to_full > 0 && other.days_to_full <= 90 ? t('fullIn', {n:other.days_to_full}) : t('stable'));
+    add(others, row(t('drive', {letter:other.root.slice(0, 1)}), prediction, drive && dial(100 - percent(drive.free_bytes, drive.total_bytes), formatBytes(drive.free_bytes), t('available'), 'tiny')));
+  }
+  add(left, others);
+  if (data.orphans) {
+    const o = add(el('details', 'fold'), el('summary', '', t('orphanProcesses', {size:data.orphans.total_memory_bytes === null ? t('unknownMemory') : formatBytes(data.orphans.total_memory_bytes)})));
+    for (const chain of data.orphans.chains) add(o, row(chain.name, t('processCount', {n:chain.process_count, time:dateTime(chain.started_at)}), el('span', '', chain.memory_bytes === null ? '—' : formatBytes(chain.memory_bytes))));
+    add(left, o);
+  }
+  const main = card(system ? t('drive', {letter:system.root.slice(0, 1)}) : t('diskCheckup'), 'dark main-card');
+  if (system) add(main, add(el('div', 'dial-slot'), dial(100 - percent(system.free_bytes, system.total_bytes), formatBytes(system.free_bytes), t('freeTotal', {size:formatBytes(system.total_bytes)}))));
+  if (f) add(main, hasDaily(f) && row(t('dailyUse'), '', el('span', '', formatBytes(f.bytes_per_day))), el('p', 'sub', serviceText(f, 'note') ?? (hasDaily(f) && days > 0 && days <= 90 ? t('fullIn', {n:days}) : t('stable'))));
+  add(main, add(el('div', 'bottom'), button(t('checkCommon'), a.scanCommon, 'btn primary', 'trend-scan', a.busy()))); return add(page, add(grid, left, main));
+}

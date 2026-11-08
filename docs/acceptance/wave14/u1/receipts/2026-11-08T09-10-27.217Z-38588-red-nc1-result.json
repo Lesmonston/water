@@ -1,0 +1,395 @@
+{
+  "task": "WATER-W14-U1",
+  "mode": "red-nc1",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave14/manifest.json",
+  "startedAt": "2026-11-08T09:10:27.219Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--name-only",
+        "HEAD",
+        "--",
+        "apps/water/ui"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "exitCode": 1,
+      "error": null,
+      "log": "2026-11-08T09-10-27.217Z-38588-red-nc1-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/ui/app.mjs",
+    "apps/water/ui/format.mjs",
+    "apps/water/ui/index.html",
+    "apps/water/ui/ipc.mjs",
+    "apps/water/ui/model.mjs",
+    "apps/water/ui/styles/app.css",
+    "apps/water/ui/tests/browser.test.mjs",
+    "apps/water/ui/tests/fixtures-en.json",
+    "apps/water/ui/tests/unit.test.mjs",
+    "apps/water/ui/views/about.mjs",
+    "apps/water/ui/views/charts.mjs",
+    "apps/water/ui/views/cleaning.mjs",
+    "apps/water/ui/views/common.mjs",
+    "apps/water/ui/views/confirm.mjs",
+    "apps/water/ui/views/dedupe.mjs",
+    "apps/water/ui/views/detail.mjs",
+    "apps/water/ui/views/done.mjs",
+    "apps/water/ui/views/history.mjs",
+    "apps/water/ui/views/home.mjs",
+    "apps/water/ui/views/intro.mjs",
+    "apps/water/ui/views/locations.mjs",
+    "apps/water/ui/views/quarantine.mjs",
+    "apps/water/ui/views/results.mjs",
+    "apps/water/ui/views/scan.mjs",
+    "apps/water/ui/views/strings.mjs",
+    "apps/water/ui/views/trends.mjs"
+  ],
+  "before": {
+    "head": "f0915570cbc2ea1c7dee03e10fed1d5e0a97d87e",
+    "status": "M apps/water/ui/views/strings.mjs"
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/ui/.gitattributes",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-0.txt",
+        "sha256": "5cc80342beda57a939d17b28e92712c5625e1e1c8b307c205c80ec2d5ebea5aa",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/README.md",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-1.txt",
+        "sha256": "7e01bc53b4b40e813de91578fa990e5348cab557bae6050e0f49b2ad8d270fa2",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/app.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-2.txt",
+        "sha256": "69b6224239ceacff89eb5003019a02e019d17d66b4b6f5bf75833a5cdce3e577",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/format.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-3.txt",
+        "sha256": "260c74bae1b9b589d0ba1ea5dad3aac487b83d34db8a9a1a2b284d6134551a78",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/index.html",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-4.txt",
+        "sha256": "931d9e8253f73fba3f6853ca50d669978f8ea919736585fd621be304d86f82c7",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/ipc.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-5.txt",
+        "sha256": "2552b237b47d67734e0df836a874010ea7901898a8bf8f23a35ff4db10ff170c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/model.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-6.txt",
+        "sha256": "eb818199802c708647ad6d013f4e58197f439342c63f350af1da98d62c8e21f0",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/app.css",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-7.txt",
+        "sha256": "b156b4907131fd839dfbf4322272f649247580fca714e36b343a4babd263998a",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/tokens.css",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-8.txt",
+        "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/browser.test.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-9.txt",
+        "sha256": "9359c96a3444ddba2bf45ed8788fbd8278b14f1737f89199f14483aa1fe853ca",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/tests/fixtures-en.json",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-10.txt",
+        "sha256": "3cddd77ad72801ff2e84aecd7c0d39dd56d34a1d7ee418ca37b3b60f5e615e0f",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/unit.test.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-11.txt",
+        "sha256": "ee5fc3784fc3c55b281537714af48adeae6994edfe3c32b84c7c9297165f4cb8",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/views/about.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-12.txt",
+        "sha256": "a94bdeb49cbcbc504269008bb03caf7e759dbf8e63f0052fb98b9e6f51d36bc2",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/charts.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-13.txt",
+        "sha256": "0e0687035b6e2c4eec48db7c28f703dd9b2050a716141e80719aaa8072bdb40c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/cleaning.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-14.txt",
+        "sha256": "7520f837f1ad78a9950ced7c66877e13073f51049ed895f153c8ea4dd523e56a",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/common.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-15.txt",
+        "sha256": "da908af09823a05a0a600a1ecd1114f312dbe771661a242939775e42929cae0b",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/confirm.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-16.txt",
+        "sha256": "7dd7fa1f415c05ced043ff31c5f6faaff19d719f1e230fe977386571bbba024b",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/dedupe.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-17.txt",
+        "sha256": "fe0f21f7b11b73f820221b7eeb564fb7ebe0036c1196622c01c41f305703debb",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/detail.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-18.txt",
+        "sha256": "f195bcc3394fda98e84c4ce27801bc8a15535cc96cbeec6d4944a2997aaeeaad",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/done.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-19.txt",
+        "sha256": "4e6378ee9bf0ad1a7b03f445e7dda4329afa04fc67b80965195257cd214defc9",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/history.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-20.txt",
+        "sha256": "c82e78f391d96d7cb328dbe2bbb199efbaddc3f0d63442b0f6bcf34f7d7396bc",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/home.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-21.txt",
+        "sha256": "d4005bef53d24a23956eeff7b7014b0d7b3708f0139b0cab8a3dbb0874760d28",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/intro.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-22.txt",
+        "sha256": "0cf351975a33dc6e5a9fb8f5ff087c5a6adcc04909f4f73bbd0132cf355ee0fb",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/locations.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-23.txt",
+        "sha256": "9ca3bc96a5907588e09a871add99d9119c94d8d05f3cc063b50299c163f313e0",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/quarantine.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-24.txt",
+        "sha256": "03c7fbe934d2399b4282f1368c1dc57e4c43c9981e767123562399681ee7144e",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/results.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-25.txt",
+        "sha256": "fe2173a7433200118f58e3a64c6747a133191c6f5cadbfff1466ace790e9f254",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/scan.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-26.txt",
+        "sha256": "91cc0ea23d8b1054200a34a0403f40320c5af99e8783e4e919f60e8224b2b2fa",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/strings.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-27.txt",
+        "sha256": "1478de6be76394e6cb37640d23fd8c9c80a704be9cd9b0e3568254b10556c4d8",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/trends.mjs",
+        "snapshot": "2026-11-08T09-10-27.217Z-38588-red-nc1-source-28.txt",
+        "sha256": "e102ba9fe4a267805fb33cd478a4b241dc7b848161fdb9170a41433978013f3d",
+        "test": false
+      }
+    ],
+    "productionHash": "5c5fbe849dc6fd9e9702a5e4e897130afb7f530de9e4a803e2e8f7291607f53b",
+    "testHash": "4cff2da2e505abfe30c9b67ef824787c01cc01a8e8b7195029b8765eaf513d78"
+  },
+  "uiFiles": 29,
+  "browserUsed": true,
+  "observedExpectedFailure": true,
+  "expectation": {
+    "target": "UI_W14_EN"
+  },
+  "after": {
+    "head": "f0915570cbc2ea1c7dee03e10fed1d5e0a97d87e",
+    "status": "M apps/water/ui/views/strings.mjs"
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-08T09:11:50.809Z"
+}
