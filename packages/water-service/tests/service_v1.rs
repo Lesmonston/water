@@ -9042,7 +9042,7 @@ fn m35_cluster_and_forecast() {
         point["result"]["scan_id"] = json!(id);
         point["finished_at"] = json!(at);
         point["result"]["ended_at"] = json!(at);
-        point["drives"] = json!([{"root":"F:\\","free_bytes":free.to_string(),"total_bytes":(20u64<<30).to_string()}]);
+        point["drives"] = json!([{"root":fixture_drive(),"free_bytes":free.to_string(),"total_bytes":(20u64<<30).to_string()}]);
         if n == 0 {
             s.core.state.lock().unwrap().records.clear();
         }
