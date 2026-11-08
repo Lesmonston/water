@@ -79,8 +79,17 @@ pub struct ScanProgress {
     pub found_bytes: u64,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RootProgress {
+    pub root: String,
+    pub roots_done: u64,
+    pub roots_total: u64,
+    pub visited_entries: u64,
+}
+
 pub trait ScanObserver: Sync {
     fn on_progress(&self, progress: &ScanProgress);
+    fn on_root_done(&self, _root: &RootProgress) {}
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -220,6 +229,19 @@ impl<'a> Engine<'a> {
             category: category_name(category).to_string(),
             visited_entries: self.visited,
             found_bytes: self.found_bytes,
+        });
+    }
+
+    fn emit_root_done(&self, root: &str, roots_done: &mut u64, roots_total: u64) {
+        if self.cancel.is_cancelled() || self.budget_exhausted() {
+            return;
+        }
+        *roots_done += 1;
+        self.observer.on_root_done(&RootProgress {
+            root: root.to_string(),
+            roots_done: *roots_done,
+            roots_total,
+            visited_entries: self.visited,
         });
     }
 

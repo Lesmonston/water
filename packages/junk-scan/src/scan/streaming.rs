@@ -347,23 +347,31 @@ pub(super) fn walk(
             Match::Pattern { base, .. } => base,
             Match::Marker { root, .. } | Match::Discovery { root } => root,
         };
-        if ignored_root(root) || !outside_git(root) {
-            continue;
+        if !ignored_root(root) && outside_git(root) {
+            remaining[i].insert(root.to_ascii_lowercase());
         }
-        remaining[i].insert(root.to_ascii_lowercase());
         roots
             .entry(root.to_ascii_lowercase())
             .or_insert_with(|| (root.clone(), vec![]))
             .1
             .push(i);
     }
-    let mut roots = roots.into_values().collect::<Vec<_>>();
+    let roots_total = roots.len() as u64;
+    let mut roots_done = 0;
+    let (mut skipped, mut roots): (Vec<_>, Vec<_>) = roots
+        .into_values()
+        .partition(|(path, _)| ignored_root(path) || !outside_git(path));
+    skipped.sort_by_key(|(_, ids)| ids[0]);
+    for (root, _) in &skipped {
+        engine.emit_root_done(root, &mut roots_done, roots_total);
+    }
     roots.sort_by_key(|(path, ids)| (path.trim_end_matches('\\').matches('\\').count(), ids[0]));
     let mut visited_roots = HashSet::new();
     let mut pending = HashMap::<usize, Measurement>::new();
     let mut serial = 0;
     for (root, indices) in &roots {
         if visited_roots.contains(&root.to_ascii_lowercase()) {
+            engine.emit_root_done(root, &mut roots_done, roots_total);
             continue;
         }
         let group = &plan.targets[indices[0]].group_id;
@@ -387,6 +395,7 @@ pub(super) fn walk(
                     engine.add_issue(code, &plan.targets[f].group_id);
                 }
             }
+            engine.emit_root_done(root, &mut roots_done, roots_total);
             continue;
         }
         let mut stack = vec![Frame::Enter {
@@ -918,6 +927,9 @@ pub(super) fn walk(
                     stack.extend(child_frames.into_iter().rev());
                 }
             }
+        }
+        if stack.is_empty() {
+            engine.emit_root_done(root, &mut roots_done, roots_total);
         }
         if engine.status == "cancelled" {
             break;

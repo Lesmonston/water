@@ -22,7 +22,7 @@ pub use model::{
 };
 pub use plan::{AgeBasis, Condition, KeepBy, ScanPlan};
 pub use scan::{
-    CancelToken, ScanObserver, ScanOptions, ScanProgress, identity_of, known_folders,
+    CancelToken, RootProgress, ScanObserver, ScanOptions, ScanProgress, identity_of, known_folders,
     result_from_json, result_to_json, scan, scan_full, space_overview,
 };
 pub use snapshot::{growth, snapshot, snapshot_from_json, snapshot_to_json};
