@@ -1,4 +1,6 @@
-WATER-W14-H1 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w14-h1/docs/dispatch/reports/WATER-W14-H1-REPORT.md
+WATER-W14-H1 补单 01 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w14-h1/docs/dispatch/reports/WATER-W14-H1-REPORT.md
+
+以下原单记录保留为 `db0f188e` 交回时的历史；补单 01 的例外与最新通过结果见文末“补单 01”。
 
 执行日期：2026-11-08。实际执行模型：Codex / GPT-6（本会话标识；未使用子代理）。
 
@@ -157,3 +159,75 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-H1
 - macOS 未验证；未清理真实用户数据。Rust 合成夹具只在本树 `.local/w3-f3-fixtures` 下按既有随机目录、父路径与前缀校验回收；安装构建产物和证据保留。
 - 提交身份仅在提交命令进程内设为 `Codex-GPT-6 <Codex-GPT-6@localhost>`；没有修改 git 配置、远端或既有历史，没有 merge、push、amend、rebase、reset、clean、stash，也没有修改主线台账。
 - 回执与证据单独提交；产品保持实现提交字节。交回前校验归档哈希及本回执 UTF-8，无连续问号或 U+FFFD；不再启动测试或后台进程。
+
+## 补单 01
+
+权威补单：`F:/new/smaltalk/water/docs/dispatch/tickets/WATER-W14-H1-ADDENDUM-01-20261108.md`。实际执行模型仍为 Codex / GPT-6，未使用子代理。原工作树、分支不变，续做起点 `db0f188e84d02fb16832e014089e62165ef0555d` 干净；没有重跑只适用于首次基点的 baseline。
+
+本补单已完成：没有改产品代码或测试，在上述 HEAD 上依次通过 check、test、native 三个 final，并 archive。产品仍是 `bb87445dea154876cc9aa0fca7c53c29e6c22113` 的实现字节。原单关于盘根隔离区的受阻，已由补单第 1 节对这一次检查器驱动的 native 流程作出明确例外；这次只通过检查器运行一次 Flick，没有在检查器外读、列、建、删盘根隔离目录，也没有手工收拾。
+
+下列命令均在 `F:/new/smaltalk/water/.worktrees/w14-h1` 根目录执行。命令前缀是 `node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-H1`；所有检查器退出码均为 0。
+
+| 参数 | 结果 | 归档回执文件 |
+|---|---|---|
+| `--mode check --final` | passed；fmt、clippy `-D warnings` 通过 | `2026-11-08T14-49-54.136Z-22032-check-result.json` |
+| `--mode test --final` | passed；原五测全部通过，0 ignored / 0 filtered；原两条负控的 proofAudit 通过 | `2026-11-08T14-50-58.010Z-35340-test-result.json` |
+| `--mode native --final` | passed；31/31 步，唯一一个原生窗口正常退出 | `2026-11-08T14-51-51.141Z-33712-native-result.json` |
+| `--mode archive` | passed；索引现为 292 个条目、22,082,843 字节 | 执行结果在 `.local/checks/WATER-W14-H1/2026-11-08T14-53-16.167Z-17688-archive-result.json`；数据已按索引归档 |
+
+上述回执都指向 `db0f188e84d02fb16832e014089e62165ef0555d`，三个 final 的 before/after 均为同一 HEAD 且工作树干净。归档路径仍为 `docs/acceptance/wave14/h1/receipts/`，索引仍为 [ARCHIVE.json](../../acceptance/wave14/h1/ARCHIVE.json)。原 203 个条目保留，新增 89 个（包括此次一并归档的原单 archive 本地回执）；本补单只提交新增证据、索引和回执，没有改写已有证据。
+
+### 原生结果
+
+一次窗口完整走完 31 步：首次说明页、体检、跳过与撤回、直接清理及移入隔离区、永久删除。窗口退出结果为 `nativeExit = {code: 0, signal: null}`，`nativeWallMs = 16555`。原生窗口 1，选择框 0，独立浏览器 0；没有重跑 native。
+
+检查器确认 `systemWindows = 1`、Mica `backdropType = 2`、私有 WebView 目录被观察到，退出后 `childClose.remaining = []`。自动恢复最小化窗口 1 次，发生在 `skip-list` 截图；仍是同一个窗口，所有截图均为 1568×1072 的完整页面。
+
+检查器记录的 `nativeQuarantineRoot` 原值如下。以下仅转录本次检查器的结果，没有另外读取盘根：
+
+```json
+{
+  "path": "F:\\.flick-quarantine",
+  "existedBefore": false,
+  "existsAfter": false
+}
+```
+
+| 记录 | 计数 / 状态 / 字节 |
+|---|---|
+| `nativeClean.status` | `completed` |
+| `nativeClean.items` | 1 项，`deleted`；`bytesBefore = bytesFreed = 3145815`，`failed = 0` |
+| `nativeClean.freedBytes` | `3145815`；只计直接删除释放的字节 |
+| `nativeClean.quarantine` | 1 批，`completed`，`movedBytes = 1048576`；其中 1 项，状态 `moved` |
+| `nativePurge` | 1 个 purge 事件，`bytes = 1048576` |
+| 私有数据目录的记录数 | scans 1、plans 1、cleans 1、quarantine 0、dedupes 0 |
+
+因此本次一批移入、一批永久删除，私有数据目录没有残留隔离记录；运行前没有隔离根，运行后也没有留下空的根。移入隔离区的 1,048,576 字节没有计入直接清理释放空间。检查器还通过了夹具中应删除项和应保留项的核对，没有自行检查或披露盘根的其他内容。
+
+### 截图名单
+
+共 12 张，统一前缀为 `2026-11-08T14-51-51.141Z-33712-`，均已归档：
+
+| 名称 | 文件 |
+|---|---|
+| intro | [intro.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-intro.png) |
+| home | [home.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-home.png) |
+| results | [results.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-results.png) |
+| skipped | [skipped.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-skipped.png) |
+| fresh-after-skip | [fresh-after-skip.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-fresh-after-skip.png) |
+| skip-page | [skip-page.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-skip-page.png) |
+| skip-list | [skip-list.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-skip-list.png) |
+| restored | [restored.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-restored.png) |
+| confirm | [confirm.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-confirm.png) |
+| done | [done.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-done.png) |
+| quarantine | [quarantine.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-quarantine.png) |
+| purged | [purged.png](../../acceptance/wave14/h1/receipts/2026-11-08T14-51-51.141Z-33712-purged.png) |
+
+### 收尾与边界
+
+- 四个命令各执行一次；没有计时失败或重跑，没有新增、迁移或修改断言。本次没有重复负控或安装包编译，原结果保留在上文。
+- cargo 继续由检查器离线、单线程、私有 target 调用；每次开始前只按进程名观察负载。没有输出其他进程的命令行。
+- 仅报告检查器对本批次的计数和授权隔离根的前后存在性；没有在检查器外启动 Flick、手工操作盘根、重放清理或删除原生夹具目录。夹具、私有数据目录与日志按检查器原样保留供复核。
+- 本次已验证 Windows 上冻结的中文界面夹具整机流程；不据此声称 macOS、新英文 UI 的整合、系统语言跟随或实际安装/卸载已验证，也不代表总控已经验收。
+- 提交前逐项校验 292 个归档条目的字节数和 SHA-256；原 203 条与续做起点的索引一致。回执读回并验证 UTF-8，无连续问号、无 U+FFFD。原样归档保留其行尾字节，不为代码空白提示改写证据。
+- 仅新增回执与证据提交，身份仍只在提交进程中设置为 `Codex-GPT-6 <Codex-GPT-6@localhost>`；不 push、不改远端或配置、不改写历史、不改主线台账。交回后停止测试和本票后台进程。
