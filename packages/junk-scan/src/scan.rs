@@ -454,6 +454,20 @@ fn valuable(child: &Child) -> bool {
     if ["thumbs.db", "ehthumbs.db"].contains(&name.as_str()) {
         return false;
     }
+    if name == "cache.db"
+        && [
+            "dawncache",
+            "dawngraphitecache",
+            "dawnwebgpucache",
+            "graphitedawncache",
+            "grshadercache",
+            "gpucache",
+            "shadercache",
+        ]
+        .contains(&file_name(parent))
+    {
+        return false;
+    }
     name.starts_with(".env")
         || name.starts_with("credentials")
         || name == "google-services.json"

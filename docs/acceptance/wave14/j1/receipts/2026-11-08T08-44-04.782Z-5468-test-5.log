@@ -1,0 +1,43 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... FAILED
+test scan_pattern_marker_discovery ... ok
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... ok
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_overlap_and_guards stdout ----
+
+thread 'scan_overlap_and_guards' (25144) panicked at tests\scan_v1.rs:4450:9:
+assertion `left == right` failed: SCAN_W14_GPU: known GPU cache databases excluded
+  left: 7
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    scan_overlap_and_guards
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.69s
+
+
+--- stderr ---
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling syn v3.0.9
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling serde_derive v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-j1\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 45.27s
+     Running tests\scan_v1.rs (.local\w2-target\junk-scan\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`

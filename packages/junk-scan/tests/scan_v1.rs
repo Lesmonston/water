@@ -4420,6 +4420,71 @@ fn m35_rules_names() {
             .all(|p| p[0].to_ascii_lowercase() <= p[1].to_ascii_lowercase()),
         "SCAN_M35_NAMES: sorted"
     );
+    {
+        let gpu = Fixture::create();
+        for directory in [
+            "DawnCache",
+            "DawnGraphiteCache",
+            "DawnWebGPUCache",
+            "GraphiteDawnCache",
+            "GrShaderCache",
+            "GPUCache",
+            "sHaDeRcAcHe",
+        ] {
+            write_file(&gpu.join(&format!("gpu/{directory}/CaChE.Db")), b"cache");
+        }
+        let gpu_target = target(
+            "gpu-names",
+            "confirm",
+            "custom",
+            json!({"kind":"pattern","base":gpu.path,"segments":["gpu"]}),
+            "dir",
+            0,
+            0,
+        );
+        let gpu_plan = plan(vec![gpu_target], vec![]);
+        let caches = run_default(&gpu_plan, now);
+        assert_eq!(caches.items.len(), 1, "SCAN_W14_GPU: one cache fixture");
+        let row = &caches.items[0];
+        assert_eq!(row.file_count, 7, "SCAN_W14_GPU: all seven caches measured");
+        assert_eq!(
+            row.valuable_count, 0,
+            "SCAN_W14_GPU: known GPU cache databases excluded"
+        );
+        assert_eq!(
+            row.valuable_names,
+            Vec::<String>::new(),
+            "SCAN_W14_GPU: no valuable names in known caches"
+        );
+
+        for path in [
+            "gpu/GPUCache/index.db",
+            "gpu/GPUCache/sub/cache.db",
+            "gpu/Other/cache.db",
+        ] {
+            write_file(&gpu.join(path), b"valuable");
+        }
+        let guarded = run_default(&gpu_plan, now);
+        assert_eq!(guarded.items.len(), 1, "SCAN_W14_GPU: one guarded fixture");
+        let row = &guarded.items[0];
+        assert_eq!(
+            row.file_count, 10,
+            "SCAN_W14_GPU: all cache and guarded files measured"
+        );
+        assert_eq!(
+            row.valuable_count, 3,
+            "SCAN_W14_GPU: other databases and parents stay valuable"
+        );
+        assert_eq!(
+            row.valuable_names,
+            [
+                r"GPUCache\index.db",
+                r"GPUCache\sub\cache.db",
+                r"Other\cache.db"
+            ],
+            "SCAN_W14_GPU: exact guarded names"
+        );
+    }
     let own = target(
         "own",
         "confirm",
@@ -4743,7 +4808,7 @@ fn m35_junctions_overview() {
     );
     assert!(
         result.issues.iter().any(|i| i.code == "reparse_skipped"),
-        "SCAN_W13_JUNCTIONS: hidden-system links remain skipped"
+        "SCAN_W13_JUNCTIONS: shared fixture records at least one reparse skip"
     );
     let chain = index
         .junctions
@@ -4844,7 +4909,7 @@ fn m35_junctions_overview() {
     );
     assert!(
         isolated_index.junctions.is_empty() && !isolated_index.junctions_truncated,
-        "SCAN_W13_JUNCTIONS: isolated hidden-system link does not use index capacity"
+        "SCAN_W13_JUNCTIONS: isolated hidden-system link leaves an empty, untruncated index"
     );
     let isolated_row = item(&isolated, &fx.p("only-target/cache"));
     assert_eq!(
