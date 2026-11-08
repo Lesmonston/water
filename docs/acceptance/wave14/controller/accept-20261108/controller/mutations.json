@@ -1,0 +1,78 @@
+{
+ "j1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "SCAN_W14_GPU",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "    if name == \"cache.db\"",
+   "new": "    if name == \"disabled-cache-exception\"",
+   "why": "ticket control replayed from worker receipt 2026-11-08T08-48-07.017Z-21088-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "SCAN_W14_GPU",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "    if name == \"cache.db\"",
+   "new": "    if name.ends_with(\".db\")",
+   "why": "ticket control replayed from worker receipt 2026-11-08T08-49-19.020Z-30996-red-nc2-result.json"
+  },
+  {
+   "label": "nc3",
+   "mode": "red-nc3",
+   "token": "SCAN_W14_GPU",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "    if name == \"cache.db\"\n        && [\n            \"dawncache\",\n            \"dawngraphitecache\",\n            \"dawnwebgpucache\",\n            \"graphitedawncache\",\n            \"grshadercache\",\n            \"gpucache\",\n            \"shadercache\",\n        ]\n        .contains(&file_name(parent))\n    {",
+   "new": "    if name == \"cache.db\" {",
+   "why": "ticket control replayed from worker receipt 2026-11-08T08-50-32.110Z-21248-red-nc3-result.json"
+  },
+  {
+   "label": "c1",
+   "mode": "test",
+   "token": "SCAN_W14_GPU",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "            \"grshadercache\",\n",
+   "new": "",
+   "why": "one known GPU cache folder name is missing from the list"
+  },
+  {
+   "label": "c2",
+   "mode": "test",
+   "token": "SCAN_W14_GPU",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        .contains(&file_name(parent))\n",
+   "new": "        .iter()\n        .any(|d| parent.split('\\\\').any(|p| p == *d))\n",
+   "why": "any ancestor folder counts instead of the direct parent (a deeper cache.db stops being valuable)"
+  },
+  {
+   "label": "c3",
+   "mode": "test",
+   "token": "SCAN_W14_GPU",
+   "file": "packages/junk-scan/src/scan.rs",
+   "old": "        .contains(&file_name(parent))\n",
+   "new": "        .contains(&file_name(&path))\n",
+   "why": "the file name itself is compared with the folder list, so the exception never applies"
+  }
+ ],
+ "u1": [
+  {
+   "label": "nc1",
+   "mode": "red-nc1",
+   "token": "UI_W14_EN",
+   "file": "apps/water/ui/views/strings.mjs",
+   "old": "  return language === 'en' && value && Object.hasOwn(value, english) ? value[english] : value?.[base];",
+   "new": "  return value?.[base];",
+   "why": "ticket control replayed from worker receipt 2026-11-08T09-10-27.217Z-38588-red-nc1-result.json"
+  },
+  {
+   "label": "nc2",
+   "mode": "red-nc2",
+   "token": "UI_W14_PROGRESS",
+   "file": "apps/water/ui/views/scan.mjs",
+   "old": "  return {title:p?.state === 'finishing' ? 'finishing' : p?.locations.some(l => l.state === 'space') ? 'measuring' : 'checking', locations:p?.locations.map(l => l.state) ?? []};",
+   "new": "  return {title:'checking', locations:p?.locations.map(l => l.state === 'space' ? 'done' : l.state) ?? []};",
+   "why": "ticket control replayed from worker receipt 2026-11-08T09-14-17.414Z-28852-red-nc2-result.json"
+  }
+ ]
+}

@@ -130,7 +130,7 @@
       "branch": "worker/water-w14-r1",
       "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
       "snapshotRef": "refs/tags/water-w14-r1-base-20261108",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "every rule gets English fields (title/owner/what/why/after required, in_use/fix_hint/advice/retention paired with the Chinese ones), length limits, no CJK in English fields; Rule and RuleText expose them for the service; data_version 2026-11-08.2",
       "report": "docs/dispatch/reports/WATER-W14-R1-REPORT.md",
@@ -214,12 +214,20 @@
       "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/r1/",
       "dispatchReportedAt": "2026-11-08T08:34:18.925Z",
       "dispatchEvidence": "user 2026-11-08: \"第一单是sol，另外两单是astra\"",
-      "dispatchedExecutor": "sol"
+      "dispatchedExecutor": "sol",
+      "submittedHead": "78d87caa",
+      "implementationCommit": "ead1defd3b4f2a0439d5d59f16a649e521032021",
+      "mergeCommit": "3693a6b2",
+      "workerSelfReport": "Codex GPT-6",
+      "controllerReview": {
+        "report": "docs/acceptance/wave14/controller/WATER-W14-REVIEW-20261108.md",
+        "summary": "light gate: audit 0 problems; English titles and three full rules read; export scan 0 errors"
+      }
     },
     {
       "id": "WATER-W14-J1",
       "title": "扫描：显卡缓存的 cache.db、真实冒烟、测试措辞",
-      "status": "DISPATCHED",
+      "status": "VERIFIED",
       "slot": "w14-j1",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w14-j1",
@@ -362,6 +370,21 @@
           "question": "real smoke seen-and-skipped count has no data source: Issue carries only code/group_id/count and the ticket forbids new public interfaces",
           "decision": "independent read-only check in examples/real_smoke.rs: for the Windows compatibility junction names of W13 1.1 under this smoke run scan roots (Documents and Settings only when a drive root is in scope), std::fs::symlink_metadata without following; seen = present with hidden+system, skipped = seen and absent from extras.junctions; report both, require skipped == seen; seen == 0 is reported, not a failure; no new public interface, no contract change"
         }
+      ],
+      "submittedHead": "1f3cde1323f9db9bcd042bc1023ebd5404b855d8",
+      "implementationCommit": "b341f5c1beb8795148807bcd0bc006f0be9cd538",
+      "mergeCommit": "985222a0",
+      "workerSelfReport": "Codex GPT-6",
+      "controllerReview": {
+        "report": "docs/acceptance/wave14/controller/WATER-W14-REVIEW-20261108.md",
+        "evidence": "docs/acceptance/wave14/controller/accept-20261108/j1/",
+        "summary": "medium gate: audit 0 problems; fresh tree lock/check/real/test finals pass; 3 ticket controls replayed and 3 controller mutations killed by SCAN_W14_GPU; independent review no high or medium"
+      },
+      "carryOverLater": [
+        "real smoke always adds the user profile as a scope root (overview does not fill the junction index); harmless with the current real plan, where the profile is a target base",
+        "seen requires the reparse bit as well as hidden+system (stricter than the contract wording)",
+        "skipped also covers candidates whose parent was never listed or an index at its cap; in the real plan both parents are listed",
+        "no test with a parent that only contains a listed name (e.g. MyGPUCache\\cache.db); implementation compares exactly"
       ]
     },
     {
@@ -480,7 +503,7 @@
       "branch": "worker/water-w14-u1",
       "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
       "snapshotRef": "refs/tags/water-w14-u1-base-20261108",
-      "status": "DISPATCHED",
+      "status": "ADDENDUM_01_ISSUED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "string table with zh and en and a language setting that follows the system first; service *_en fields, message_en and copy_text_en used in English; main pages fit 1240x820 and 1040x720 without page scrolling in both languages; filler captions removed; scan page follows running/space/finishing with a next step and shows category blocks instead of stems; a stale plan after a skip is prepared again when the conclusion is still fresh",
       "report": "docs/dispatch/reports/WATER-W14-U1-REPORT.md",
@@ -492,7 +515,7 @@
       "ticket": "docs/dispatch/tickets/WATER-W14-U1-UI-20261108.md",
       "spec": "contracts/w14-v1/W14.md",
       "proofTargets": {
-        "nc1": "UI_W14_EN",
+        "nc1": "UI_W14_PLURAL",
         "nc2": "UI_W14_PROGRESS"
       },
       "modelHint": "UI: W14 sections 0, 1, 6 and 7; own English fake data under apps/water/ui/tests; shared fixtures and tokens.css stay byte-identical; two browser NCs.",
@@ -571,7 +594,6 @@
       "readyOn": "2026-11-08",
       "defaultExecutor": "user-assigned UI executor",
       "browserProofs": [
-        "nc1",
         "nc2"
       ],
       "issuedAt": "2026-11-08T08:28:02.506Z",
@@ -583,7 +605,29 @@
       "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/u1/",
       "dispatchReportedAt": "2026-11-08T08:34:18.925Z",
       "dispatchEvidence": "user 2026-11-08: \"第一单是sol，另外两单是astra\"",
-      "dispatchedExecutor": "astra"
+      "dispatchedExecutor": "astra",
+      "firstSubmission": {
+        "submittedHead": "ded240015a7d0656c893b115333c36a8bc958d10",
+        "implementationCommit": "f0915570cbc2ea1c7dee03e10fed1d5e0a97d87e",
+        "proofTargets": {
+          "nc1": "UI_W14_EN",
+          "nc2": "UI_W14_PROGRESS"
+        },
+        "browserProofs": [
+          "nc1",
+          "nc2"
+        ],
+        "audit": "docs/acceptance/wave14/controller/accept-20261108/controller/audit-w2.json (3 problems: final source hash of styles/app.css differs from the commit only by mixed line endings)"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W14-U1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W14-U1-ADDENDUM-01-20261108.md",
+          "issuedAt": "2026-11-08T10:29:38.738Z",
+          "resumeFrom": "ded240015a7d0656c893b115333c36a8bc958d10",
+          "why": "controller acceptance and independent review: English plurals (medium), zero-byte categories and clipped legends in the block charts, unknown location state stops polling, replanNotice set without a reopened dialog, first paint language flip, native names in the language picker, format helpers unused by views, clipped text on the results page"
+        }
+      ]
     }
   ],
   "mergeOrder": [
