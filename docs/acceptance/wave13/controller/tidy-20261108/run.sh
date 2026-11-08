@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Checks for the post-wave-13 wording tidy. usage: run.sh <decl|exec|scan|rules|ui|svc|host> <mode> ...
+part=$1; shift
+K=F:/new/smaltalk/water/.local/w13-tidy
+case $part in
+  decl|exec|scan|rules|ui) tree=a; gate=checkup-wave-check.mjs; export WATER_W2_SELFTEST_MANIFEST=$K/checkup-manifest.json;;
+  svc)  tree=a; gate=desktop-wave-check.mjs; export WATER_W3_OVERRIDE_MANIFEST=$K/desktop-manifest.json;;
+  host) tree=b; gate=desktop-wave-check.mjs; export WATER_W3_OVERRIDE_MANIFEST=$K/desktop-manifest.json;;
+  *) exit 2;;
+esac
+cd /f/new/smaltalk/water/.worktrees/integ-w8$tree || exit 2
+id=WATER-W13-ACCEPT-TIDY-$(echo $part | tr a-z A-Z)
+mkdir -p $K/logs
+for mode in "$@"; do
+  out=$(node F:/new/smaltalk/water/scripts/$gate --task $id --mode $mode 2>&1); rc=$?
+  echo "$part $mode rc=$rc $(echo "$out" | tail -1 | cut -c1-300)" | tee -a $K/logs/tidy.txt
+done
