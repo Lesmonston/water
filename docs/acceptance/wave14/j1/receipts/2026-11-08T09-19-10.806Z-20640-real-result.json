@@ -1,0 +1,1057 @@
+{
+  "task": "WATER-W14-J1",
+  "mode": "real",
+  "finalGate": true,
+  "manifest": "docs/dispatch/wave14/manifest.json",
+  "startedAt": "2026-11-08T09:19:10.808Z",
+  "realDataRead": true,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T09-19-10.806Z-20640-real-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T09-19-10.806Z-20640-real-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T09-19-10.806Z-20640-real-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-scan/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T09-19-10.806Z-20640-real-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "run",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-scan/Cargo.toml",
+        "--example",
+        "real_smoke",
+        "--",
+        "F:\\new\\smaltalk\\water\\.worktrees\\w14-j1\\.local\\w2-real\\2026-11-08T09-19-10.806Z-20640-real-plan.json"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T09-19-10.806Z-20640-real-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "docs/acceptance/wave14/j1/.gitattributes",
+    "docs/acceptance/wave14/j1/ARCHIVE.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-28-13.786Z-37688-baseline-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-28-13.786Z-37688-baseline-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-28-13.786Z-37688-baseline-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-28-13.786Z-37688-baseline-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-02.172Z-37776-baseline-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-02.172Z-37776-baseline-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-02.172Z-37776-baseline-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-02.172Z-37776-baseline-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-34.015Z-23288-lock-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-34.015Z-23288-lock-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-34.015Z-23288-lock-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-34.015Z-23288-lock-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-40-34.015Z-23288-lock-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-44-04.782Z-5468-test-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-6.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-03.093Z-16544-check-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-46-35.365Z-25024-test-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-07.017Z-21088-red-nc1-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-48-48.987Z-25104-test-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-19.020Z-30996-red-nc2-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-49-53.615Z-7152-test-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-50-32.110Z-21248-red-nc3-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-51-19.542Z-32820-test-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-6.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-11.691Z-36776-check-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-52-53.550Z-35924-test-source-9.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-1.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-2.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-3.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-4.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-5.log",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-result.json",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-0.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-1.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-10.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-11.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-12.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-2.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-3.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-4.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-5.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-6.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-7.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-8.txt",
+    "docs/acceptance/wave14/j1/receipts/2026-11-08T08-53-44.796Z-20756-real-source-9.txt",
+    "docs/dispatch/reports/WATER-W14-J1-REPORT.md",
+    "packages/junk-scan/README.md",
+    "packages/junk-scan/examples/real_smoke.rs",
+    "packages/junk-scan/src/scan.rs",
+    "packages/junk-scan/tests/scan_v1.rs"
+  ],
+  "before": {
+    "head": "b341f5c1beb8795148807bcd0bc006f0be9cd538",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-scan/src/error.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-0.txt",
+        "sha256": "a3c54ce80dd3dc7cd6d0b47ce95d241c1e664dd40ce0d83d597ca2ef9d9e6d9f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/extras.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-1.txt",
+        "sha256": "7fae2409df6927e6b8e9990f7f1f10a5693be1c51ed71bb37fba38488182fdc9",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/keys.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-2.txt",
+        "sha256": "9f7051047cbd43212ac058fb61bcc2e7010ac86c5ceac60290c8f5ced305d30d",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/lib.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-3.txt",
+        "sha256": "36db45b36c1088fa4ae7270358e6c61a2ec84048acd9883ff38d48445284f695",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/model.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-4.txt",
+        "sha256": "42a5e9d2ccf53486c51c60854011e22ef55ddd683ef1113430f2426501e8ea38",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/native_windows.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-5.txt",
+        "sha256": "35f06e312b3ad15773c0055fa60692960fcb7e38ff419afa9f5357cd7e216565",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/plan.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-6.txt",
+        "sha256": "240605674259f7dd584822e04be800f3d4a48f06c3202827165185c1d0f192a5",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/scan.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-7.txt",
+        "sha256": "8f881d8291ed6be0841ddda536fafea24e979ebd7f825190322373c383f67234",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/scan/streaming.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-8.txt",
+        "sha256": "5a0233de2bb10fd0a772dc9cc2ae38498b8ddb43b012fd521d4f3c05f6f5df7a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/snapshot.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-9.txt",
+        "sha256": "82077cf485e362953e117f1d15a6cf7f613b0b4efd1c7ae7f3ed9e2c722f029c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/templates.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-10.txt",
+        "sha256": "c81b216a74a58b06fb83a8ab77d4e87d291d9a271cc937cfa70a97156cda591a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/src/util.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-11.txt",
+        "sha256": "fde30a29f12f9ac036d0e5e75c54611d286e248059b4c5486ebd9f6b63d2e6d8",
+        "test": false
+      },
+      {
+        "path": "packages/junk-scan/tests/scan_v1.rs",
+        "snapshot": "2026-11-08T09-19-10.806Z-20640-real-source-12.txt",
+        "sha256": "5ff34882341cf3ca4529a40232e0d3134b55850d9ef1f166a9e5db43eda358f1",
+        "test": true
+      }
+    ],
+    "productionHash": "7313988cc19e38f1e22a527c4caecf7c892b6dacc04e8eefc7d6479ba63e16e9",
+    "testHash": "2a726ee35d6064ec1178963cae08d99b2689a82d8505787096af902e8d723bde"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "ffi": [
+    "CloseHandle",
+    "CoTaskMemFree",
+    "CreateFileW",
+    "DeviceIoControl",
+    "GetFileInformationByHandleEx",
+    "GetVolumeInformationByHandleW",
+    "SHGetKnownFolderPath"
+  ],
+  "realPlanTemplateSha256": "3959478c757fb76e3925d97de00325865a8ef9a3572ef7a19f656e2da583eaad",
+  "realPlan": ".local/w2-real/2026-11-08T09-19-10.806Z-20640-real-plan.json",
+  "realSummary": {
+    "scan": {
+      "status": "completed",
+      "visited_entries": 274221,
+      "elapsed_ms": 61538,
+      "groups": [
+        {
+          "group_id": "codex-marketplace-staging",
+          "level": "recommended",
+          "item_count": 0,
+          "eligible_count": 0,
+          "total_bytes": "0",
+          "eligible_bytes": "0",
+          "unique_bytes": "0",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "0",
+          "eligible_disk_bytes": "0",
+          "issues": [
+            {
+              "code": "reparse_skipped",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "group_id": "claude-desktop-old-versions",
+          "level": "recommended",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "661811538",
+          "eligible_bytes": "0",
+          "unique_bytes": "661811538",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "661995904",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "claude-code-sessions",
+          "level": "protected",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "9684639197",
+          "eligible_bytes": "0",
+          "unique_bytes": "9684639197",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "9687978632",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "claude-code-scratchpad",
+          "level": "confirm",
+          "item_count": 17,
+          "eligible_count": 4,
+          "total_bytes": "2426625470",
+          "eligible_bytes": "85554",
+          "unique_bytes": "2426625470",
+          "eligible_unique_bytes": "85554",
+          "disk_bytes": "2438366064",
+          "eligible_disk_bytes": "109600",
+          "issues": []
+        },
+        {
+          "group_id": "chrome-cache",
+          "level": "recommended",
+          "item_count": 9,
+          "eligible_count": 8,
+          "total_bytes": "2392283603",
+          "eligible_bytes": "2010246359",
+          "unique_bytes": "2392283603",
+          "eligible_unique_bytes": "2010246359",
+          "disk_bytes": "2415898808",
+          "eligible_disk_bytes": "2031771824",
+          "issues": []
+        },
+        {
+          "group_id": "chrome-login-and-site-data",
+          "level": "protected",
+          "item_count": 10,
+          "eligible_count": 0,
+          "total_bytes": "11995837",
+          "eligible_bytes": "0",
+          "unique_bytes": "11995837",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "12034272",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "electron-app-cache",
+          "level": "recommended",
+          "item_count": 3,
+          "eligible_count": 2,
+          "total_bytes": "67649627",
+          "eligible_bytes": "63686191",
+          "unique_bytes": "67649627",
+          "eligible_unique_bytes": "63686191",
+          "disk_bytes": "74537376",
+          "eligible_disk_bytes": "69746848",
+          "issues": [
+            {
+              "code": "reparse_skipped",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "group_id": "installer-unpack-temp",
+          "level": "recommended",
+          "item_count": 0,
+          "eligible_count": 0,
+          "total_bytes": "0",
+          "eligible_bytes": "0",
+          "unique_bytes": "0",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "0",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "npm-cache",
+          "level": "recommended",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "1197228704",
+          "eligible_bytes": "0",
+          "unique_bytes": "1197228704",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "1266992160",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        },
+        {
+          "group_id": "crash-dumps",
+          "level": "recommended",
+          "item_count": 3,
+          "eligible_count": 3,
+          "total_bytes": "68455563",
+          "eligible_bytes": "68455563",
+          "unique_bytes": "68455563",
+          "eligible_unique_bytes": "68455563",
+          "disk_bytes": "68460544",
+          "eligible_disk_bytes": "68460544",
+          "issues": []
+        },
+        {
+          "group_id": "system-temp-old",
+          "level": "recommended",
+          "item_count": 2366,
+          "eligible_count": 82,
+          "total_bytes": "6398976303",
+          "eligible_bytes": "1313081",
+          "unique_bytes": "6398976303",
+          "eligible_unique_bytes": "1313081",
+          "disk_bytes": "6797455248",
+          "eligible_disk_bytes": "1545952",
+          "issues": [
+            {
+              "code": "identity_unavailable",
+              "count": 13
+            }
+          ]
+        },
+        {
+          "group_id": "user-temp-old",
+          "level": "recommended",
+          "item_count": 1,
+          "eligible_count": 0,
+          "total_bytes": "7967846",
+          "eligible_bytes": "0",
+          "unique_bytes": "7967846",
+          "eligible_unique_bytes": "0",
+          "disk_bytes": "8046072",
+          "eligible_disk_bytes": "0",
+          "issues": []
+        }
+      ]
+    },
+    "full": {
+      "summary": {
+        "status": "completed",
+        "visited_entries": 274209,
+        "elapsed_ms": 17113,
+        "groups": [
+          {
+            "group_id": "codex-marketplace-staging",
+            "level": "recommended",
+            "item_count": 0,
+            "eligible_count": 0,
+            "total_bytes": "0",
+            "eligible_bytes": "0",
+            "unique_bytes": "0",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "0",
+            "eligible_disk_bytes": "0",
+            "issues": [
+              {
+                "code": "reparse_skipped",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "group_id": "claude-desktop-old-versions",
+            "level": "recommended",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "661811538",
+            "eligible_bytes": "0",
+            "unique_bytes": "661811538",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "661995904",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "claude-code-sessions",
+            "level": "protected",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "9684639197",
+            "eligible_bytes": "0",
+            "unique_bytes": "9684639197",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "9687978632",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "claude-code-scratchpad",
+            "level": "confirm",
+            "item_count": 17,
+            "eligible_count": 4,
+            "total_bytes": "2426625470",
+            "eligible_bytes": "85554",
+            "unique_bytes": "2426625470",
+            "eligible_unique_bytes": "85554",
+            "disk_bytes": "2438366064",
+            "eligible_disk_bytes": "109600",
+            "issues": []
+          },
+          {
+            "group_id": "chrome-cache",
+            "level": "recommended",
+            "item_count": 9,
+            "eligible_count": 9,
+            "total_bytes": "2392283603",
+            "eligible_bytes": "2392283603",
+            "unique_bytes": "2392283603",
+            "eligible_unique_bytes": "2392283603",
+            "disk_bytes": "2415898808",
+            "eligible_disk_bytes": "2415898808",
+            "issues": []
+          },
+          {
+            "group_id": "chrome-login-and-site-data",
+            "level": "protected",
+            "item_count": 10,
+            "eligible_count": 0,
+            "total_bytes": "11995837",
+            "eligible_bytes": "0",
+            "unique_bytes": "11995837",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "12034272",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "electron-app-cache",
+            "level": "recommended",
+            "item_count": 3,
+            "eligible_count": 2,
+            "total_bytes": "67649627",
+            "eligible_bytes": "63686191",
+            "unique_bytes": "67649627",
+            "eligible_unique_bytes": "63686191",
+            "disk_bytes": "74537376",
+            "eligible_disk_bytes": "69746848",
+            "issues": [
+              {
+                "code": "reparse_skipped",
+                "count": 3
+              }
+            ]
+          },
+          {
+            "group_id": "installer-unpack-temp",
+            "level": "recommended",
+            "item_count": 0,
+            "eligible_count": 0,
+            "total_bytes": "0",
+            "eligible_bytes": "0",
+            "unique_bytes": "0",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "0",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "npm-cache",
+            "level": "recommended",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "1197228704",
+            "eligible_bytes": "0",
+            "unique_bytes": "1197228704",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "1266992160",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "crash-dumps",
+            "level": "recommended",
+            "item_count": 3,
+            "eligible_count": 3,
+            "total_bytes": "68455563",
+            "eligible_bytes": "68455563",
+            "unique_bytes": "68455563",
+            "eligible_unique_bytes": "68455563",
+            "disk_bytes": "68460544",
+            "eligible_disk_bytes": "68460544",
+            "issues": []
+          },
+          {
+            "group_id": "system-temp-old",
+            "level": "recommended",
+            "item_count": 1072,
+            "eligible_count": 71,
+            "total_bytes": "6381965317",
+            "eligible_bytes": "1266303",
+            "unique_bytes": "6381965317",
+            "eligible_unique_bytes": "1266303",
+            "disk_bytes": "6738525160",
+            "eligible_disk_bytes": "1442120",
+            "issues": [
+              {
+                "code": "identity_unavailable",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "group_id": "user-temp-old",
+            "level": "recommended",
+            "item_count": 1,
+            "eligible_count": 0,
+            "total_bytes": "7967846",
+            "eligible_bytes": "0",
+            "unique_bytes": "7967846",
+            "eligible_unique_bytes": "0",
+            "disk_bytes": "8046072",
+            "eligible_disk_bytes": "0",
+            "issues": []
+          },
+          {
+            "group_id": "leak:08dd51cf727e23af",
+            "level": "confirm",
+            "item_count": 19,
+            "eligible_count": 16,
+            "total_bytes": "8882",
+            "eligible_bytes": "8195",
+            "unique_bytes": "8882",
+            "eligible_unique_bytes": "8195",
+            "disk_bytes": "43696",
+            "eligible_disk_bytes": "43000",
+            "issues": []
+          },
+          {
+            "group_id": "leak:27b19b406bb08bda",
+            "level": "confirm",
+            "item_count": 69,
+            "eligible_count": 69,
+            "total_bytes": "169326",
+            "eligible_bytes": "169326",
+            "unique_bytes": "169326",
+            "eligible_unique_bytes": "169326",
+            "disk_bytes": "282624",
+            "eligible_disk_bytes": "282624",
+            "issues": []
+          },
+          {
+            "group_id": "leak:65ab0ed9e69c4386",
+            "level": "confirm",
+            "item_count": 1114,
+            "eligible_count": 1114,
+            "total_bytes": "300020",
+            "eligible_bytes": "300020",
+            "unique_bytes": "300020",
+            "eligible_unique_bytes": "300020",
+            "disk_bytes": "302152",
+            "eligible_disk_bytes": "302152",
+            "issues": []
+          },
+          {
+            "group_id": "leak:940253d3e2a74215",
+            "level": "confirm",
+            "item_count": 28,
+            "eligible_count": 28,
+            "total_bytes": "288344",
+            "eligible_bytes": "288344",
+            "unique_bytes": "288344",
+            "eligible_unique_bytes": "288344",
+            "disk_bytes": "696640",
+            "eligible_disk_bytes": "696640",
+            "issues": []
+          },
+          {
+            "group_id": "leak:c4f3820e1012959c",
+            "level": "confirm",
+            "item_count": 31,
+            "eligible_count": 31,
+            "total_bytes": "76074",
+            "eligible_bytes": "76074",
+            "unique_bytes": "76074",
+            "eligible_unique_bytes": "76074",
+            "disk_bytes": "126976",
+            "eligible_disk_bytes": "126976",
+            "issues": []
+          },
+          {
+            "group_id": "leak:f65827502bcb7a6d",
+            "level": "confirm",
+            "item_count": 11,
+            "eligible_count": 11,
+            "total_bytes": "122233",
+            "eligible_bytes": "122233",
+            "unique_bytes": "122233",
+            "eligible_unique_bytes": "122233",
+            "disk_bytes": "215920",
+            "eligible_disk_bytes": "215920",
+            "issues": []
+          },
+          {
+            "group_id": "leak:f6ebd40d770b3283",
+            "level": "confirm",
+            "item_count": 10,
+            "eligible_count": 9,
+            "total_bytes": "332178",
+            "eligible_bytes": "327786",
+            "unique_bytes": "332178",
+            "eligible_unique_bytes": "327786",
+            "disk_bytes": "352256",
+            "eligible_disk_bytes": "344064",
+            "issues": []
+          }
+        ]
+      },
+      "cluster_count": 7,
+      "confirm_cluster_count": 7,
+      "advisory_cluster_count": 0,
+      "junction_count": 10,
+      "hidden_system_junction_count": 0,
+      "unavailable_indexed_junction_count": 0,
+      "hidden_system_junction_seen_count": 10,
+      "hidden_system_junction_skipped_count": 10,
+      "hidden_system_junction_observation": "seen_and_skipped",
+      "junctions_truncated": false,
+      "declaration_count": 0
+    },
+    "overview": {
+      "status": "completed",
+      "elapsed_ms": 41538,
+      "visited_entries": 676001,
+      "disk_bytes": "108411589016",
+      "total_bytes": "107993378478",
+      "file_count": 578749,
+      "top_count": 10,
+      "others_count": 229,
+      "others_disk_bytes": "7403455360",
+      "issues": []
+    }
+  },
+  "after": {
+    "head": "b341f5c1beb8795148807bcd0bc006f0be9cd538",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-08T09:21:21.431Z"
+}
