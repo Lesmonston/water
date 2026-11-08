@@ -1,4 +1,4 @@
-WATER-W14-S1 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w14-s1/docs/dispatch/reports/WATER-W14-S1-REPORT.md
+WATER-W14-S1 补单 01 任务受阻，任务报告在 F:/new/smaltalk/water/.worktrees/w14-s1/docs/dispatch/reports/WATER-W14-S1-REPORT.md
 
 # WATER-W14-S1 受阻回执
 
@@ -113,3 +113,107 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --
 - 最后一次 test 已退出；核对时未发现剩余 Cargo、Rustc 或本票 service_v1 测试进程。没有执行额外杀进程操作。
 
 按受阻回执交回后停止本票测试与修改，等待总控补齐扫描完成语义和续做单。
+
+## 补单 01（第 A 段）
+
+2026-11-08。实际模型：Codex（GPT-6）；没有使用子代理。以上保留原单历史，本节记录本次续做。
+
+**本段受阻：服务测试已经 12/12 全绿，但 check 编译了白名单外的示例，无法在当前文件范围内通过。** 未将第 A 段标成完成或 H1 的已通过基线，未修改台账。
+
+### 续做与提交
+
+- 原工作树及分支不变，初次状态干净。
+- 续做起点：`1587c1cc780c8680d971817f4c3ce67d5508ec86`。
+- 本段现场实现提交：`a9a87ad108a9250c32826b25412bb0f435a021b3`。
+- 在该提交上、工作树干净时，依次执行最后一次非 final `check` 和 `test`；报告随后单独提交，没有后续产品变更。
+- 本次实际修改：服务包的 `src/clean.rs`、`src/conclusion.rs`、`src/language.rs`、`src/m35.rs`、`src/service.rs`、`src/views.rs`、`tests/service_v1.rs`、`README.md`。原单已经加入的 `IpcError` 三个字段没有再改；公开函数和类型的签名没有改。
+
+### 新阻点与最小补充范围
+
+原单第 5 节只允许服务包的 `src/`、`tests/service_v1.rs`、`README.md` 及报告、指定归档证据；补单 01 明确原边界照旧。检查器执行：
+
+```text
+cargo clippy --offline --locked --manifest-path packages/water-service/Cargo.toml --all-targets -- -D warnings
+```
+
+`--all-targets` 也编译 `examples/service_smoke.rs`。这份文件有原单未列出的两处 `IpcError` 字面量：
+
+```text
+examples/service_smoke.rs:27:20  missing field `message_en`
+examples/service_smoke.rs:49:24  missing field `message_en`
+```
+
+另已把同文件涉及的接线一并看完：[第 45 行](../../../packages/water-service/examples/service_smoke.rs:45) 用 `state != "running"` 判断结束，会在新增的 `finishing` 阶段提前读取结果。因此最小补充不是只加两个字段，而是**明确允许修改这一份示例文件的三处**：
+
+1. 第 27 行错误补 `message_en: "A data directory is required".into()`。
+2. 第 49 行错误补 `message_en: "The checkup did not finish".into()`。
+3. 第 45 行轮询改为 `running`、`finishing` 都继续等；只在最终状态退出。
+
+这三处目前都未动。无需改契约、依赖、系统函数、检查器或其它包。没有绕过 `--all-targets`，也没有把失败写成通过。
+
+按[通用规则第 4 节](../WORKER-RULES.md:37)“要改白名单以外的文件”交回；请总控补充该文件的明确范围及续做起点。当前受阻不是 J2 的根目录信号，也不是计时失败。
+
+### 已完成的服务工作及验证
+
+- 规则扫描期间不再数 `on_progress` 次数，也不据此标完成；`scan_full` 返回才进入 40/90 的阶段终点。重复回调回归保留，测试只固定重复回调不推进完成、范围与单调性，未把过渡阶段的精确 0 或所有位置同时运行写死。
+- 整盘空间阶段独立累计字节，按开始体检时的已用空间计算，40～94；位置为 `space`、名字不变，空间字节不进入 `found_bytes`。`finishing` 为 95，存储结束的最终状态为 100。通道分别卡住规则、空间和落盘阶段，12 个原测试内完成验证。
+- 命令返回的配对检查覆盖已有流程，英文检查扩展到现有成功调用；明确例外仅为旧提示、旧合成备注、旧合成位置名与用户填写的声明标题。规则英文在公开 `group_detail` 入口与实际 `Rule` 英文字段精确对照。
+- 新增增长、预测、会话清理说明、隔离原因及错误的中英精确断言；原有中文断言保留。大小格式化覆盖英文千位分隔，日期覆盖同年日期、跨年和 24 小时时间，复制线索中的时间保留 UTC 标识。
+- 新原因代码与旧中文路径均验证：卸载说明代码在中文改写后仍生效；旧记录标题英文等于原中文；脱离 git 的新代码与旧说明生成同一线索；程序目录保护的新旧记录保持相同卡片选择和线索过滤。真实存储的隔离组记录去掉英文后重启，组名英文回退等于中文。
+- 旧记录兼容仍在读取端回退，新保存记录保留两种语言；已有设置、清理、隔离、历史等流程均通过递归字段配对检查。没有新增 `#[test]`、ignore 或过滤；实际测试数仍为 12。
+- 清理执行路径、文件操作权限没有扩大；新增的过期原因枚举为内部类型，避免过期英文说明依赖中文句子匹配。
+- 全目录公开写法检查未发现私人流程、用户名、本机绝对路径或其它本机项目引用；测试继续使用本树随机合成目录及虚构路径。`.WATER-QUARANTINE` 等旧名称作为兼容数据保留。
+
+原回执列出的 6 类非进度失败均已解决，最后一次全部 12 个测试通过。另修正了一个编辑时误命中合成备注数组的问题，恢复原来的 4 条不同备注及其原有精确断言；未用放宽断言处理。
+
+### 旧断言与假时钟迁移
+
+| 原值 / 写法 | 新值 / 写法 | 原因与保留的约束 |
+|---|---|---|
+| 占用未知对象仅有 `process_label_zh`、`item_count: 2` | 精确增加 `process_label_en`，其它值不变 | 新字段必需；仍精确核对原有中文与数量 |
+| 旧占用对象仅有中文旧提示和 `item_count: null` | 增加同值 `process_label_en: "旧提示"` | 核对旧数据回退，未把旧提示改成译文 |
+| 四个引用合并后的线索精确对象只有中文和 `copy_text` | 同一对象精确加入 `text_en`、`copy_text_en` | 数量、大小、同组大小写合并和路径清单断言保持 |
+| 预测精确对象只有 `note_zh: null` | 精确增加 `note_en: null` | 数值、天数、根与中文原值保持 |
+| 程序目录的原始 `ineligible_reason` 为中文句子 | `installed_program_directory` / `program_directory` | 原中文在 `item_notes` 和说明 sidecar 中精确保留，并核英文；保护、无卡片、无线索断言保持 |
+| `referenced_count` / 贵重文件 / 保留名在原因字段里查中文 | 精确代码 `junction_referenced` / `valuable_files` / `reserved_name`，并独立核中文说明 | 仍要求 `eligible == false`，不能进入清理计划；这次查清是原因字段迁移，没有降低保护强度 |
+| 扩展路径、UNC、声明祖先、已安装应用在原因字段里查中文 | `declaration_protected`、`path_unverifiable`、`contains_declaration`、`app_installed` | 中文说明独立保留；声明、路径与在装匹配保护不变 |
+| 规则扫描尚未返回的阶段精确断言 40/90、复现精确断言 0 | 合法范围、重复回调前后相等、不能提前达到阶段终点 | 按补单要求不冻结将被根目录计数替换的暂态值；空间、95、100 的精确值仍核对 |
+| 记录回放后新扫描仍沿用固定 `NOW` | 以原记录实际完成时间加 1 秒作下一次起点 | 防止较快的新扫描时间反而早于首次较慢扫描，仍精确检查保留数与新结果 |
+| 结论测试相邻扫描用固定 `NOW + 60/120` | 每次以实际 `finished_at + 60` 推进 | 与趋势测试采用同一修法，不依赖扫描耗时；无新增或放宽墙钟时限 |
+
+无选择时，中文汇总仍允许原来的空字符串，英文汇总改为非空 `Nothing selected`；缺失位置标签的英文兜底为 `Unnamed item`，修的是实现，未删除配对断言。原有 `shape` 两边过滤 `_en` 与等待 `finishing` 的迁移保持。
+
+### 实际检查命令与结果
+
+统一入口与原单相同，从指定工作树根执行：
+
+```powershell
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --mode lock
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --mode check
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --mode test
+```
+
+下表文件均位于本树 `.local/checks/WATER-W14-S1/`，未复制进归档证据目录。
+
+| 回执文件 | 退出码与结果 |
+|---|---|
+| `2026-11-08T12-16-49.554Z-30228-lock-result.json` | 0，passed |
+| `2026-11-08T12-18-36.581Z-41244-test-result.json` | 1，9 过、3 失败；原因代码、未知占用精确对象与回放时钟，后续修复 |
+| `2026-11-08T12-24-18.475Z-41692-test-result.json` | 1，9 过、3 失败；英文严格检查与剩余代码断言，后续修复 |
+| `2026-11-08T12-31-43.486Z-32716-check-result.json` | 1，Clippy 要求 checked division，已按要求修正 |
+| `2026-11-08T12-33-33.943Z-27568-check-result.json` | 1，示例第 27/49 行缺 `message_en`，白名单阻点 |
+| `2026-11-08T12-36-30.962Z-20656-test-result.json` | 1，10 过、2 失败；合成备注数组及声明原因断言，后续修复 |
+| `2026-11-08T12-39-50.107Z-33152-test-result.json` | 0，12/12 通过，0 ignored、0 filtered |
+| **`2026-11-08T12-42-43.461Z-32616-check-result.json`** | **干净提交 a9a87ad1：1，fmt 通过，Clippy 编译示例时 E0063 两处失败** |
+| **`2026-11-08T12-44-12.479Z-42088-test-result.json`** | **同一干净提交：0，12/12 通过，0 ignored、0 filtered** |
+
+最后一次 check 的诊断在 `2026-11-08T12-42-43.461Z-32616-check-6.log`；最后一次 test 的 Cargo 日志在 `2026-11-08T12-44-12.479Z-42088-test-5.log`，Cargo 退出 0，测试运行 87.80 秒。check 的 Cargo 退出 101；不是计时失败。计时重跑为 0，所有旧失败如上保留，没有修改时限。
+
+### 补单 02 仍要接的事项与边界
+
+- 总控合入 J2 后给出续做基线；服务接 `on_root_done`，按根目录完成数计算规则阶段，兜底目标跟随其主目标，位置与类别按目标走完更新。
+- 根目录阶段的生产接线、未完成和提前结束分支、相关测试，以及原单三条负控。
+- 全部 final、真实只读冒烟和 `archive`。本段没有运行 `real`、负控、任何 `--final` 或 `archive`，没有向 `docs/acceptance/wave14/s1/` 写证据。
+- 本段新增词汇：`Nothing selected`（未选择）、`Unnamed item`（未命名项）、`Unknown date`（未知日期）、`Session cleanup settings`（会话清理设置）、`trust in the project declaration`（项目声明的信任）、`Protected and reference only`（受保护与仅供参考）。原单回执中的其它译法沿用。
+
+没有修改示例、宿主、扫描包、规则包、契约、检查器、依赖或锁文件；没有真实数据扫描、真实清理、窗口、选择框、浏览器或下载，没有使用子代理。只在本分支新增提交，未 push、改远端、持久 Git 配置或改写历史。最后一次 test 已退出，核对时未发现剩余 Cargo、Rustc 或本票 service_v1 进程；没有执行杀进程操作。macOS 未验证。保存本报告后停止本票修改，待总控补齐示例文件范围。
