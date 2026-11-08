@@ -9,7 +9,7 @@ export function trends(s, a) {
   const system = s.app?.drives.find(d => d.is_system), f = data.forecast.find(f => f.root === system?.root), days = f?.days_to_full;
   const hasDaily = value => value && value.days_to_full !== null && BigInt(value.bytes_per_day) > 0n;
   const title = hasDaily(f) && days > 0 && days <= 90 ? t('driveFullIn', {drive:driveName(system.root), duration:approximate(formatDays(days))}) : t('spaceTrends');
-  add(page, heading(title, '', hasDaily(f) ? [metric(f.bytes_per_day, t('dailyUse')), metric(f.basis_days, t('basisDays'), true)] : []));
+  add(page, heading(title, '', hasDaily(f) ? [metric(f.bytes_per_day, t('dailyUse')), metric(f.basis_days, t('basisDays', {n:f.basis_days}), true)] : []));
   add(page, proportions(data.forecast.filter(hasDaily).map(f => ({title:t('driveDaily', {drive:driveName(f.root)}), bytes:f.bytes_per_day}))));
   const grid = el('div', 'with-hero'), left = el('div', 'trend-content');
   add(left, add(card(t('driveAvailableSpace', {drive:driveName(system?.root)})), stems(data.points.filter(p => p.root === system?.root).map(p => ({bytes:p.free_bytes, label:dateOnly(p.at)})), t('recordedForecast'), hasDaily(f) && days > 0 && days <= 90 ? days : 0)));

@@ -14,7 +14,7 @@ export function quarantine(s, a) {
     const node = card(dateTime(c.created_at), index === 0 ? 'dark main-card' : '', [menu(t('quarantineMenu'), [[t('openFolder'), () => a.reveal(c.quarantine_id)]], `quarantine-menu-${c.quarantine_id}`)]);
     node.dataset.quarantine = c.quarantine_id;
     if (serviceText(c, 'reminder')) add(node, tag(serviceText(c, 'reminder'), 'hot'));
-    add(node, metric(c.days, t('daysStored'), true), daysBlocks(c.days, index === 0 && c.state !== 'leftover'), metric(c.bytes, t('items', {n:c.item_count})));
+    add(node, metric(c.days, t('daysStored', {n:c.days}), true), daysBlocks(c.days, index === 0 && c.state !== 'leftover'), metric(c.bytes, t('items', {n:c.item_count})));
     for (const r of c.rows) add(node, row(serviceText(r, 'label'), t('items', {n:r.count}), el('span', '', formatBytes(r.bytes))));
     if (c.state === 'leftover') add(node, el('p', 'warning', t('cannotDeleteCount', {n:c.item_count})));
     for (const r of c.leftovers) add(node, row(r.display_name, serviceText(r, 'reason'), el('span', '', formatBytes(r.bytes))));
