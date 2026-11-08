@@ -3,8 +3,9 @@ use std::fs;
 use std::os::windows::fs::MetadataExt;
 use std::time::{Instant, SystemTime};
 use water_junk_scan::{
-    CancelToken, ExtrasOptions, ScanObserver, ScanOptions, ScanPlan, ScanProgress, ScanResult,
-    known_folders, result_from_json, result_to_json, scan, scan_full, space_overview,
+    CancelToken, ExtrasOptions, KnownFolders, ScanExtras, ScanObserver, ScanOptions, ScanPlan,
+    ScanProgress, ScanResult, known_folders, result_from_json, result_to_json, scan, scan_full,
+    space_overview,
 };
 
 struct Quiet;
@@ -51,6 +52,9 @@ struct FullOut {
     junction_count: usize,
     hidden_system_junction_count: usize,
     unavailable_indexed_junction_count: usize,
+    hidden_system_junction_seen_count: usize,
+    hidden_system_junction_skipped_count: usize,
+    hidden_system_junction_observation: &'static str,
     junctions_truncated: bool,
     declaration_count: usize,
 }
@@ -126,6 +130,13 @@ fn main() {
         hidden_system_junction_count, 0,
         "compatibility junctions must not be indexed"
     );
+    let folders = known_folders().expect("known folders");
+    let (hidden_system_junction_seen_count, hidden_system_junction_skipped_count) =
+        compatibility_junction_counts(&plan, &folders, &extras);
+    assert_eq!(
+        hidden_system_junction_skipped_count, hidden_system_junction_seen_count,
+        "observed compatibility junctions must all be absent from the index"
+    );
     let full = FullOut {
         summary: summarize(&result, started.elapsed().as_millis()),
         cluster_count: result.groups.iter().filter(|g| g.cluster.is_some()).count(),
@@ -142,11 +153,17 @@ fn main() {
         junction_count: extras.junctions.len(),
         hidden_system_junction_count,
         unavailable_indexed_junction_count,
+        hidden_system_junction_seen_count,
+        hidden_system_junction_skipped_count,
+        hidden_system_junction_observation: if hidden_system_junction_seen_count == 0 {
+            "none_seen"
+        } else {
+            "seen_and_skipped"
+        },
         junctions_truncated: extras.junctions_truncated,
         declaration_count: extras.declarations.len(),
     };
     drop(result);
-    let folders = known_folders().expect("known folders");
     let started = Instant::now();
     let overview = space_overview(
         &folders.user_profile,
@@ -185,6 +202,93 @@ fn main() {
         })
         .expect("json")
     );
+}
+
+fn compatibility_junction_counts(
+    plan: &ScanPlan,
+    folders: &KnownFolders,
+    extras: &ScanExtras,
+) -> (usize, usize) {
+    let mut roots: Vec<String> = plan
+        .targets
+        .iter()
+        .map(|target| {
+            let spec = serde_json::to_value(&target.match_spec).expect("match JSON");
+            spec.get("base")
+                .or_else(|| spec.get("root"))
+                .and_then(serde_json::Value::as_str)
+                .expect("scan root")
+                .trim_end_matches('\\')
+                .to_ascii_lowercase()
+        })
+        .collect();
+    // The example also scans this root in its independent space overview.
+    roots.push(
+        folders
+            .user_profile
+            .trim_end_matches('\\')
+            .to_ascii_lowercase(),
+    );
+    let mut candidates = Vec::new();
+    for (root, names) in [
+        (
+            &folders.user_profile,
+            &[
+                "Application Data",
+                "Local Settings",
+                "My Documents",
+                "NetHood",
+                "Recent",
+                "SendTo",
+                "Start Menu",
+                "Templates",
+            ][..],
+        ),
+        (
+            &folders.local_app_data,
+            &["Application Data", "History", "Temporary Internet Files"][..],
+        ),
+    ] {
+        for name in names {
+            candidates.push(format!("{}\\{name}", root.trim_end_matches('\\')));
+        }
+    }
+    for root in &roots {
+        if root.len() == 2 && root.as_bytes()[0].is_ascii_alphabetic() && root.ends_with(':') {
+            candidates.push(format!("{root}\\Documents and Settings"));
+        }
+    }
+    candidates.sort_by_key(|path| path.to_ascii_lowercase());
+    candidates.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
+    let mut seen = 0;
+    let mut skipped = 0;
+    for path in candidates {
+        let key = path.to_ascii_lowercase();
+        if !roots.iter().any(|root| {
+            key == *root
+                || key
+                    .strip_prefix(root)
+                    .is_some_and(|rest| rest.starts_with('\\'))
+        }) {
+            continue;
+        }
+        let Ok(metadata) = fs::symlink_metadata(&path) else {
+            continue;
+        };
+        // Require a reparse point as well as both hidden and system attributes.
+        if metadata.file_attributes() & 0x406 != 0x406 {
+            continue;
+        }
+        seen += 1;
+        if !extras
+            .junctions
+            .iter()
+            .any(|junction| junction.path.eq_ignore_ascii_case(&path))
+        {
+            skipped += 1;
+        }
+    }
+    (seen, skipped)
 }
 
 fn summarize(result: &ScanResult, elapsed_ms: u128) -> Summary {
