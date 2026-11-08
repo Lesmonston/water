@@ -1555,7 +1555,7 @@
       "branch": "worker/water-w14-h1",
       "baseCommit": "f91a982acbea483df753ce37fe586b53602fcdf1",
       "snapshotRef": "refs/tags/water-w14-h1-base-20261108",
-      "status": "DISPATCHED",
+      "status": "ADDENDUM_01_ISSUED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "IpcFailure gets message_en; the host's own errors have English; service errors pass message_en through; HostPicker::pick builds IpcError with message_en; app_info unchanged (W14-ADD-02: no system_language); flick.nsi in English and Simplified Chinese, picked from the system language without a language dialog",
       "report": "docs/dispatch/reports/WATER-W14-H1-REPORT.md",
@@ -1641,7 +1641,24 @@
       "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/h1/",
       "dispatchReportedAt": "2026-11-08T13:54:24.749Z",
       "dispatchedExecutor": "sol",
-      "dispatchEvidence": "user 2026-11-08: \"两单都是sol\""
+      "dispatchEvidence": "user 2026-11-08: \"两单都是sol\"",
+      "blocked": {
+        "submittedHead": "db0f188e",
+        "implementationCommit": "bb87445dea154876cc9aa0fca7c53c29e6c22113",
+        "at": "2026-11-08T14:45:26.984Z",
+        "reason": "native --final moves the fixture item into the drive-root .flick-quarantine, but WORKER-RULES section 5 forbids drive-root quarantine roots and the W14 rules and the H1 ticket omitted the W12-P3 / W11-N2 exception",
+        "done": "implementation, two NCs, check --final and test --final, installer compiled (makensis 3.11, 0 warnings), archive",
+        "controllerVerdict": "confirmed: ticket omission; addendum 01 grants the checker-driven exception"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W14-H1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W14-H1-ADDENDUM-01-20261108.md",
+          "issuedAt": "2026-11-08T14:45:26.984Z",
+          "resumeFrom": "db0f188e",
+          "why": "grant the native --final drive-root .flick-quarantine exception (one batch, purged in the flow, checked by the checker); rerun check, test and native finals on the current head, then archive"
+        }
+      ]
     }
   ],
   "mergeOrder": [

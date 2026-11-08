@@ -628,6 +628,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - J2 扫描 VERIFIED（中门），合入 `3953de0a`：新验收树三个 final 过，三条负控重放与三条总控变异都抓到；探针变异与独立审查的中级是同一个测试缺口（一开始就不走的根目录没钉住计划顺序），代码读过是对的，记入遗留。
    - S1 第 A 段收下（`f91a982a`，测试 12/12）。总控把主线合进 S1 分支（`dd7ac13a`），清单底改成它，出 [S1 补单 02](dispatch/tickets/WATER-W14-S1-ADDENDUM-02-20261108.md)（规则阶段按根目录计数、负控、final）。
    - [H1 宿主与安装包](dispatch/tickets/WATER-W14-H1-HOST-20261108.md)出单，底 `f91a982a`；宿主读不了系统语言，[W14-ADD-02](../contracts/w14-v1/W14-ADD-02.md)：不加 `system_language`，界面用 `navigator.language`，第十二次整合核对。两张基线都通过。
+   - 23:30 H1 交回受阻（`db0f188e`）：实现、负控、check 与 test 的 final、安装包编译都完成，只差 native。整机流程会让 Flick 把夹具一项移进盘根的 `.flick-quarantine` 再删除，通用规则不许、第十四波规则与原单漏写了第十二波 P3 的那条例外。出 [H1 补单 01](dispatch/tickets/WATER-W14-H1-ADDENDUM-01-20261108.md) 写明例外，在当前 HEAD 重跑三个 final。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。
