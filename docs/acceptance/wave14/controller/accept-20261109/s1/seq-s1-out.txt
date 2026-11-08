@@ -1,0 +1,39 @@
+=== s1 2026-11-08T15:25:13Z
+s1 lock rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-25-13.746Z-36316-lock-result.json"}
+s1 check:final rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-25-27.242Z-42980-check-result.json"}
+s1 real:final rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"real","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-26-08.880Z-22452-real-result.json"}
+s1 nc1 mutated packages/water-service/src/conclusion.rs: ticket control replayed from worker receipt 2026-11-08T14-11-35.452Z-31260-red-nc1-result.json (mutated sha 630891e511b163f3b6851dbf905aa709767dc9beacf52c1116c9fb5fbabd0608)
+s1 red-nc1 rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-30-06.048Z-27232-red-nc1-result.json"}
+s1 nc1 KILLED (expected SERVICE_W14_EN)
+s1 nc1 restored exact bytes=true sha 5fed832d0e21a6f5797fd11408d819abba940e5a6fcf1799b328589a949892de
+s1 test rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-31-20.584Z-17920-test-result.json"}
+s1 nc2 mutated packages/water-service/src/service.rs: ticket control replayed from worker receipt 2026-11-08T14-15-14.522Z-9296-red-nc2-result.json (mutated sha 6ba0b154bb9d863fdcb6ddbb9379598ff8ce096fc5020be70be9144a89b18019)
+s1 red-nc2 rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-33-17.640Z-17760-red-nc2-result.json"}
+s1 nc2 KILLED (expected SERVICE_W14_PROGRESS)
+s1 nc2 restored exact bytes=true sha 1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5
+s1 test rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-35-33.388Z-32552-test-result.json"}
+s1 nc3 mutated packages/water-service/src/service.rs: ticket control replayed from worker receipt 2026-11-08T14-19-52.730Z-38028-red-nc3-result.json (mutated sha e971c8255479bacdcc05a468d8df65279f169bc8a3814ee40fd45fa64866f201)
+s1 red-nc3 rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-37-37.965Z-8436-red-nc3-result.json"}
+s1 nc3 KILLED (expected SERVICE_W14_PROGRESS)
+s1 nc3 restored exact bytes=true sha 1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5
+s1 test rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-39-48.768Z-36328-test-result.json"}
+s1 c1 mutated packages/water-service/src/service.rs: the rules stage always ends at 90, even with a whole-drive location (should be 40) (mutated sha 674db28970706ccc13c1b43394cbe1920d7c22df030320b473188404a5600fb1)
+s1 test rc=1 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-08T15-41-50.772Z-15076-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-41-50.772Z-15076-test-result.json"}
+s1 c1 KILLED (expected SERVICE_W14_PROGRESS)
+s1 c1 restored exact bytes=true sha 1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5
+s1 c2 mutated packages/water-service/src/service.rs: a fallback Marker no longer follows the target it backs up; it uses its own root (mutated sha 31ed21c7b566a025a99172833eccb68423e19dd1b0d45ade43a23539038c46d0)
+s1 test rc=1 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-08T15-43-39.814Z-39044-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-43-39.814Z-39044-test-result.json"}
+s1 c2 SURVIVED (expected SERVICE_W14_PROGRESS)
+s1 c2 restored exact bytes=true sha 1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5
+s1 c3 mutated packages/water-service/src/service.rs: reported roots are stored with their original case, so case-insensitive lookups of targets miss them (mutated sha 89b34cb82b97a72ddf56e0ead419d6ba3a835bb1b2f6b830bee0b493b33117d8)
+s1 test rc=1 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-08T15-46-07.387Z-3084-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-46-07.387Z-3084-test-result.json"}
+s1 c3 KILLED (expected SERVICE_W14_PROGRESS)
+s1 c3 restored exact bytes=true sha 1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5
+s1 c4 mutated packages/water-service/src/service.rs: after an early end (roots left unreported) the rules stage does not jump to its end when scan_full returns (mutated sha 75840240edd6ef4553bf80edc70e64be7ee916bfa48a5eb617e227115c3d670a)
+s1 test rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-48-39.409Z-34488-test-result.json"}
+s1 c4 SURVIVED (expected SERVICE_W14_PROGRESS)
+s1 c4 restored exact bytes=true sha 1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5
+s1 survived: c2,c4
+s1 test --final rc=0 {"task":"WATER-W14-ACCEPT-S1","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-s1\\.local\\checks\\WATER-W14-ACCEPT-S1\\2026-11-08T15-50-28.150Z-5548-test-result.json"}
+=== s1 done rc=0 2026-11-08T15:52:55Z
+SEQ-DONE

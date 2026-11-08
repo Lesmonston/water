@@ -1,0 +1,65 @@
+[
+ {
+  "label": "nc1",
+  "mode": "red-nc1",
+  "token": "SERVICE_W14_EN",
+  "file": "packages/water-service/src/conclusion.rs",
+  "old": "    json!({\"card_id\":u.id,\"kind\":u.kind,\"level\":u.level,\"title_zh\":title,\"title_en\":title_en,\"evidence_zh\":evidence,\"evidence_en\":evidence_en,\"bytes\":n.to_string(),\"decision\":choice(c,u),\"decided_before_en\":if c.kept.contains(&u.id){Some(\"You chose to keep this last time\")}else{None},\"decided_before_zh\":if c.kept.contains(&u.id){Some(\"上次你选了保留\")}else{None},\"warning_en\":match u.kind.as_str(){\"leak\"=>Some(\"It will grow back unless the cause is fixed\"),\"session\"=>Some(\"These conversations cannot be resumed or reviewed after cleaning. Try moving them to quarantine first\"),_=>None},\"warning_zh\":match u.kind.as_str(){\"leak\"=>Some(\"清了不修，会再长回来\"),\"session\"=>Some(\"清掉后这些对话不能再续接或回看；可以先放进隔离区试试\"),_=>None},\"group_id\":u.id,\"menu\":menu,\"clue_id\":clue.map(|c|c[\"clue_id\"].clone())})",
+  "new": "    json!({\"card_id\":u.id,\"kind\":u.kind,\"level\":u.level,\"title_zh\":title,\"evidence_zh\":evidence,\"evidence_en\":evidence_en,\"bytes\":n.to_string(),\"decision\":choice(c,u),\"decided_before_en\":if c.kept.contains(&u.id){Some(\"You chose to keep this last time\")}else{None},\"decided_before_zh\":if c.kept.contains(&u.id){Some(\"上次你选了保留\")}else{None},\"warning_en\":match u.kind.as_str(){\"leak\"=>Some(\"It will grow back unless the cause is fixed\"),\"session\"=>Some(\"These conversations cannot be resumed or reviewed after cleaning. Try moving them to quarantine first\"),_=>None},\"warning_zh\":match u.kind.as_str(){\"leak\"=>Some(\"清了不修，会再长回来\"),\"session\"=>Some(\"清掉后这些对话不能再续接或回看；可以先放进隔离区试试\"),_=>None},\"group_id\":u.id,\"menu\":menu,\"clue_id\":clue.map(|c|c[\"clue_id\"].clone())})",
+  "why": "ticket control replayed from worker receipt 2026-11-08T14-11-35.452Z-31260-red-nc1-result.json"
+ },
+ {
+  "label": "nc2",
+  "mode": "red-nc2",
+  "token": "SERVICE_W14_PROGRESS",
+  "file": "packages/water-service/src/service.rs",
+  "old": "                s.scan_progress[\"elapsed_ms\"] = json!(self.started.elapsed().as_millis() as u64);\n            }\n            return;",
+  "new": "                s.scan_progress[\"elapsed_ms\"] = json!(self.started.elapsed().as_millis() as u64);\n                s.scan_progress[\"found_bytes\"] = json!(p.found_bytes.to_string());\n            }\n            return;",
+  "why": "ticket control replayed from worker receipt 2026-11-08T14-15-14.522Z-9296-red-nc2-result.json"
+ },
+ {
+  "label": "nc3",
+  "mode": "red-nc3",
+  "token": "SERVICE_W14_PROGRESS",
+  "file": "packages/water-service/src/service.rs",
+  "old": "                \"space\"",
+  "new": "                \"done\"",
+  "why": "ticket control replayed from worker receipt 2026-11-08T14-19-52.730Z-38028-red-nc3-result.json"
+ },
+ {
+  "label": "c1",
+  "mode": "test",
+  "token": "SERVICE_W14_PROGRESS",
+  "file": "packages/water-service/src/service.rs",
+  "old": "        if self.drive_ids.is_empty() { 90 } else { 40 }\n",
+  "new": "        90\n",
+  "why": "the rules stage always ends at 90, even with a whole-drive location (should be 40)"
+ },
+ {
+  "label": "c2",
+  "mode": "test",
+  "token": "SERVICE_W14_PROGRESS",
+  "file": "packages/water-service/src/service.rs",
+  "old": "                .find(|t| &t.target_id == id)\n",
+  "new": "                .find(|t| &t.target_id == id && false)\n",
+  "why": "a fallback Marker no longer follows the target it backs up; it uses its own root"
+ },
+ {
+  "label": "c3",
+  "mode": "test",
+  "token": "SERVICE_W14_PROGRESS",
+  "file": "packages/water-service/src/service.rs",
+  "old": "        rules.completed_roots.insert(root.root.to_ascii_lowercase());\n",
+  "new": "        rules.completed_roots.insert(root.root.clone());\n",
+  "why": "reported roots are stored with their original case, so case-insensitive lookups of targets miss them"
+ },
+ {
+  "label": "c4",
+  "mode": "test",
+  "token": "SERVICE_W14_PROGRESS",
+  "file": "packages/water-service/src/service.rs",
+  "old": "            s.scan_progress[\"percent\"] = json!(\n                self.rule_end()\n                    .max(s.scan_progress[\"percent\"].as_u64().unwrap_or(0))\n            );\n",
+  "new": "            s.scan_progress[\"percent\"] = json!(s.scan_progress[\"percent\"].as_u64().unwrap_or(0));\n",
+  "why": "after an early end (roots left unreported) the rules stage does not jump to its end when scan_full returns"
+ }
+]

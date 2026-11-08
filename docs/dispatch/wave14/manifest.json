@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave14-english-progress-onescreen",
-  "status": "R1_J1_U1_J2_VERIFIED_S1_PART_B_H1_DISPATCHED",
+  "status": "R1_J1_U1_J2_VERIFIED_H1_VERIFIED_AWAITING_S1_S1_ADDENDUM_03",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -630,7 +630,8 @@
             "head": "a7f37a3e",
             "implementationCommit": "3e20f7ae",
             "at": "2026-11-08T13:31:35.463Z"
-          }
+          },
+          "resumeFromCommit": "ded240015a7d0656c893b115333c36a8bc958d10"
         }
       ],
       "submittedHead": "a7f37a3e",
@@ -789,7 +790,7 @@
       "branch": "worker/water-w14-s1",
       "baseCommit": "dd7ac13a975b7dac29a85c95cdb94c004bec8c81",
       "snapshotRef": "refs/tags/water-w14-s1-b-base-20261108",
-      "status": "ADDENDUM_02_DISPATCHED",
+      "status": "ADDENDUM_03_ISSUED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "every IPC *_zh has an *_en sibling (copy_text_en, message_en on IpcError), rule texts from the R1 fields, runtime sentences in English, new records store both languages, old records read with _en = _zh; logic no longer keyed on Chinese sentences; scan progress gets finishing and per-location space states, unchanged labels, found_bytes without space bytes, a monotonic percent with the W14 3.3 weights; trends test independent of real scan time",
       "report": "docs/dispatch/reports/WATER-W14-S1-REPORT.md",
@@ -942,7 +943,8 @@
             "implementationCommit": "ce4091b073838e68a90f9646460e6ea2228de622",
             "at": "2026-11-08T13:31:35.463Z",
             "checked": "controller: diff 5f6ff198..f91a982a inside the whitelist (service src, tests, README, examples/service_smoke.rs, report), frozen files unchanged, clean-tree check and test receipts passed (12/12) at ce4091b0"
-          }
+          },
+          "resumeFromCommit": "1587c1cc780c8680d971817f4c3ce67d5508ec86"
         },
         {
           "id": "WATER-W14-S1-ADDENDUM-02",
@@ -953,7 +955,21 @@
           "why": "J2 merged (on_root_done); controller merged main into the S1 branch; rules stage counted by reported roots, target/location/category completion by walked roots, three NCs, finals and archive",
           "dispatchReportedAt": "2026-11-08T13:54:24.749Z",
           "dispatchedExecutor": "sol",
-          "dispatchEvidence": "user 2026-11-08: \"两单都是sol\""
+          "dispatchEvidence": "user 2026-11-08: \"两单都是sol\"",
+          "resumeFromCommit": "dd7ac13a975b7dac29a85c95cdb94c004bec8c81",
+          "handBack": {
+            "head": "47760070f3ec32a4f9902d2e8f43518e095f83b1",
+            "implementationCommit": "097f8630bba5039f635fd8e66e84c6353e19f952",
+            "at": "2026-11-08T16:03:02.160Z"
+          }
+        },
+        {
+          "id": "WATER-W14-S1-ADDENDUM-03",
+          "ticket": "docs/dispatch/tickets/WATER-W14-S1-ADDENDUM-03-20261109.md",
+          "issuedAt": "2026-11-08T16:03:02.160Z",
+          "resumeFrom": "47760070",
+          "resumeFromCommit": "47760070f3ec32a4f9902d2e8f43518e095f83b1",
+          "why": "review medium: whole-drive locations show space during the rules stage; English plurals and wording, Grok, UI times without UTC, fix_hint_en empty when zh is empty, declaration folders not separate categories; tests with the drive root reported first; redo the three NCs, finals and archive"
         }
       ],
       "baseHistory": [
@@ -962,7 +978,16 @@
           "snapshotRef": "refs/tags/water-w14-s1-base-20261108",
           "covers": "original ticket and addendum 01 (part A), audited at hand-back"
         }
-      ]
+      ],
+      "controllerReview": {
+        "at": "2026-11-08T16:03:02.160Z",
+        "record": "docs/acceptance/wave14/controller/WATER-W14-REVIEW-20261109.md",
+        "gate": "medium",
+        "audit": "w3-receipt-audit 0 problems (base dd7ac13a)",
+        "acceptanceTree": ".worktrees/accept-w14-s1 at 47760070: lock, check/real/test finals passed; nc1-3 replayed and killed; c1 (rules end always 90) and c3 (case-sensitive roots) killed; c2 (fallback ignores its main target) and c4 (no jump to the stage end after an early end) survived, both redundant logic per the review",
+        "independentReview": "no high; one medium: a whole-drive location shows space as soon as its rule targets finish (the drive root is walked first), so the UI says it is measuring the drive during the rules stage; lows: English plurals, awkward quarantine sentences, grok casing, UTC in UI times, fix_hint_en when zh is empty, declaration folders as separate progress categories, untested declaration location mapping and reminder_en",
+        "verdict": "not merged; addendum 03"
+      }
     },
     {
       "id": "WATER-W14-J2",
@@ -1555,7 +1580,7 @@
       "branch": "worker/water-w14-h1",
       "baseCommit": "f91a982acbea483df753ce37fe586b53602fcdf1",
       "snapshotRef": "refs/tags/water-w14-h1-base-20261108",
-      "status": "ADDENDUM_01_ISSUED",
+      "status": "VERIFIED_AWAITING_S1",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "IpcFailure gets message_en; the host's own errors have English; service errors pass message_en through; HostPicker::pick builds IpcError with message_en; app_info unchanged (W14-ADD-02: no system_language); flick.nsi in English and Simplified Chinese, picked from the system language without a language dialog",
       "report": "docs/dispatch/reports/WATER-W14-H1-REPORT.md",
@@ -1656,8 +1681,25 @@
           "ticket": "docs/dispatch/tickets/WATER-W14-H1-ADDENDUM-01-20261108.md",
           "issuedAt": "2026-11-08T14:45:26.984Z",
           "resumeFrom": "db0f188e",
-          "why": "grant the native --final drive-root .flick-quarantine exception (one batch, purged in the flow, checked by the checker); rerun check, test and native finals on the current head, then archive"
+          "why": "grant the native --final drive-root .flick-quarantine exception (one batch, purged in the flow, checked by the checker); rerun check, test and native finals on the current head, then archive",
+          "resumeFromCommit": "db0f188e84d02fb16832e014089e62165ef0555d",
+          "handBack": {
+            "head": "1b534207",
+            "at": "2026-11-08T16:03:02.160Z"
+          }
         }
+      ],
+      "submittedHead": "1b534207",
+      "implementationCommit": "bb87445dea154876cc9aa0fca7c53c29e6c22113",
+      "controllerReview": {
+        "at": "2026-11-08T16:03:02.160Z",
+        "record": "docs/acceptance/wave14/controller/WATER-W14-REVIEW-20261109.md",
+        "gate": "light",
+        "audit": "w3-receipt-audit: only \"final source differs\" for packaging/windows/flick.nsi (mixed CRLF/LF in the worker tree; identical to the commit without CR)",
+        "verdict": "VERIFIED: IpcFailure.message_en, service English passed through, six host errors in English, app_info unchanged (W14-ADD-02), bilingual NSIS compiled with 0 warnings (not run); native 31/31 steps, exit 0, one batch quarantined and purged, F:\\.flick-quarantine absent before and after; merge together with S1 after addendum 03"
+      },
+      "carryOverLater": [
+        "installer language auto-selection only checked by script assertions and compilation, not by installing (integration 12)"
       ]
     }
   ],
