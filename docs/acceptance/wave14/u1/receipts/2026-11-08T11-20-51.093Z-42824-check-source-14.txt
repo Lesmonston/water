@@ -1,0 +1,10 @@
+import {t, serviceText} from './strings.mjs';
+import {add, el, heading, metric, card, button} from './common.mjs';
+import {dial} from './charts.mjs';
+
+export function cleaning(s, a) {
+  const p = s.cleanProgress, page = add(el('section', 'screen'), heading(t('cleaning'), t('recheckEach')));
+  if (!p) return add(page, el('p', 'sub', t('preparingClean')));
+  const main = add(card(p.phase === 'quarantine' ? t('moveQuarantine') : t('directDelete'), 'dark main-card'), dial(p.total_items ? p.done_items / p.total_items * 100 : 0, `${p.done_items} / ${p.total_items}`, t('processed')), el('p', '', serviceText(p, 'current_group_title') ?? t('verifying')), add(el('div', 'bottom action-stack'), el('p', 'sub', t('stopIrreversible')), button(t('stop'), a.stopClean, 'btn primary', 'clean-stop', s.pending)));
+  return add(page, add(el('div', 'with-hero'), add(card(t('thisProgress')), metric(p.freed_bytes, t('freed')), metric(p.quarantined_bytes, t('moveQuarantine')), el('p', 'sub', t('groupProgress', {index:p.group_index, total:p.group_count}))), main));
+}

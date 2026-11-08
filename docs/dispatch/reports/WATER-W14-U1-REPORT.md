@@ -1,4 +1,4 @@
-WATER-W14-U1 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w14-u1/docs/dispatch/reports/WATER-W14-U1-REPORT.md
+WATER-W14-U1 补单 01 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w14-u1/docs/dispatch/reports/WATER-W14-U1-REPORT.md
 
 ## 交付与范围
 
@@ -512,3 +512,208 @@ WATER-W14-U1 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/
 | clusterSuspected | 疑似 | Suspected |
 | clusterNew | 新发现 | Newly found |
 | cleanRecommended | 清理推荐项 | Clean up recommended items |
+
+## 补单 01
+
+本节是 2026-11-08 补单交付；上文原单回执和历史证据原样保留，仅全文第一行更新为本次通知。上文的 Chinese 选项、未过滤零体量的方块图、原单负控及原 final 记录仅描述首次交付，由本节对应内容取代。
+
+### 身份、起点与范围
+
+- 实际执行助手：Codex，当前会话标识 GPT-6，未提供更细型号后缀；未分派子代理。
+- 在指定工作树 `F:/new/smaltalk/water/.worktrees/w14-u1`、分支 `worker/water-w14-u1` 从干净的 `ded240015a7d0656c893b115333c36a8bc958d10` 续做。
+- 权威依据是主树补单全文、原单第 1、2、4 节、W14 第 0、1、3.3、4.1、4.2、6、7 节和执行者通用/波次规则。
+- 只改 `apps/water/ui/`、本回执和 `archive` 生成的本票证据。没有改契约、共享样例、设计 tokens、检查器、台账、宿主、其它包、依赖或 package.json。
+- 仅新增提交，未 amend、reset、rebase、merge、push，也未修改远端或 Git 配置。提交身份只在各提交进程设置为 `Codex GPT-6 <codex-gpt-6@localhost>`。
+
+### 逐项对照
+
+| 补单要求 | 结果 |
+|---|---|
+| 1.1 英文单复数 | `t()` 支持 `{one, other, count}`；默认按 n，显示总数按 total，声明的 protected 与 trees 独立选择。20 个英文计数键有单复数；中文保持单一模板。0 和大于 1 取复数，数值/BigInt 的显示保留千位分隔。所有计数键列于后表。 |
+| 1.2 方块图 | 公用 treemap 入口过滤非正字节，扫描页的 found_bytes="0" 类别及结论页零体量不生成矩形、名称或 tooltip。两页禁用编号图例；能放下就显示完整类别名，否则只保留完整悬停提示，不对名称切字。扫描和结论方块卡在中英、两种尺寸下均核对无纵横滚动。查重的原有可见图例仍保留，原断言保留。 |
+| 1.3 位置兜底及轮询 | 未知位置状态在查字表前统一为 running；测试 future-phase、toString、__proto__，均显示“扫描中”且无运行错误。poll 的重画与 schedule 放入嵌套 try/finally；从实际 renderer 调用的 DOM 方法注入一次异常后，仍接到 82% 和最终结论。 |
+| 1.4 重准备提示 | prepare 只有实际安装 preview 并切入 confirm 后才返回成功，随后才设 replanNotice。导航离开、未准备、普通点击清理都会保持/清除提示。直接删除退回 quarantine 时追加中英说明；保存最初点击清理的按钮键，重开确认框关闭后焦点返回 clean-prepare。测试重读结论/准备中两种导航竞态及中英模式回退，保留过期结论拒绝重准备的旧断言。 |
+| 1.5 首屏语言 | 首次 app_info 成功/失败前 render 不输出文字；首次解析后保存本会话的系统语言来源。关于页重试 app_info 和复制诊断不会暗改当前语言。MutationObserver 记录两种宿主/浏览器语言相反场景的所有可见绘制，第一屏即正确；另测首次失败、随后成功的关于页重试。 |
+| 1.6 语言本名 | 英文和中文的中文选项均为“中文”；Follow system/跟随系统按当前语言，English 保持本名。英文测试仅排除精确 selector `[data-key=language] option[value=zh]` 的文字，并先精确断言只有这一项且值为“中文”；其余文字及属性照旧查中文，旧记录例外保持原来那一条精确文本。 |
+| 1.7 格式化接线 | home/trends/charts/confirm/done/quarantine 的盘名统一 driveName；首页和趋势的预测复用 approximate(formatDays())；设置天数、相对体检天数、图表预测复用 formatDays；结论范围和确认盘列表复用 formatList。盘符统一大写；没有改服务文字。 |
+| 1.8 结论排版 | 判断卡说明最多两行，CSS line-clamp 以省略号收尾，title 留全文；分类条省略号保留并补全 title。折叠行固定 32px、内部窗口 160px，至少完整五行，第六行起内部滚动；展开时把行窗口带入 folds 的可见区域。中文/英文 × 两种窗口对四种折叠逐一验证五行可见、主页面不滚动。 |
+| 第 2 节测试 | 单元仍 3 个、浏览器仍 6 个；新增断言都在指定原函数内，没有过滤/跳过测试，也没有增加墙钟时限。英文计数至少八个键精确测 1 和 2，并测中文不变、声明双计数、总数、0 与 BigInt。 |
+| 第 3 节负控 | 新 nc1 仅把 t() 选择分支改为始终 other；新 nc2 仅把 treemap 字节过滤的 > 改为 >=。均命中指定标记，checkout 逐字节恢复后立即跑对应模式。最终 test 的 proofAudit 接受与最终源码/测试完全一致的两条红绿链。 |
+| 第 4 节换行 | 17 个改动文件统一 LF。本树 `apps/water/ui/.gitattributes` 明确 app.css 和自身用 LF，冻结 tokens.css 的 -text 原规则不变。提交后的 diff/status 干净才运行 final；归档源快照与最终提交经 Git 属性展开后的字节一致。 |
+| 第 5 节交回 | 本次结果附在原回执之后，全文首行与通知一致；实现与证据/回执分开提交。 |
+
+### 迁移过的旧断言
+
+| 原值 | 新值 | 原因与强度 |
+|---|---|---|
+| 中英每个字符串表值都必须是 string | 中文仍 string；英文可以 string 或准确含 one/other/count 的对象，逐层检查每个分支是非空字符串 | 为单复数必需；原空值与文字检查仍作用于每一条实际文案，没有以对象存在替代内容检查。 |
+| 英文表所有值禁止中文 | 仅 chinese 键精确等于“中文”，其它英文叶子照旧禁止中文 | 按补单 1.6 保留母语入口。 |
+| 英文页面全部文字/属性禁止中文（只有旧记录例外） | 新增仅语言选择器 zh option 的文字例外；先验证该元素唯一且文字精确为“中文”，其它节点和全部属性照旧核对 | 没有全局替换“中文”字符串，也没有放宽旧记录例外。 |
+| 扫描方块数精确等于全部 categories.length | 精确等于 found_bytes 非零的 categories.length，并额外精确断言零类别名称消失、编号图例为 0 | 原样例含 9 类，其中 1 类为零，现在精确为 8，符合补单；没有改成大于零。 |
+| 扫描 tooltip 顺序与金额精确等于全部 categories | 精确等于非零 categories 的同序完整名称与金额 | 同一零类别过滤；其余次序、金额、颜色与增长面积旧断言不变。 |
+
+原重准备指定提示在默认 quarantine 场景仍逐字相等；新直接删除回退的附加句另做中英精确断言。原查重窄块“名称必须可见”断言保留。原一屏检查的 document、main 和横向界限均不放宽；新增卡片无滚动与折叠可见行数检查。
+
+### 开发中遇到的问题与自主决定
+
+1. 续做的 baseline 命令失败于 `Baseline runs on the untouched base commit`：检查器仍要求原首次基点 d692bd60，而本补单和用户明确要求从 ded24001 续做。receipt 记录 before/after 均为指定 ded24001 且干净；范围审计已通过。原单首次 baseline 已有通过证据。本次按更具体的补单续做起点继续，没有改检查器/manifest、切回旧基点或重写历史；这不是产品测试失败。
+2. 第一轮 browser 的新增 DOM 异常注入实际验证了轮询继续，但预期异常仍进入原“不得有运行错误”的收尾断言，导致级联失败。改为精确核对仅那一个合成异常后消费它，其他任何异常仍由原断言拒绝；没有降低普通流程的错误检查。
+3. 第二轮 browser 抓到重准备关闭后焦点丢失；原因是 pending 重画已使初始按钮失焦。改为点击时立即保存 opener，后续重准备沿用它。同轮英文窄屏确认步骤也失败，修复后原表达式重跑通过，未放宽断言；wait 失败报告增加当前页、焦点和最近调用，便于取证。
+4. 为四种折叠都能看全五行，选择每个折叠内部固定行窗、展开时把它带到 folds 可见区；保留全部行和原提示，通过 tooltip 访问长文，比删除内容保守。
+5. 负控通过后复核发现对象内置名称也应当作未知位置状态，追加归一化和 toString/__proto__ 断言；重新做两条负控与恢复，旧尝试证据保留。三个 final 只采用最后实现提交。
+6. 本地编辑辅助脚本第一次重复替换同一盘名时停止，改为对替换目标去重；后续试图通过 PowerShell 文本管道匹配中文时匹配失败且未写文件，改用只含 ASCII 的替换目标。回执内容始终通过 UTF-8 文件写入并读回复核，没有系统代码页转码。辅助脚本仅留本树 .local，不进入产品/证据白名单。
+7. 暂存归档后全量 `git diff --cached --check` 把原字节快照里的 CRLF 行尾报告为 trailing whitespace。归档要求保留源字节，因此不改写这些证据；产品改动的 LF 与提交字节已独立验证，回执单独的 diff --check 通过。
+
+没有纯计时断言失败，也没有按计时规则重跑。上述失败记录均保留；没有伪称全部开发尝试一次通过。
+
+### 验证边界
+
+本票浏览器只用合成 IPC 数据；真实扫描 0、真实删除 0、原生窗口 0、选择框 0，没有运行 real/native 或安装依赖。浏览器仅由票面检查器启动，每次一份私有浏览器，结束时关闭浏览器及 loopback 服务。尚未验证真实服务/宿主联合接线、安装包、真实 Windows 清理竞态或 macOS；未自行变更验收台账。
+
+交回前按进程名与本工作树标识核对：本票浏览器进程 0、Node 测试进程 0；只输出计数，未输出或归档进程命令行。
+
+以下实现 SHA、负控与 final 索引、计数键和截图清单由本次实际 receipt/源码生成。
+
+
+### 提交与 final
+
+实现提交链：6e935591 → f28ad97e → **3e20f7ae8c09e7ccb82d07040d8d25635c29b600**（最终受测提交）。三个 final 的 before/after 都干净且 HEAD 相同；productionHash 为 `9e934ed3f286ce661219d7b2ead45740637f4aec00abec2ae6f2436aab5f263e`，testHash 为 `97bf4009b15c13d5ff4f57c21d2472ccd4c726b46a00b27605e80371c85778f0`。所有源快照已与当前文件及此提交经 Git 属性展开后的字节逐项核对。
+
+| 模式 | 结果 | 实际回执 |
+|---|---|---|
+| check --final | passed，exit 0 | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-43.597Z-23544-check-result.json) |
+| test --final | passed，exit 0 | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-52.379Z-6152-test-result.json) |
+| browser --final | passed，exit 0 | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-57.113Z-37300-browser-result.json) |
+
+单元 3/3、浏览器 6/6，skipped/todo/cancelled 均为 0；56 张规定截图全部来自本次 final browser。
+
+| 负控 | 变异与命中 | 最终红绿证明 |
+|---|---|---|
+| nc1 | t() 一律 other；UI_W14_PLURAL: quarantineBatches 1，1 batches ≠ 1 batch | 红 [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-32.589Z-39700-red-nc1-result.json)；恢复绿 [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-40.199Z-40216-test-result.json) |
+| nc2 | treemap 放入零体量；UI_W14_PROGRESS: every positive category has a block，9 ≠ 8 | 红 [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-48.663Z-37328-red-nc2-result.json)；恢复绿 [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-39.289Z-17512-test-result.json) |
+
+### 全部计数文案键
+
+英文有单复数的 20 个键如下。params 的 n/total/shown/protected/trees 都取表中的 1 或 2；name/title/kind/size/time/ask 用固定占位样例。声明双计数还分别测试 1/2 × 1/2。
+
+| 键 | 1 时英文 | 2 时英文 |
+|---|---|---|
+| `days` | 1 day | 2 days |
+| `filesChecked` | File checked | Files checked |
+| `declarationCounts` | 1 protected item · 1 worktree | 2 protected items · 2 worktrees |
+| `pathCount` | cache · 1 path | cache · 2 paths |
+| `itemCountShown` | Showing 1 / 1 item | Showing 2 / 2 items |
+| `sectionSummary` | Example · 1 group · 1 MB | Example · 2 groups · 1 MB |
+| `unchanged` | 1 unchanged group · 1 MB | 2 unchanged groups · 1 MB |
+| `items` | 1 item | 2 items |
+| `quarantineBatches` | 1 batch in quarantine | 2 batches in quarantine |
+| `daysStored` | Day in quarantine | Days in quarantine |
+| `cannotDeleteCount` | 1 item could not be deleted | 2 items could not be deleted |
+| `otherItems` | 1 other item | 2 other items |
+| `filesListed` | File listed | Files listed |
+| `duplicateGroups` | 1 duplicate group found | 2 duplicate groups found |
+| `differentContents` | Group with different contents | Groups with different contents |
+| `copies` | Example · 1 copy | Example · 2 copies |
+| `copiesCount` | 1 copy | 2 copies |
+| `excludedDifferent` | 1 group with the same name but different contents is excluded | 2 groups with the same name but different contents are excluded |
+| `basisDays` | Day in forecast | Days in forecast |
+| `processCount` | 1 process · now | 2 processes · now |
+
+其余带计数的键：`predictedFull`、`allowSessions`、`fullIn`、`daysSince`、`driveFullIn` 均传入 formatDays 的单复数结果（需要“约”的两项再经 approximate）；`minutesAgo`/`hoursAgo` 用不变的 min/h，`moreLeads` 用不变的 more，`groupProgress` 是 Group 1 / 2 这类序号，均不添加复数词尾。`moreThanWeek` 中的 7 days 是固定七天；`monthDay`/`yearDate` 为日历日期，`about` 等 size/value 占位为格式化容量，不作为可数名词。上述中文渲染保持原词句，仅替换调用组成方式。
+
+新增英文 `replannedQuarantine` 为 “Switched back to moving items to quarantine first”，中文为“已改回先放进隔离区”；属于词表未规定的新增说明。语言选项 Chinese → 中文，原因见补单 1.6；其他新英文仅为原计数词的单数形态。
+
+### 本次全部检查命令
+
+均在指定工作树运行，统一前缀为 `node F:/new/smaltalk/water/scripts/checkup-wave-check.mjs --task WATER-W14-U1`。以下行的 mode/final 参数与实际回执一致，包含开发失败及因最后代码变化重做的旧负控尝试。
+
+| UTC 开始 | 参数 | 结果 | 回执 |
+|---|---|---|---|
+| 2026-11-08T10:56:06.423Z | --mode baseline | failed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T10-56-06.421Z-40176-baseline-result.json) |
+| 2026-11-08T11:08:05.651Z | --mode check | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-08-05.649Z-33336-check-result.json) |
+| 2026-11-08T11:08:19.851Z | --mode test | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-08-19.850Z-11044-test-result.json) |
+| 2026-11-08T11:08:23.911Z | --mode browser | failed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-08-23.908Z-35828-browser-result.json) |
+| 2026-11-08T11:10:09.579Z | --mode browser | failed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-10-09.577Z-34744-browser-result.json) |
+| 2026-11-08T11:13:16.640Z | --mode browser | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-13-16.639Z-23536-browser-result.json) |
+| 2026-11-08T11:17:29.214Z | --mode browser | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-17-29.213Z-4320-browser-result.json) |
+| 2026-11-08T11:20:51.094Z | --mode check | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-20-51.093Z-42824-check-result.json) |
+| 2026-11-08T11:20:58.901Z | --mode test | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-20-58.899Z-26540-test-result.json) |
+| 2026-11-08T11:22:27.405Z | --mode red-nc1 | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-22-27.403Z-27316-red-nc1-result.json) |
+| 2026-11-08T11:23:32.481Z | --mode test | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-23-32.480Z-28780-test-result.json) |
+| 2026-11-08T11:23:38.933Z | --mode red-nc2 | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-23-38.931Z-36136-red-nc2-result.json) |
+| 2026-11-08T11:25:26.717Z | --mode browser | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-25-26.715Z-38140-browser-result.json) |
+| 2026-11-08T11:28:24.474Z | --mode test | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-24.473Z-7592-test-result.json) |
+| 2026-11-08T11:28:32.591Z | --mode red-nc1 | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-32.589Z-39700-red-nc1-result.json) |
+| 2026-11-08T11:28:40.201Z | --mode test | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-40.199Z-40216-test-result.json) |
+| 2026-11-08T11:28:48.664Z | --mode red-nc2 | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-28-48.663Z-37328-red-nc2-result.json) |
+| 2026-11-08T11:32:54.402Z | --mode browser | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-32-54.399Z-33244-browser-result.json) |
+| 2026-11-08T11:36:39.290Z | --mode test | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-39.289Z-17512-test-result.json) |
+| 2026-11-08T11:36:43.599Z | --mode check --final | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-43.597Z-23544-check-result.json) |
+| 2026-11-08T11:36:52.380Z | --mode test --final | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-52.379Z-6152-test-result.json) |
+| 2026-11-08T11:36:57.114Z | --mode browser --final | passed | [JSON](../../acceptance/wave14/u1/receipts/2026-11-08T11-36-57.113Z-37300-browser-result.json) |
+| 2026-11-08T11:39:03.934Z | --mode archive | passed | archive 本轮自身回执在 .local/checks/WATER-W14-U1/2026-11-08T11-39-03.933Z-29872-archive-result.json |
+
+归档累计 1904 个文件、63,556,133 字节；原单 905 项逐项保留，新旧全部条目长度和 SHA-256 已复算。archive 本轮自身回执在复制完成后产生，不伪称它已包含在同一次归档中。
+
+### final 截图差异
+
+人工抽看扫描窄屏、结论窄屏与折叠、设置语言、重准备确认等代表图；以下全量 56 图重拍。下表描述相对于原单 ded24001 的本补单差异，名称集合与像素尺寸已逐项验证。
+
+| 截图 | 差异 |
+|---|---|
+| [v4-en-cleaning-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-cleaning-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-en-confirm-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-confirm-1240x820.png) | 盘名与列举使用共用格式化，英文条目计数支持单数；确认流程保持。 |
+| [v4-en-dedupe-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-dedupe-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-en-details-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-details-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-en-done-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-done-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-en-drawer-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-drawer-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-en-history-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-history-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-en-home-1040x720.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-home-1040x720.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
+| [v4-en-home-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-home-1240x820.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
+| [v4-en-intro-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-intro-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-en-quarantine-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-quarantine-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-en-results-1040x720.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-results-1040x720.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-en-results-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-results-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-en-scan-1040x720.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-scan-1040x720.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-en-scan-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-scan-1240x820.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-en-scan-finishing-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-scan-finishing-1240x820.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-en-scan-space-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-scan-space-1240x820.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-en-settings-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-settings-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-en-settings-about-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-settings-about-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-en-settings-language-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-settings-language-1240x820.png) | 中文选项在英文界面也保持“中文”；跟随系统按会话确定的语言显示。 |
+| [v4-en-trends-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-en-trends-1240x820.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
+| [v4-zh-cleaning-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-cleaning-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-confirm-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-confirm-1240x820.png) | 盘名与列举使用共用格式化，英文条目计数支持单数；确认流程保持。 |
+| [v4-zh-confirm-direct-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-confirm-direct-1240x820.png) | 盘名与列举使用共用格式化，英文条目计数支持单数；确认流程保持。 |
+| [v4-zh-dedupe-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-dedupe-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-zh-dedupe-intro-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-dedupe-intro-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-dedupe-menu-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-dedupe-menu-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-details-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-details-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-zh-done-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-done-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-drawer-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-drawer-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-zh-drawer-big-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-drawer-big-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-zh-history-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-history-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-home-1040x720.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-home-1040x720.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
+| [v4-zh-home-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-home-1240x820.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
+| [v4-zh-home-new-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-home-new-1240x820.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
+| [v4-zh-intro-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-intro-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-menu-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-menu-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-quarantine-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-quarantine-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-zh-quarantine-leftover-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-quarantine-leftover-1240x820.png) | 计数支持英文单复数；已有菜单、列表和内容访问断言保持。 |
+| [v4-zh-results-1040x720.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-1040x720.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-results-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-results-decided-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-decided-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-results-empty-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-empty-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-results-folds-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-folds-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-results-replanned-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-replanned-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-results-stale-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-results-stale-1240x820.png) | 方块图无零类别和编号图例；说明省略号与全文 title；折叠五行内部窗口，主页面一屏。 |
+| [v4-zh-scan-1040x720.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-scan-1040x720.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-zh-scan-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-scan-1240x820.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-zh-scan-finishing-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-scan-finishing-1240x820.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-zh-scan-space-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-scan-space-1240x820.png) | 过滤零体量、取消编号图例，完整名称放于可容纳方块或 tooltip，卡片无滚动；阶段/百分比保持。 |
+| [v4-zh-settings-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-settings-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-settings-about-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-settings-about-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-settings-decl-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-settings-decl-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-settings-language-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-settings-language-1240x820.png) | 中文选项在英文界面也保持“中文”；跟随系统按会话确定的语言显示。 |
+| [v4-zh-settings-skip-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-settings-skip-1240x820.png) | 随本补单重新绘制；保留原流程，相关计数与语言来自统一字表。 |
+| [v4-zh-trends-1240x820.png](../../acceptance/wave14/u1/screenshots/2026-11-08T11-36-57.113Z-37300/v4-zh-trends-1240x820.png) | 盘符通过 driveName 大写；预测天数通过 approximate/formatDays；首屏语言不闪。 |
