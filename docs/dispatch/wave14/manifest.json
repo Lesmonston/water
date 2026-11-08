@@ -355,7 +355,14 @@
       "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/j1/",
       "dispatchReportedAt": "2026-11-08T08:34:18.925Z",
       "dispatchEvidence": "user 2026-11-08: \"第一单是sol，另外两单是astra\"",
-      "dispatchedExecutor": "astra"
+      "dispatchedExecutor": "astra",
+      "controllerDecisions": [
+        {
+          "at": "2026-11-08T09:07:40.859Z",
+          "question": "real smoke seen-and-skipped count has no data source: Issue carries only code/group_id/count and the ticket forbids new public interfaces",
+          "decision": "independent read-only check in examples/real_smoke.rs: for the Windows compatibility junction names of W13 1.1 under this smoke run scan roots (Documents and Settings only when a drive root is in scope), std::fs::symlink_metadata without following; seen = present with hidden+system, skipped = seen and absent from extras.junctions; report both, require skipped == seen; seen == 0 is reported, not a failure; no new public interface, no contract change"
+        }
+      ]
     },
     {
       "kind": "ui",
