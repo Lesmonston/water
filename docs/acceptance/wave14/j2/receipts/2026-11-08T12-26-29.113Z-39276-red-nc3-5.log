@@ -1,0 +1,40 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-scan/Cargo.toml","--test","scan_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 5 tests
+test scan_overlap_and_guards ... FAILED
+test scan_pattern_marker_discovery ... ok
+test scan_plan_contract ... ok
+test scan_reparse_budget_cancel ... FAILED
+test scan_snapshot_growth_keys ... ok
+
+failures:
+
+---- scan_overlap_and_guards stdout ----
+
+thread 'scan_overlap_and_guards' (26392) panicked at tests\scan_v1.rs:833:17:
+assertion `left == right` failed: SCAN_W14_ROOTS: constant total includes skipped roots
+  left: 6
+ right: 8
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- scan_reparse_budget_cancel stdout ----
+
+thread 'scan_reparse_budget_cancel' (31740) panicked at tests\scan_v1.rs:1254:9:
+assertion `left == right` failed: SCAN_W14_ROOTS: cancellation leaves progress below the total
+  left: (1, 2)
+ right: (1, 3)
+
+
+failures:
+    scan_overlap_and_guards
+    scan_reparse_budget_cancel
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.93s
+
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-j2\packages\junk-scan)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.26s
+     Running tests\scan_v1.rs (.local\w2-target\junk-scan\debug\deps\scan_v1-44131edddc8e8920.exe)
+error: test failed, to rerun pass `--test scan_v1`
