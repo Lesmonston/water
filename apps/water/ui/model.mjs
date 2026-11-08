@@ -1,14 +1,16 @@
-export const levels = Object.freeze({recommended:'放心清', confirm:'要你看', advisory:'只统计', protected:'受保护', unrecognized:'未识别'});
-export const clusterStates = Object.freeze({growing:'仍在长', stopped:'已止住', suspected:'疑似', new:'新发现'});
+import {t} from './views/strings.mjs';
+const textMap = keys => Object.freeze(Object.defineProperties({}, Object.fromEntries(Object.entries(keys).map(([name, key]) => [name, {enumerable:true, get:() => t(key)}]))));
+export const levels = textMap({recommended:'levelSafe', confirm:'levelReview', advisory:'levelStats', protected:'levelProtected', unrecognized:'levelUnknown'});
+export const clusterStates = textMap({growing:'clusterGrowing', stopped:'clusterStopped', suspected:'clusterSuspected', new:'clusterNew'});
 export function viewCards(conclusion) { return conclusion.cards; }
 export function validQuery(value) { return typeof value === 'string' && [...value].length <= 64 && !/[\\/:\u0000-\u001f\u007f]/.test(value); }
 export function itemRow(group, row) { return !group.group_id.startsWith('m:') && !row.row_id.startsWith('r:') && group.item_count <= 8; }
-export function cleanLabel(plan) { return `${BigInt(plan.chosen_bytes) > 0n ? '清理' : '清理推荐项'}`; }
+export function cleanLabel(plan) { return `${BigInt(plan.chosen_bytes) > 0n ? t('clean') : t('cleanRecommended')}`; }
 export function canonicalRoute(value) {
   const name = value.replace(/^#\/?/, '');
   const alias = {results:'home', locations:'settings/content', about:'settings/about', settings:'settings/content'};
   const route = alias[name] ?? name;
-  return ['home', 'quarantine', 'trends', 'history', 'settings/content', 'settings/skip', 'settings/decl', 'settings/about'].includes(route) ? route : 'home';
+  return ['home', 'quarantine', 'trends', 'history', 'settings/content', 'settings/skip', 'settings/decl', 'settings/about', 'settings/language'].includes(route) ? route : 'home';
 }
 // Monotone cubic Hermite interpolation. Limited shared tangents keep the
 // Bezier controls ordered inside each interval, with no overshoot at extrema.

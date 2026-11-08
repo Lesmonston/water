@@ -1,0 +1,26 @@
+import {t, serviceText} from './strings.mjs';
+import {add, el, heading, metric, card, button, row, check} from './common.mjs';
+import {dial, treemap, proportions} from './charts.mjs';
+import {formatBytes, percent} from '../format.mjs';
+export function dedupe(s, a) {
+  const page = el('section', 'screen'), v = s.dedupe;
+  if (s.busy === 'deduping') {
+    const p = s.dedupeProgress;
+    add(page, heading(t('findingDuplicates'), t('localCompare'), p ? [metric(p.found_bytes, t('duplicateSize')), metric(p.files_listed, t('filesListed', {n:p.files_listed}), true)] : []));
+    const main = card(t('dedupeProgress'), 'dark main-card');
+    add(main, dial(p ? percent(p.bytes_hashed, p.bytes_to_hash) : 0, p ? `${percent(p.bytes_hashed, p.bytes_to_hash).toFixed(0)}%` : '…', p?.phase === 'hashing' ? t('comparing') : t('listing')), button(t('stop'), a.stopDedupe, 'btn primary bottom', 'dedupe-stop', s.pending)); return add(page, main);
+  }
+  if (!v) return add(page, heading(t('duplicates'), t('noDuplicatesYet')));
+  add(page, heading(v.more ? t('duplicatesFound') : t('duplicateGroups', {n:v.groups.length}), serviceText(v, 'location_label'), [metric(v.extra_bytes, t('extra')), metric(v.chosen_bytes, t('selected')), metric(v.same_name_different, t('differentContents', {n:v.same_name_different}), true)]), button(t('back'), a.returnToCheckup, 'btn soft', 'dedupe-back', a.busy()));
+  add(page, proportions(v.groups.map(g => ({title:serviceText(g, 'name'), bytes:g.size, kind:g.included ? 'lime' : 'sky'}))));
+  const content = el('div', 'dedupe-content');
+  add(content, add(card(t('groupSizes')), treemap(v.groups.map(g => ({title:t('copies', {name:serviceText(g, 'name'), n:g.copies}), bytes:g.size, kind:g.included ? 'selected' : 'sky2'})))));
+  const list = card(t('keepOne'));
+  for (const g of v.groups) add(list, add(el('div', 'dedupe-row'), check(t('select', {name:serviceText(g, 'name')}), g.included, include => a.dedupeDecide(g.group_id, include), `dup-${g.group_id}`, !g.removable || a.busy()), row(t('copies', {name:serviceText(g, 'name'), n:g.copies}), `${t('keepPath', {path:g.keep.display_path})} · ${serviceText(g.keep, 'reason')}${serviceText(g, 'note') ? ' · ' + serviceText(g, 'note') : ''}`, el('span', '', formatBytes(g.size)))));
+  if (v.more) add(list, button(serviceText(v.more, 'text'), a.expandDedupe, 'summary-link', 'dedupe-more', a.busy()));
+  add(list, el('p', 'sub', t('excludedDifferent', {n:v.same_name_different})), serviceText(v, 'skipped') && el('p', 'sub', serviceText(v, 'skipped'))); add(content, list);
+  const main = add(card(t('cleanSelected'), 'dark main-card'), metric(v.chosen_bytes, t('quarantineFirst')), el('p', 'sub', t('keepRecommended')));
+  for (const g of v.groups) if (g.included) add(main, row(serviceText(g, 'name'), t('keepPath', {path:g.keep.display_path}), el('span', '', t('copiesCount', {n:g.copies}))));
+  add(main, add(el('div', 'bottom'), button(t('cleanSelection', {size:formatBytes(v.chosen_bytes)}), a.prepareDedupe, 'btn primary', 'dedupe-prepare', a.busy() || BigInt(v.chosen_bytes) === 0n)));
+  return add(page, add(el('div', 'with-hero'), content, main));
+}

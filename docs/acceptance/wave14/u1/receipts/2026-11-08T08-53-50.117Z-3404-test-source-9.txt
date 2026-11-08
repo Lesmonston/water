@@ -1,0 +1,810 @@
+import {test, before, after, afterEach} from 'node:test';
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {readFileSync, writeFileSync, mkdirSync, realpathSync} from 'node:fs';
+import {resolve, dirname, join, relative, isAbsolute, extname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {openPrivateBrowser} from '../../../../scripts/acceptance/native-vw-private-browser.mjs';
+import {formatBytes} from '../format.mjs';
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..'), ui = join(root, 'apps/water/ui');
+const f = Object.assign({}, ...['checkup-v1/ui-fixtures.json', 'm3c-v1/ui-fixtures-m3c.json', 'm35-v1/ui-fixtures-m35.json'].map(p => JSON.parse(readFileSync(join(root, 'contracts', p), 'utf8'))));
+const english = JSON.parse(readFileSync(new URL('./fixtures-en.json', import.meta.url), 'utf8'));
+// Extend the shared samples with skip descriptors, diagnostics and app information.
+const rowSkip = {'i-000304':null, 'r:cfa406d79748c3e3':null, 'r:65e5f165ea872216':null};
+const withSkip = (d, skip) => ({...structuredClone(d), rows:d.rows.map(r => ({...structuredClone(r), skip:Object.hasOwn(rowSkip, r.row_id) ? rowSkip[r.row_id] : skip}))});
+Object.assign(f, {
+  w12_group_detail_items:withSkip(f.v2_group_detail_items, 'item'), w12_group_detail_rows:withSkip(f.v2_group_detail_rows, 'unit'), w12_group_detail_merged:withSkip(f.v2_group_detail_merged, 'unit'),
+  w12_locations:{...structuredClone(f.v2_locations), skipped:[
+    ...f.v2_locations.skipped.map(x => ({skip_id:x.skip_id, kind:'path', display_zh:x.display_path, display_path:x.display_path, added_at:x.added_at})),
+    {skip_id:'s-000003', kind:'group', display_zh:'Python 工具缓存 · D 盘', display_path:null, added_at:'2026-11-01T08:30:00Z'},
+    {skip_id:'s-000004', kind:'template', display_zh:'verify-****** · 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T03:05:00Z'},
+    {skip_id:'s-000005', kind:'folder', display_zh:'.tmp-checks 里的 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T06:40:00Z'}]},
+  w12_clean_result:{...structuredClone(f.v2_clean_result), journal_note_zh:null},
+  w12_app_info:{name:'Flick', version:'0.3.0', license:'MIT OR Apache-2.0', homepage:'https://example.com/flick', system_language:'zh-CN'},
+  w12_diagnostics:{diagnostics_version:'flick.diagnostics.v1', service_version:'0.3.0',
+    settings:{settings_version:'water.settings.v4', categories_on:6, categories_off:1, custom_roots:2, skipped:{path:2, group:1, template:1, folder:1}, session_cleanup_on:1, trusted_declarations:1},
+    last_scan:{status:'completed', duration_ms:48210, scope:{drives:1, folders:1, common:1}, groups:96, items:69947, eligible_items:12040, levels:{recommended:31, confirm:9, advisory:40, protected:16}, issues:{access_denied:3}},
+    last_clean:{status:'completed', freed_bytes:'16116143335', items:{done:1290, skipped:8, quarantined:84}, skip_reasons:{in_use:8}, quarantine_batches:2, journal_error:false},
+    quarantine:{batches:2, bytes:'5153960755'}, store:{scans:12, snapshots:12, plans:30, cleans:6, quarantine:2, events:240, dedupes:3}}
+});
+const stage = (state, percent, location, multiplier = 1n) => {
+  const p = structuredClone(f.v2_scan_progress_sequence[1]); p.state = state; p.percent = percent;
+  p.locations[1].state = location; p.categories[0].found_bytes = String(BigInt(p.categories[0].found_bytes) * multiplier);
+  p.found_bytes = String(p.categories.reduce((sum, c) => sum + BigInt(c.found_bytes), 0n)); return p;
+};
+f.w14_scan = [stage('running', 37, 'running'), stage('running', 82, 'space', 2n), stage('finishing', 95, 'done', 2n), stage('completed', 100, 'done', 2n), stage('cancelled', 100, 'done', 2n)];
+const shots = resolve(process.env.WATER_W2_SHOTS_DIR);
+assert(relative(join(root, '.local'), shots) && !relative(join(root, '.local'), shots).startsWith('..') && !isAbsolute(relative(join(root, '.local'), shots)));
+mkdirSync(shots, {recursive:true}); assert(!relative(realpathSync(join(root, '.local')), realpathSync(shots)).startsWith('..'));
+let server, browser, base, injection, sequence = 0;
+const pause = ms => new Promise(ok => setTimeout(ok, ms));
+function fakeHost(f, options, english) {
+  function bilingual(value) {
+    if (Array.isArray(value)) return value.map(bilingual);
+    if (!value || typeof value !== 'object') return value;
+    const result = Object.fromEntries(Object.entries(value).map(([key, item]) => [key, bilingual(item)]));
+    const translate = text => typeof text === 'string' ? english[text] ?? text : Array.isArray(text) ? text.map(translate) : text;
+    for (const [key, item] of Object.entries(value)) if (key.endsWith('_zh') || key === 'copy_text') {
+      const sibling = key === 'copy_text' ? 'copy_text_en' : key.slice(0, -3) + '_en';
+      if (!Object.hasOwn(value, sibling)) result[sibling] = translate(item);
+    }
+    // English scenarios use synthetic ASCII file names; paths remain display-only.
+    if (options.language === 'en') for (const key of ['display_path', 'display_name']) if (typeof result[key] === 'string') for (const [original, translated] of Object.entries(english)) if (/\p{Script=Han}/u.test(original) && /\.(mp4|zip|exe)$/.test(original)) result[key] = result[key].replaceAll(original, translated);
+    return result;
+  }
+  const copy = value => bilingual(structuredClone(value));
+  // Skip onboarding unless the case explicitly exercises it.
+  if (options.intro === 'blocked') Object.defineProperty(window, 'localStorage', {configurable:true, get() { throw new DOMException('storage blocked', 'SecurityError'); }});
+  else if (!options.intro) localStorage.setItem('flick.intro.v1', '1');
+  if (options.intro !== 'blocked' && !options.preserveLanguage) localStorage.setItem('flick.language.v1', options.language ?? 'system');
+  const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(typeof options.conclusion === 'object' ? options.conclusion : f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f[options.locations ?? 'w12_locations']), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false, cleanResult:copy(options.cleanResult ?? f.w12_clean_result)};
+  function refreshSkippedConclusion() {
+    const version = c.conclusion.version;
+    c.conclusion = copy(c.nextConclusion ?? c.conclusion); c.nextConclusion = null;
+    c.conclusion.version = version.replace(/-(\d+)$/, (_, n) => '-' + (Number(n) + 1));
+  }
+  if (options.reverseCards) c.conclusion.cards.reverse();
+  if (options.noLast) c.noLast = true;
+  c.noConclusion = !!options.noConclusion;
+  if (options.missingCardClue) c.conclusion.clues = c.conclusion.clues.filter(x => x.clue_id !== 'clue-verify-fix-demo');
+  if (options.trends) c.trends = copy(options.trends);
+  if (options.history) c.history = copy(options.history);
+  if (options.unavailable) return;
+  Object.defineProperty(navigator, 'clipboard', {configurable:true, value:{writeText:async text => { if (c.clipboardFail) throw new Error('denied'); c.clipboard.push(text); }}});
+  addEventListener('beforeunload', event => { if (c.resetting) event.stopImmediatePropagation(); }, {capture:true});
+  addEventListener('error', event => c.errors.push(event.message)); addEventListener('unhandledrejection', event => c.errors.push(String(event.reason)));
+  const NativeDate = Date; window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : ['2026-11-02T09:00:00Z'])); } static now() { return NativeDate.parse('2026-11-02T09:00:00Z'); } };
+  window.__TAURI__ = {core:{invoke:async (command, args) => {
+    c.calls.push({command, args:copy(args)});
+    if (c.holdNext === command) { c.holdNext = null; c.held = command; await new Promise(resolve => { c.release = resolve; }); c.held = null; }
+    if (c.nextError?.command === command) { const error = c.nextError.error; c.nextError = null; throw copy(error); }
+    if (command === 'conclusion_get' && c.noConclusion) throw copy(f.v2_errors.conclusion_not_found);
+    if (command === 'dedupe_result' && c.rejectDedupeRefresh) throw {code:'not_found', message_zh:'查重已不存在'};
+    if (command === 'quarantine_list' && c.holdNextQuarantine) {
+      c.holdNextQuarantine = false;
+      const snapshot = copy(c.quarantine); c.quarantineHeld = true;
+      return new Promise(resolve => { c.releaseQuarantine = () => { c.quarantineReleased = true; resolve(snapshot); }; });
+    }
+    if (command === 'quarantine_restore' && c.restoreView) {
+      c.quarantine = copy(c.restoreView);
+      return {...copy(f.v2_restore_beside), conflicts:[], view:copy(c.quarantine)};
+    }
+    if (command === 'history_list' && c.history) return copy(c.history);
+    switch (command) {
+      case 'app_state': { const app = copy(f[options.noQuarantine ? 'v2_app_state_plain' : c.quarantine.bytes === f.v2_quarantine_leftover.bytes ? 'v2_app_state_leftover' : 'v2_app_state_quarantine']); app.busy = c.busy; if (c.noLast) app.last_scan = null; if (c.quarantine.cards.length === 0) app.quarantine = null; return app; }
+      case 'locations_get': return copy(c.locations);
+      case 'trends': return copy(c.trends ?? f.v2_trends);
+      case 'scan_start': c.busy = 'scanning'; c.scan = 0; return copy(f.v2_scan_start);
+      case 'scan_cancel': c.scan = options.progress ? f.w14_scan.length - 1 : f.v2_scan_progress_sequence.length - 1; return {};
+      case 'scan_progress': { const p = copy((options.progress ? f.w14_scan : f.v2_scan_progress_sequence)[c.scan]); if (['completed','partial','cancelled','failed'].includes(p.state)) { c.busy = 'idle'; c.scanned = true; } return p; }
+      case 'conclusion_get': return copy(c.conclusion);
+      case 'conclusion_decide': {
+        if (args.version !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale);
+        c.conclusion = copy(c.nextConclusion ?? (args.decision.category ? f.v2_conclusion_category_off : f.v2_conclusion_after_decide)); c.nextConclusion = null;
+        if (args.decision.group && c.undo) c.conclusion = copy(f.v2_conclusion_typical);
+        return copy(c.conclusion);
+      }
+      case 'detail_get': { const d = copy(args.mode === 'category' ? f.v2_detail_category : f.v2_detail_location); d.version = c.conclusion.version; d.plan_bytes = c.conclusion.plan.bytes; return d; }
+      case 'group_detail': {
+        const source = args.groupId === 'codex-runtimes' ? f.w12_group_detail_items : args.groupId.startsWith('m:') ? f.w12_group_detail_merged : f.w12_group_detail_rows;
+        const d = copy(source); d.group.group_id = args.groupId; return d;
+      }
+      case 'group_items': return copy(args.query !== null ? f.v2_group_items_search : f.v2_group_items_row);
+      case 'skip_add': c.skipIds.push(args.itemId); refreshSkippedConclusion(); return copy(c.locations);
+      case 'skip_unit_add':
+        if (args.conclusionVersion !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale);
+        refreshSkippedConclusion(); c.conclusion.cards = c.conclusion.cards.filter(card => card.card_id !== args.unitId);
+        return copy(c.locations);
+      case 'diagnostics_get': return copy(f.w12_diagnostics);
+      case 'app_info': return {...copy(f.w12_app_info), system_language:options.systemLanguage ?? f.w12_app_info.system_language};
+      case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); refreshSkippedConclusion(); return copy(c.locations);
+      case 'clean_prepare': {
+        let p = copy(args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : BigInt(c.conclusion.plan.chosen_bytes) === 0n ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
+        if (args.dedupeId) {
+          const chosen = c.dup.groups.filter(g => g.included);
+          p.total_bytes = c.dup.chosen_bytes; p.delete = {bytes:'0', categories:[]}; p.irreversible = false; p.by_drive = []; p.expected_skip = null;
+          p.chosen = {bytes:c.dup.chosen_bytes, items:chosen.map(g => ({title_zh:g.name_zh, bytes:String(BigInt(g.size) * BigInt(g.copies - 1))})), mode:'quarantine', note_zh:null};
+          p.groups = chosen.map(g => ({group_id:g.group_id, title_zh:g.name_zh, level:'confirm', item_count:g.copies - 1, total_bytes:String(BigInt(g.size) * BigInt(g.copies - 1)), in_use_note_zh:null}));
+          p.item_count = chosen.reduce((n, g) => n + g.copies - 1, 0);
+        }
+        p.plan_id += '-' + c.calls.length; p.confirm_token += '-' + c.calls.length; c.plan = p; c.planVersion = args.conclusionVersion; return p;
+      }
+      case 'clean_start': if (!c.plan || c.plan.confirm_token !== args.confirmToken) throw copy(f.errors.invalid); if (c.planVersion && (c.conclusion.stale || c.planVersion !== c.conclusion.version)) throw copy(f.v2_errors.conclusion_stale); c.plan = null; c.busy = 'cleaning'; c.clean = 0; return copy(f.v2_clean_start);
+      case 'clean_stop': c.clean = f.v2_clean_progress_sequence.length - 1; return {};
+      case 'clean_progress': { const p = copy(f.v2_clean_progress_sequence[c.clean]); if (p.state !== 'running') c.busy = 'idle'; return p; }
+      case 'clean_result': return copy(c.cleanResult);
+      case 'quarantine_list': return copy(c.quarantine);
+      case 'quarantine_restore': { const r = copy(args.beside ? f.v2_restore_beside : f.v2_restore_conflict); c.quarantine = copy(r.view); return r; }
+      case 'quarantine_reveal': return {};
+      case 'quarantine_delete': c.busy = 'purging'; c.purge = 0; return {};
+      case 'quarantine_progress': { const p = copy(f.v2_quarantine_progress_sequence[c.purge]); if (p.state !== 'running') { c.busy = 'idle'; c.quarantine = copy(c.purgeView ?? f.v2_quarantine_leftover); } return p; }
+      case 'dedupe_start': c.busy = 'deduping'; c.dedupe = 0; return copy(f.v2_dedupe_start);
+      case 'dedupe_progress': { const p = copy(f.v2_dedupe_progress_sequence[c.dedupe]); if (p.state !== 'running') c.busy = 'idle'; return p; }
+      case 'dedupe_cancel': c.dedupe = f.v2_dedupe_progress_sequence.length - 1; return {};
+      case 'dedupe_result': return copy(args.expand ? f.v2_dedupe_result_expanded : c.dup);
+      case 'dedupe_decide': c.dup = copy(f.v2_dedupe_decided); return copy(c.dup);
+      case 'locations_set_category': c.locations.categories.find(x => x.category === args.category).enabled = args.enabled; return copy(c.locations);
+      case 'locations_set_session_cleanup': Object.assign(c.locations.sessions.find(x => x.tool === args.tool), {enabled:args.enabled, days:args.days}); return copy(c.locations);
+      case 'manifest_trust': c.locations.manifests.find(x => x.manifest_id === args.manifestId).state = args.trusted ? 'trusted' : 'untrusted'; return copy(c.locations);
+      case 'cluster_mark_fixed': c.trends = copy(f.v2_trends_after_fixed); return copy(c.trends);
+      case 'custom_root_add': c.locations = copy(f.v2_locations_new_folder); return copy(f.v2_custom_root_add_folder);
+      case 'custom_root_remove': c.locations.home = c.locations.home.filter(x => x.location_id !== args.rootId); return copy(c.locations);
+      case 'history_list': return copy(f.v2_history);
+      case 'scan_result': return copy(f.scan_result);
+      default: throw {code:'invalid', message_zh:'未知命令'};
+    }
+  }}};
+}
+const evalJs = code => browser.evaluate(code);
+const control = code => evalJs(`(()=>{const c=window.__waterTest;${code}})()`);
+const q = key => `[data-key="${key}"]`;
+const click = async key => { assert(await evalJs(`!!document.querySelector(${JSON.stringify(q(key))})`), `UI_V2_PAGES: missing ${key}`); await browser.click(q(key)); };
+async function wait(expression, marker = 'UI_V2_PAGES') {
+  for (let i = 0; i < 400; i++) { if (await evalJs(`(()=>{try{return !!(${expression})}catch{return false}})()`)) return; await pause(25); }
+  assert.fail(`${marker}: ${expression}`);
+}
+const pageIs = name => wait(`document.querySelector('#page').dataset.page===${JSON.stringify(name)}`);
+async function idle() { await wait('!document.querySelector("dialog button:disabled") && !document.querySelector("[data-key=scan-start]:disabled") || document.querySelector("#page").dataset.page!=="home"'); await pause(40); }
+async function reset(options = {}, route = 'home') {
+  if (sequence) { await safeCalls(); await control('c.resetting=true'); }
+  if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
+  injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(f)},${JSON.stringify(options)},${JSON.stringify(english)})`})).identifier;
+  await browser.goto(`${base}/index.html?case=${++sequence}#${route}`);
+  await wait(options.unavailable ? 'document.body.textContent.includes("无法连接 Flick 服务")' : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
+  await pause(100);
+}
+async function key(value, shift = false) {
+  const vk = {Tab:9, Escape:27, Enter:13, Delete:46, ArrowDown:40, ArrowUp:38}[value];
+  await browser.send('Input.dispatchKeyEvent', {type:'keyDown', key:value, code:value, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0, ...(value === 'Enter' ? {text:'\r'} : {})});
+  await browser.send('Input.dispatchKeyEvent', {type:'keyUp', key:value, code:value, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0});
+}
+async function menuItem(text) {
+  if (await evalJs('document.documentElement.lang === "en"')) text = {'查重复文件':'Find duplicates','查看明细':'View details','复制线索给 agent':'Copy lead for an agent','以后都跳过':'Always skip'}[text] ?? text;
+  const selector = await evalJs(`(()=>{const b=[...document.querySelectorAll('.menu:not([hidden]) button')].find(b=>b.textContent===${JSON.stringify(text)});if(!b)return null;b.dataset.testAction='chosen';return '[data-test-action="chosen"]'})()`);
+  assert(selector, `UI_V2_DRAWER: missing menu ${text}`); await browser.click(selector); await pause(60);
+}
+async function setSearch(key, value) {
+  await click(key); await evalJs(`document.querySelector(${JSON.stringify(q(key))}).value=${JSON.stringify(value)}`); await click(key + '-go'); await pause(100);
+}
+const lastCall = name => control(`return c.calls.filter(x=>x.command===${JSON.stringify(name)}).at(-1)`);
+const callCount = name => control(`return c.calls.filter(x=>x.command===${JSON.stringify(name)}).length`);
+async function safeCalls() {
+  const calls = await control('return c.calls');
+  function safe(value, key) {
+    if (value && typeof value === 'object') { for (const [k, v] of Object.entries(value)) safe(v, k); }
+    else if (typeof value === 'string') assert(!(key === 'confirmToken' ? /\\/.test(value) : /[A-Za-z]:[\\/]|\\|^\//.test(value)), 'UI_IPC_NO_PATH: no path arguments');
+  }
+  for (const call of calls) safe(call.args);
+  assert.deepEqual(await control('return c.errors'), [], 'UI_V2_PAGES: no runtime errors');
+}
+async function noOverflow() { assert(await evalJs('document.documentElement.scrollWidth<=innerWidth && document.querySelector("#main").scrollWidth<=document.querySelector("#main").clientWidth'), 'UI_V2_PAGES: no horizontal overflow'); }
+async function oneScreen(label) {
+  await noOverflow();
+  const dimensions = await evalJs('(()=>{const m=document.querySelector("#main"),p=document.querySelector("#page");return {document:document.scrollingElement.scrollHeight,window:innerHeight,main:m.scrollHeight,available:m.clientHeight,page:p.dataset.page}})()');
+  assert(dimensions.document <= dimensions.window && dimensions.main <= dimensions.available, `UI_W14_ONESCREEN: ${label} ${JSON.stringify(dimensions)}`);
+}
+async function englishPage(label, exceptions = []) {
+  const text = await evalJs('document.body.textContent + [...document.querySelectorAll("[aria-label],[title],[placeholder]")].map(n=>[n.getAttribute("aria-label"),n.getAttribute("title"),n.getAttribute("placeholder")].flat().join(" ")');
+  let remaining = text; for (const exception of exceptions) remaining = remaining.replaceAll(exception, '');
+  assert(!/\p{Script=Han}/u.test(remaining), `UI_W14_EN: ${label}: ${remaining.match(/[^\n]{0,30}[\p{Script=Han}][^\n]{0,50}/u)?.[0] ?? ''}`);
+}
+async function switchLanguage(language) {
+  await evalJs(`(()=>{const s=document.querySelector('[data-key=language]');s.value=${JSON.stringify(language)};s.dispatchEvent(new Event('change',{bubbles:true}))})()`);
+  await wait(`document.documentElement.lang===${JSON.stringify(language === 'zh' ? 'zh-CN' : 'en')}`, 'UI_W14_EN');
+}
+async function shot(id, narrow = false) {
+  if (id !== 'results-folds') await evalJs('document.querySelector("#main").scrollTop=0');
+  await pause(120); await noOverflow();
+  const lang = await evalJs('document.documentElement.lang.startsWith("zh") ? "zh" : "en"');
+  writeFileSync(join(shots, `v4-${lang}-${id === 'home-narrow' ? 'home' : id}-${narrow ? '1040x720' : '1240x820'}.png`), await browser.screenshot(), {flag:'wx'});
+}
+async function results(options = {}) { await reset(options); await click('view-results'); await pageIs('results'); await pause(100); }
+async function detail(group) { await click(`card-menu-${group}`); await menuItem('查看明细'); await wait('document.querySelector("dialog.drawer[open]")', 'UI_V2_DRAWER'); }
+async function openSystemDrawer() { await click('details-open'); await pageIs('details'); await click('section-system_temp'); await click('detail-system-temp-old'); await wait('document.querySelector(".summary-row")', 'UI_V2_DRAWER'); }
+async function finishedDedupe(options = {}, withConclusion = false) {
+  if (withConclusion) { await results(options); await click('rescan'); } else await reset(options);
+  await click('location-menu-drive-e'); await menuItem('查重复文件'); await click('dedupe-start');
+  await wait('document.querySelector("[data-key=dedupe-stop]")', 'UI_V2_DEDUPE');
+  await click('dedupe-stop'); await wait('document.querySelector(".dedupe-row")', 'UI_V2_DEDUPE');
+}
+async function checkPrimary() {
+  assert(await evalJs('document.querySelectorAll("#page .primary").length<=1 && document.querySelectorAll("#page .main-card.dark").length<=1 && [...document.querySelectorAll("#page .primary")].every(b=>b.closest(".main-card.dark"))'), 'UI_V2_PAGES: one main action in one dark card');
+}
+async function rowMenu(id) {
+  if (!(await evalJs(`!!document.querySelector(${JSON.stringify(q('row-menu-' + id))})`))) return '';
+  await click('row-menu-' + id); const text = await evalJs('document.querySelector(".menu:not([hidden])").textContent'); await key('Escape'); return text;
+}
+// A page stuck in a loop cannot answer CDP. Race the probe; when it is late, stop the runaway
+// script so the page stays usable, and report 'late' instead of letting the run hit a CDP timeout.
+async function bounded(expression, ms = 3000) {
+  let timer; const probe = browser.send('Runtime.evaluate', {expression, returnByValue:true}).then(r => r.exceptionDetails ? 'threw' : r.result.value, () => 'late');
+  const outcome = await Promise.race([probe, new Promise(ok => { timer = setTimeout(() => ok('late'), ms); })]); clearTimeout(timer);
+  if (outcome === 'late') { await browser.send('Runtime.terminateExecution').catch(() => {}); await probe; }
+  return outcome;
+}
+before(async () => {
+  server = createServer((req, res) => {
+    const p = new URL(req.url, 'http://127.0.0.1').pathname.slice(1) || 'index.html';
+    if (!/^(?:index\.html|(?:app|ipc|model|format)\.mjs|views\/[a-z]+\.mjs|styles\/[a-z]+\.css)$/.test(p)) { res.writeHead(404).end(); return; }
+    try { res.writeHead(200, {'content-type':{'.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.mjs':'text/javascript; charset=utf-8'}[extname(p)], 'cache-control':'no-store', 'content-security-policy':"default-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'"}).end(readFileSync(join(ui, p))); } catch { res.writeHead(404).end(); }
+  });
+  await new Promise(ok => server.listen(0, '127.0.0.1', ok)); base = `http://127.0.0.1:${server.address().port}`;
+  browser = await openPrivateBrowser(); await browser.size(1240, 820);
+});
+afterEach(async () => { if (browser && sequence) await safeCalls(); });
+after(async () => { try { if (browser) await browser.close(); } finally { if (server) await new Promise(ok => server.close(ok)); } });
+
+test('ui_v2_home_scan', async () => {
+  await reset();
+  assert.equal(await evalJs('document.title'), 'Flick · 磁盘体检', 'UI_W11_BRAND: document title uses Flick');
+  assert.equal(await evalJs('document.querySelector(".brand").textContent'), 'Flick', 'UI_W11_BRAND: top brand uses Flick');
+  assert.equal(await evalJs('document.querySelector(".brand use").getAttribute("href")'), '#i-flick', 'UI_W11_BRAND: top brand uses the Flick mark');
+  assert.equal(await evalJs('document.querySelectorAll("#i-berg, #berg-facets").length'), 0, 'UI_W11_BRAND: retired iceberg and mask are absent');
+  assert.deepEqual(await evalJs('(()=>{const mark=document.querySelector("#i-flick"), path=mark.querySelector("path");return [mark.getAttribute("viewBox"),mark.children.length,path.getAttribute("d"),getComputedStyle(path).fill,getComputedStyle(path).stroke]})()'), ['0 0 48 48', 1, 'M12 30.5 C19 22.5 29 13.5 41 8 C32 16 24 27.5 15.8 38.3 A5 5 0 1 1 12 30.5 Z', 'rgb(17, 20, 24)', 'none'], 'UI_W11_BRAND: frozen single path is solid ink with no stroke');
+  assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), formatBytes(f.v2_app_state_quarantine.quarantine.bytes), 'UI_V2_HOME: persistent quarantine amount');
+  assert(await evalJs('document.body.textContent.includes("这次检查哪里？")'), 'UI_V2_HOME: frozen title');
+  await checkPrimary(); await shot('home');
+  await browser.size(1040, 720); await shot('home-narrow', true); await browser.size(1240, 820);
+  await click('location-drive-f');
+  assert.equal(await evalJs('document.querySelector("[data-key=location-drive-f]").getAttribute("aria-pressed")'), 'true', 'UI_V2_HOME: location toggled');
+  await click('scan-start'); await pageIs('scan');
+  assert.deepEqual((await lastCall('scan_start')).args.locationIds, ['common', 'drive-f'], 'UI_V2_HOME: only selected locations');
+  await wait('document.querySelectorAll(".scan-location").length===2', 'UI_V2_HOME');
+  await control('c.scan=1'); await wait('document.body.textContent.includes("19.4")', 'UI_V2_HOME');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-location")].map(n=>n.dataset.location)'), f.v2_scan_progress_sequence[2].locations.map(l => l.location_id), 'UI_V2_HOME: location rows in service order');
+  await shot('scan'); await checkPrimary();
+  await click('scan-stop'); await pageIs('results'); assert.equal((await lastCall('scan_cancel')).args.scanId, f.v2_scan_start.scan_id, 'UI_V2_HOME: stop by ID');
+  await reset({noQuarantine:true}); assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), '', 'UI_V2_HOME: absent quarantine hidden');
+  await click('add-root'); await wait(`document.querySelector('[data-key="location-${f.v2_custom_root_add_folder.added.root_id}"]')`, 'UI_V2_HOME');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".location-select[aria-pressed=true]")].map(n=>n.dataset.key)'), ['location-' + f.v2_custom_root_add_folder.added.root_id], 'UI_V2_HOME: added folder selected alone');
+  await shot('home-new'); await click('scan-start'); await pageIs('scan');
+  assert.deepEqual((await lastCall('scan_start')).args.locationIds, [f.v2_custom_root_add_folder.added.root_id], 'UI_V2_HOME: folder-only request');
+  await wait('document.querySelector("[data-key=scan-stop]")', 'UI_V2_HOME');
+  await control('c.nextError={command:"scan_progress",error:{code:"unavailable",message_zh:"进度连接中断"}}');
+  await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_HOME');
+  await click('nav-history'); await pageIs('history');
+  assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_HOME: paused polling keeps recovery after navigation');
+  await click('nav-home'); await pageIs('scan');
+  await control('c.nextError={command:"scan_cancel",error:{code:"unavailable",message_zh:"停止没有送达"}}');
+  await click('scan-stop');
+  assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_HOME: failed stop cannot hide recovery');
+  await click('scan-stop');
+  await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_HOME');
+  assert.equal(await evalJs('document.querySelectorAll("[data-key=poll-retry]").length'), 0, 'UI_V2_HOME: successful stop resumes polling to completion');
+  // Exercise the service response with the current product name.
+  const renamedTrends = structuredClone(f.v2_trends);
+  for (const forecast of renamedTrends.forecast) if (forecast.note_zh) forecast.note_zh = forecast.note_zh.replaceAll('Water', 'Flick');
+  await reset({trends:renamedTrends});
+  assert(!(await evalJs('document.body.innerText')).includes('Water'), 'UI_W11_BRAND: home has no visible Water name');
+  await reset({unavailable:true});
+  assert(!(await evalJs('document.body.innerText')).includes('Water'), 'UI_W11_BRAND: unavailable page has no visible Water name');
+  assert.equal(await evalJs('document.querySelector("#notice span").textContent'), '无法连接 Flick 服务', 'UI_W11_BRAND: unavailable notice uses Flick');
+  assert.equal(await evalJs('document.querySelector(".empty h2").textContent'), '无法连接 Flick 服务', 'UI_W11_BRAND: unavailable home uses Flick');
+  const pageName = () => evalJs('document.querySelector("#page").dataset.page');
+  await evalJs('localStorage.removeItem("flick.intro.v1")'); await reset({intro:'fresh'});
+  await wait('document.querySelector("#page").dataset.page==="intro"', 'UI_W12_INTRO');
+  assert.equal(await evalJs('document.querySelector("#page h1").textContent'), 'Flick 怎么用', 'UI_W12_INTRO: first run shows how Flick works');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll("#page .main-card .row strong")].map(n=>n.textContent)'), ['体检只读：只看名字、大小和时间，不读文件内容。', '清什么由你点：推荐的直接清，要确认的先放进隔离区。', '隔离区里的随时能还原，永久删除前会再问一次。'], 'UI_W12_INTRO: the three frozen lines');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll("#page .primary")].map(n=>n.textContent)'), ['开始'], 'UI_W12_INTRO: one main button 开始');
+  await checkPrimary(); await shot('intro');
+  await click('intro-start'); await wait('document.querySelector("#page").dataset.page==="home"', 'UI_W12_INTRO');
+  await browser.send('Page.reload', {}); await wait('window.__waterTest?.calls.some(x=>x.command==="locations_get")', 'UI_W12_INTRO'); await pause(100);
+  assert.equal(await pageName(), 'home', 'UI_W12_INTRO: after 开始 a refresh goes straight to the home page');
+  await reset({intro:'blocked'}); await pause(100);
+  assert.equal(await pageName(), 'home', 'UI_W12_INTRO: storage that throws never blocks the way to the home page');
+  assert(await evalJs('!!document.querySelector("[data-key=scan-start]")'), 'UI_W12_INTRO: blocked storage still reaches a usable home page');
+  await reset({progress:true}); await click('scan-start'); await pageIs('scan');
+  await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS');
+  const areas = await evalJs('[...document.querySelectorAll(".scan-chart .tile rect")].map(r=>Number(r.getAttribute("width"))*Number(r.getAttribute("height")))');
+  assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在体检', 'UI_W14_PROGRESS: running heading');
+  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .tile").length'), f.w14_scan[0].categories.length, 'UI_W14_PROGRESS: every category has a block');
+  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .stem").length'), 0, 'UI_W14_PROGRESS: no stems');
+  await browser.size(1040, 720); await shot('scan', true); await browser.size(1240, 820);
+  await control('c.scan=1'); await wait('document.querySelector(".dial-value")?.textContent==="82%"', 'UI_W14_PROGRESS');
+  assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在统计整盘空间', 'UI_W14_PROGRESS: space heading');
+  assert.equal(await evalJs('document.querySelector("[data-location=drive-f] .tag").textContent'), '统计整盘空间', 'UI_W14_PROGRESS: space location stays in progress');
+  assert(await evalJs(`Number(document.querySelector('.scan-chart .tile rect').getAttribute('width'))*Number(document.querySelector('.scan-chart .tile rect').getAttribute('height'))>${areas[0]}`), 'UI_W14_PROGRESS: the growing category gets more area');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile title")].map(n=>n.textContent)'), f.w14_scan[1].categories.map(c => `${c.title_zh} · ${formatBytes(c.found_bytes)}`), 'UI_W14_PROGRESS: category amounts come from service');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile rect")].slice(0,4).map(n=>getComputedStyle(n).fill)'), ['rgb(124, 203, 241)','rgb(166, 220, 247)','rgb(200, 234, 251)','rgb(226, 243, 253)'], 'UI_W14_PROGRESS: four existing sky colors');
+  await shot('scan-space'); await control('c.scan=2'); await wait('document.querySelector(".dial-value")?.textContent==="95%"', 'UI_W14_PROGRESS');
+  assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在整理结论', 'UI_W14_PROGRESS: finishing heading');
+  assert(!(await evalJs('document.body.textContent')).match(/每秒一根|按已检查的文件估算/), 'UI_W14_PROGRESS: filler removed');
+  await shot('scan-finishing'); await control('c.scan=3'); await pageIs('results');
+  assert(await evalJs('!!document.querySelector("[data-key=clean-prepare]")'), 'UI_W14_PROGRESS: completed has a next step');
+  await reset({progress:true}); await click('scan-start'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS'); await click('scan-stop'); await pageIs('results');
+  assert.equal(await evalJs('document.querySelector(".cancelled-note").textContent'), '已停止，下面是停之前查到的', 'UI_W14_PROGRESS: cancelled results explain scope');
+  assert(await evalJs('!!document.querySelector("[data-key=rescan]")'), 'UI_W14_PROGRESS: stopped has a next step');
+});
+
+test('ui_v2_conclusion', async () => {
+  // Offer the skip action only when the service supplies it.
+  const cardSkips = structuredClone(f.v2_conclusion_typical); cardSkips.cards[1].menu = cardSkips.cards[1].menu.filter(m => m !== 'skip');
+  await results({reverseCards:true, conclusion:cardSkips});
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), [...f.v2_conclusion_typical.cards].reverse().map(c=>c.card_id), 'UI_V2_CONCLUSION: preserve all card order, never resort by bytes');
+  for (const c of cardSkips.cards) {
+    await click(`card-menu-${c.group_id}`);
+    assert.equal((await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('以后都跳过'), c.menu.includes('skip'), 'UI_W12_SKIP: a card offers 以后都跳过 exactly when its menu has skip'); await key('Escape');
+  }
+  const skipCard = cardSkips.cards[0], reads = await callCount('conclusion_get');
+  await click(`card-menu-${skipCard.group_id}`); await menuItem('以后都跳过');
+  await wait(`window.__waterTest.calls.filter(x=>x.command==="conclusion_get").length>${reads}`, 'UI_W12_SKIP');
+  assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:cardSkips.version, unitId:skipCard.card_id}}, 'UI_W12_SKIP: a card skip sends exactly skip_unit_add {conclusionVersion, unitId: card_id}');
+  assert.equal(await callCount('skip_add'), 0, 'UI_W12_SKIP: a card skip never sends skip_add');
+  await wait('!document.querySelector("[data-key=clean-prepare]:disabled")', 'UI_W13_FRESH');
+  assert.equal(await evalJs('document.querySelectorAll(".warning.stale").length'), 0, 'UI_W13_FRESH: skipping a card keeps the conclusion fresh');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), [...cardSkips.cards].reverse().filter(c => c.card_id !== skipCard.card_id).map(c => c.card_id), 'UI_W13_FRESH: only the skipped card disappears, service order is retained');
+  await click('clean-prepare');
+  assert.equal((await lastCall('clean_prepare')).args.conclusionVersion, 'cv-16Z-5d2b-2', 'UI_W13_FRESH: skipping a card rereads the incremented conclusion version');
+  await key('Escape');
+  await results(); await checkPrimary(); await shot('results');
+  await click(`card-menu-${f.v2_conclusion_typical.cards[0].group_id}`); await shot('menu'); await key('Escape');
+  assert.equal(await evalJs('document.querySelectorAll(".judgment").length'), 5, 'UI_V2_CONCLUSION: all five supplied cards');
+  assert(await evalJs('document.querySelectorAll(".judgment,.clues>.row,.fold,.result-content>.summary-link,.main-card>.row").length<=20'), 'UI_V2_CONCLUSION: collapsed conclusion at most 20 rows');
+  await click('clean-codex-runtimes'); await wait(`document.body.textContent.includes(${JSON.stringify(formatBytes(f.v2_conclusion_after_decide.plan.bytes))})`, 'UI_V2_CONCLUSION');
+  assert.equal(await evalJs('document.querySelector("[data-group=codex-runtimes] .decided-text").textContent'), '已加入清理 · ' + formatBytes(f.v2_conclusion_after_decide.cards.find(c=>c.group_id==='codex-runtimes').bytes), 'UI_V2_CONCLUSION: repaint decision from returned view');
+  assert.equal(await evalJs('document.querySelector(".main-card .summary").textContent'), f.v2_conclusion_after_decide.plan.summary_zh, 'UI_V2_CONCLUSION: full summary replaced');
+  await shot('results-decided');
+  await click('category-app_leftover'); await wait('document.querySelector("[data-key=category-app_leftover]").getAttribute("aria-checked")==="false"', 'UI_V2_CONCLUSION');
+  assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {category:'app_leftover', include:false}, 'UI_V2_CONCLUSION: categories decided by service');
+  await click('fold-protected'); assert(await evalJs('document.querySelector("[data-key=fold-protected]").parentElement.open'), 'UI_V2_CONCLUSION: fold expands in place'); await shot('results-folds');
+  await click('copy-' + f.v2_conclusion_typical.clues[0].clue_id); assert.equal(await control('return c.clipboard.at(-1)'), f.v2_conclusion_typical.clues[0].copy_text, 'UI_V2_CONCLUSION: exact clue copied');
+  await control('c.clipboardFail=true'); await click('copy-' + f.v2_conclusion_typical.clues[1].clue_id); await wait('document.querySelector("textarea[readonly]")', 'UI_V2_CONCLUSION');
+  assert.equal(await evalJs('document.querySelector("textarea").value'), f.v2_conclusion_typical.clues[1].copy_text, 'UI_V2_CONCLUSION: manual copy fallback'); await key('Escape');
+  await results({conclusion:'v2_conclusion_stale'}); assert(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled'), 'UI_V2_CONCLUSION: stale disables cleanup'); await shot('results-stale');
+  await results({conclusion:'v2_conclusion_empty'}); assert.equal(await evalJs('document.querySelectorAll(".judgment,.primary").length'), 0, 'UI_V2_CONCLUSION: empty has no judgments or primary'); await shot('results-empty');
+  await results({conclusion:'v2_conclusion_folder_only'}); assert(await evalJs('document.body.textContent.includes("这次只看了这个文件夹")'), 'UI_V2_CONCLUSION: folder scope explicit');
+  await results({missingCardClue:true}); await click('card-menu-leak:7b30fa8fd7ceb684');
+  assert(!(await evalJs('document.querySelector(".menu:not([hidden])").textContent')).includes('复制线索给 agent'), 'UI_V2_CONCLUSION: missing clue cannot offer empty clipboard copy');
+  assert.equal(await control('return c.clipboard.length'), 0, 'UI_V2_CONCLUSION: missing clue never copies an empty string'); await key('Escape');
+  await reset();
+  await control('c.conclusion.status="partial";c.conclusion.plan.chosen_bytes="0"');
+  await click('view-results'); await pageIs('results');
+  const partialNote = ' · 部分完成：有的位置没有权限，或时间到了';
+  const partialSubtitle = await evalJs('document.querySelector(".conclusion .heading .eyebrow").textContent');
+  assert(partialSubtitle.endsWith(partialNote), 'UI_W11_PARTIAL: partial conclusion ends with the exact coverage note');
+  assert.equal(await evalJs('(()=>{const chosen=[...document.querySelectorAll(".conclusion .heading .metric")].find(n=>n.querySelector(".sub").textContent==="你选的");return [...chosen.querySelector(".number").children].map(n=>n.textContent).join(" ")})()'), '0 MB', 'UI_W11_ZERO: chosen-zero header metric displays zero');
+  await control('c.conclusion.status="completed"'); await click('rescan'); await click('view-results'); await pageIs('results');
+  const completedSubtitle = await evalJs('document.querySelector(".conclusion .heading .eyebrow").textContent');
+  assert(!completedSubtitle.includes('部分完成'), 'UI_W11_PARTIAL: completed conclusion has no partial note');
+  assert.equal(partialSubtitle, completedSubtitle + partialNote, 'UI_W11_PARTIAL: scope and time stay intact before the suffix');
+});
+
+test('ui_v2_drawer_details', async () => {
+  await results(); await detail('codex-runtimes');
+  assert.equal(await evalJs('document.querySelectorAll(".summary-row").length'), f.v2_group_detail_items.rows.length, 'UI_V2_DRAWER: small groups show each supplied item'); await shot('drawer');
+  for (const r of f.w12_group_detail_items.rows) assert.equal((await rowMenu(r.row_id)).includes('以后都跳过'), r.skip !== null, 'UI_W12_SKIP: a one-item row offers 以后都跳过 exactly when its skip key is set');
+  const small = f.w12_group_detail_items.rows.find(r => r.skip === 'item'); await click('row-menu-' + small.row_id); await menuItem('以后都跳过');
+  assert.deepEqual(await lastCall('skip_add'), {command:'skip_add', args:{itemId:small.row_id}}, 'UI_W12_SKIP: an "item" row sends exactly skip_add {itemId: row_id}');
+  assert.equal(await callCount('skip_unit_add'), 0, 'UI_W12_SKIP: an "item" row never sends skip_unit_add');
+  await results(); await openSystemDrawer();
+  assert.equal(await evalJs('document.querySelectorAll(".summary-row").length'), f.v2_group_detail_rows.rows.length, 'UI_V2_DRAWER: summary rows as supplied');
+  assert(await evalJs('document.querySelectorAll(".summary-row").length<=8'), 'UI_V2_DRAWER: at most eight rows');
+  await click('row-' + f.v2_group_detail_rows.rows[0].row_id);
+  assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {row:f.v2_group_detail_rows.rows[0].row_id, include:false}, 'UI_V2_DRAWER: row checkbox sends a decision');
+  assert(await evalJs(`document.querySelector(${JSON.stringify(q('row-' + f.v2_group_detail_rows.rows[0].row_id))}).checked`), 'UI_V2_DRAWER: fresh service row controls selection, no local override');
+  assert.deepEqual(f.w12_group_detail_rows.rows.map(r => r.skip).filter((v, i, all) => all.indexOf(v) === i).sort(), ['unit', null].sort(), 'UI_W12_SKIP: the summary drawer covers unit and null rows');
+  for (const r of f.w12_group_detail_rows.rows) assert.equal((await rowMenu(r.row_id)).includes('以后都跳过'), r.skip !== null, 'UI_W12_SKIP: a summary row offers 以后都跳过 exactly when its skip key is set');
+  await shot('drawer-big');
+  const countBefore = await callCount('group_items'); await setSearch('drawer-search', 'C:\\Temp');
+  assert.equal(await callCount('group_items'), countBefore, 'UI_V2_DRAWER: path search is not sent');
+  await setSearch('drawer-search', '20261005');
+  await wait('window.__waterTest.calls.some(c=>c.command==="group_items") || document.querySelector("#notice:not([hidden])")', 'UI_IPC_NO_PATH');
+  assert.deepEqual((await lastCall('group_items'))?.args, {groupId:'system-temp-old', rowId:null, query:'20261005'}, 'UI_IPC_NO_PATH: search sends query only, never display_path');
+  assert.equal(await evalJs('document.querySelectorAll(".item-row").length'), f.v2_group_items_search.items.length, 'UI_V2_DRAWER: search items supplied');
+  await click('item-' + f.v2_group_items_search.items[0].item_id);
+  assert.deepEqual((await lastCall('conclusion_decide')).args.decision, {item:f.v2_group_items_search.items[0].item_id, include:false}, 'UI_V2_DRAWER: item checkbox sends a decision');
+  await click('item-menu-' + f.v2_group_items_search.items[0].item_id); await menuItem('以后都跳过');
+  assert.deepEqual((await lastCall('skip_add')).args, {itemId:f.v2_group_items_search.items[0].item_id}, 'UI_V2_DRAWER: expanded item ID');
+  await results(); await openSystemDrawer();
+  const unitRow = f.w12_group_detail_rows.rows.find(r => r.skip === 'unit'), skipAdds = await callCount('skip_add');
+  await click('row-menu-' + unitRow.row_id); await menuItem('以后都跳过'); await wait('!document.querySelector("dialog.drawer[open]")', 'UI_W12_SKIP');
+  assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:f.v2_conclusion_typical.version, unitId:unitRow.row_id}}, 'UI_W12_SKIP: a "unit" row sends exactly skip_unit_add {conclusionVersion, unitId: row_id}');
+  assert.equal(await callCount('skip_add'), skipAdds, 'UI_W12_SKIP: a "unit" row never sends skip_add');
+  await results(); await openSystemDrawer(); await click('row-menu-' + f.v2_group_detail_rows.rows[1].row_id); await menuItem('展开看每一项');
+  assert.equal((await lastCall('group_items')).args.rowId, f.v2_group_detail_rows.rows[1].row_id, 'UI_V2_DRAWER: expanding uses row ID'); await key('Escape');
+  await pageIs('details'); await click('section-dev_cache');
+  assert.equal(await evalJs('document.querySelectorAll(".section-toggle[aria-expanded=true]").length'), 1, 'UI_V2_DRAWER: only one expanded section');
+  assert(await evalJs('document.body.textContent.includes("3 个位置") && document.body.textContent.includes("和上次一样的")'), 'UI_V2_DRAWER: merged and unchanged rows');
+  await shot('details'); await click('detail-m:cachedir-tagged');
+  const merged = f.w12_group_detail_merged.rows[0]; await click('row-menu-' + merged.row_id);
+  assert(await evalJs('document.querySelector(".menu:not([hidden])").textContent.includes("以后都跳过")'), 'UI_W12_SKIP: a merged drawer group row with skip "unit" offers 以后都跳过');
+  await menuItem('以后都跳过'); await wait('!document.querySelector("dialog.drawer[open]")', 'UI_W12_SKIP');
+  assert.deepEqual(await lastCall('skip_unit_add'), {command:'skip_unit_add', args:{conclusionVersion:f.v2_conclusion_typical.version, unitId:merged.row_id}}, 'UI_W12_SKIP: a merged drawer group row sends skip_unit_add with its group ID');
+  await click('detail-mode-location'); assert.equal((await lastCall('detail_get')).args.mode, 'location', 'UI_V2_DRAWER: location mode command');
+  for (const call of (await control('return c.calls')).filter(x=>x.command==='skip_add')) assert(!/^(r:|m:)/.test(call.args.itemId) && call.args.itemId !== 'system-temp-old', 'UI_V2_DRAWER: skips are item IDs');
+});
+
+test('ui_v2_confirm_done', async () => {
+  await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=mode-quarantine]")', 'UI_V2_CONFIRM');
+  assert.equal(await evalJs('document.querySelector("#confirm-title").textContent'), `清理 ${formatBytes(f.v2_conclusion_after_decide.plan.bytes)}？`, 'UI_V2_CONFIRM: preview matches decided plan');
+  assert.equal((await lastCall('clean_prepare')).args.chosenMode, 'quarantine', 'UI_V2_CONFIRM: initial request defaults to quarantine');
+  assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_V2_CONFIRM: conservative default');
+  assert(await evalJs('document.body.textContent.includes("Chrome 开着")'), 'UI_V2_CONFIRM: expected skip reason visible');
+  await shot('confirm');
+  await click('mode-delete'); await wait('document.querySelector("[data-key=confirm-start]").textContent.startsWith("删除 ")', 'UI_V2_CONFIRM');
+  assert.equal((await lastCall('clean_prepare')).args.chosenMode, 'delete', 'UI_V2_CONFIRM: mode change prepares again');
+  assert.equal(await evalJs('getComputedStyle(document.querySelector("[data-key=confirm-start]")).backgroundColor'), 'rgb(255, 79, 43)', 'UI_V2_CONFIRM: irreversible choice is orange-red'); await shot('confirm-direct');
+  await click('confirm-cancel'); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")');
+  assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_V2_CONFIRM: reopening resets mode');
+  await click('confirm-start'); await pageIs('cleaning');
+  await wait('document.querySelector("[data-key=clean-stop]")'); await shot('cleaning');
+  assert(await evalJs('(()=>{const e=new Event("beforeunload",{cancelable:true});window.dispatchEvent(e);return e.defaultPrevented})()'), 'UI_V2_CONFIRM: cleanup guards window close');
+  await control('c.clean=2'); await pageIs('done');
+  assert(await evalJs(`document.body.textContent.includes(${JSON.stringify('另有 ' + formatBytes(f.v2_clean_result.quarantined.bytes) + ' 在隔离区')})`), 'UI_V2_CONFIRM: quarantined bytes are not freed bytes'); await checkPrimary(); await shot('done');
+  await click('done-finish'); await pageIs('results');
+  await results({onlyDelete:true}); await click('clean-prepare'); await wait('document.querySelector("dialog[open]")'); assert.equal(await evalJs('document.querySelectorAll(".choice-modes").length'), 0, 'UI_V2_CONFIRM: no chosen section when null'); await key('Escape');
+  await control('c.nextError={command:"clean_prepare",error:{code:"invalid",message_zh:"计划为空，请重新选择。"}}'); await click('clean-prepare');
+  assert(await evalJs('document.querySelector("#notice").textContent.includes("计划为空，请重新选择。") && !document.querySelector("dialog[open]")'), 'UI_V2_CONFIRM: prepare error stays on conclusion');
+  for (const exit of ['done-finish', 'nav-home']) {
+    await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")'); await click('confirm-start');
+    await wait('document.querySelector("[data-key=clean-stop]")', 'UI_V2_CONFIRM');
+    await control('c.nextError={command:"clean_progress",error:{code:"unavailable",message_zh:"清理进度暂不可用"}}');
+    await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_CONFIRM');
+    await click('nav-history'); await pageIs('history');
+    assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_CONFIRM: cleanup pause survives navigation');
+    await click('nav-home'); await pageIs('cleaning'); await click('clean-stop');
+    await wait('document.querySelector("#page").dataset.page==="done"', 'UI_V2_CONFIRM');
+    await control('c.noConclusion=true'); await click(exit);
+    await wait('document.querySelector("#page").dataset.page==="home"', 'UI_V2_CONFIRM');
+    assert(await evalJs('document.querySelector("#notice").hidden && !document.querySelector("[data-key=scan-start]").disabled'), 'UI_V2_CONFIRM: not_found completion returns to usable home without error');
+  }
+  await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")'); await click('confirm-start');
+  await wait('document.querySelector("[data-key=clean-stop]")', 'UI_V2_CONFIRM'); await control('c.clean=2'); await wait('document.querySelector("#page").dataset.page==="done"', 'UI_V2_CONFIRM');
+  const doneReads = await callCount('conclusion_get');
+  await click('done-quarantine'); await wait('document.querySelector("[data-quarantine]")', 'UI_V2_CONFIRM');
+  await click('nav-home'); await wait('location.hash==="#home" && document.querySelector("#page").dataset.page!=="quarantine"', 'UI_V2_CONFIRM'); await pause(100);
+  assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'done', 'UI_V2_CONFIRM: 体检 from another page shows the done page left behind');
+  assert.equal(await callCount('conclusion_get'), doneReads, 'UI_V2_CONFIRM: going back to the done page rereads nothing');
+  await click('nav-home'); await wait('document.querySelector("#page").dataset.page==="results"', 'UI_V2_CONFIRM');
+  assert.equal(await callCount('conclusion_get'), doneReads + 1, 'UI_V2_CONFIRM: a second 体检 click on the done page then finishes like 完成');
+  for (const note of [null, '清理日志没写全，后面的 3 项没有清']) {
+    await results({conclusion:'v2_conclusion_after_decide', cleanResult:{...f.w12_clean_result, journal_note_zh:note}}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")'); await click('confirm-start');
+    await wait('document.querySelector("[data-key=clean-stop]")', 'UI_W12_FIXES'); await control('c.clean=2'); await pageIs('done');
+    const warnings = await evalJs('[...document.querySelectorAll("#page .main-card .warning")].map(n=>[n.className,n.textContent])');
+    assert.deepEqual(warnings, [['warning', '部分完成，请查看各组结果。'], ...(note ? [['warning', note]] : [])], 'UI_W12_FIXES: journal_note_zh shows as a reminder styled like the partial one, and only when set');
+  }
+  // A queued 体检 click is dropped by a page change, and never replayed over an open dialog.
+  await click('nav-settings'); await wait('document.querySelector("[data-key=setting-browser]")', 'UI_W12_FIXES');
+  await control('c.holdNext="locations_set_category"'); await click('setting-browser'); await wait('window.__waterTest.held==="locations_set_category"', 'UI_W12_FIXES');
+  await click('nav-home'); await pageIs('done'); await click('nav-home');
+  await click('nav-history'); await pageIs('history'); await click('nav-home'); await pageIs('done');
+  const queuedReads = await callCount('conclusion_get');
+  await control('c.release()'); await wait('!window.__waterTest.held && !document.querySelector("[data-key=done-finish]:disabled")', 'UI_W12_FIXES'); await pause(150);
+  assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'done', 'UI_W12_FIXES: a 体检 click queued before a page change is dropped');
+  assert.equal(await callCount('conclusion_get'), queuedReads, 'UI_W12_FIXES: the dropped click reads nothing');
+  await finishedDedupe({}, true); await click('dup-' + f.v2_dedupe_result.groups[0].group_id); await wait('document.querySelectorAll(".dedupe-row input:checked").length===2', 'UI_W12_FIXES');
+  await control('c.holdNext="clean_prepare"'); await click('dedupe-prepare'); await wait('window.__waterTest.held==="clean_prepare"', 'UI_W12_FIXES');
+  await click('nav-home'); await control('c.release()');
+  await wait('!window.__waterTest.held && document.querySelector("dialog[open] [data-key=confirm-start]")', 'UI_W12_FIXES'); await pause(150);
+  assert(await evalJs('document.querySelector("#page").dataset.page==="dedupe" && !!document.querySelector("dialog[open] [data-key=confirm-start]")'), 'UI_W12_FIXES: a queued 体检 click is not replayed over an open dialog');
+  await key('Escape');
+  // An external skip changes the service conclusion after the preview was prepared.
+  for (const expired of [false, true]) {
+    await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")');
+    const previous = await lastCall('clean_prepare'), starts = await callCount('clean_start');
+    await evalJs(`import('/ipc.mjs').then(m=>m.skip_unit_add(window.__waterTest.conclusion.version, ${JSON.stringify(f.v2_conclusion_after_decide.cards[0].card_id)}))`);
+    if (expired) await control('c.conclusion.stale=true');
+    const reads = await callCount('conclusion_get'), prepares = await callCount('clean_prepare');
+    await click('confirm-start'); await wait(`window.__waterTest.calls.filter(x=>x.command==='conclusion_get').length>${reads}`, 'UI_W14_REPLAN');
+    if (expired) {
+      await wait('!!document.querySelector(".stale")', 'UI_W14_REPLAN');
+      assert.equal(await callCount('clean_prepare'), prepares, 'UI_W14_REPLAN: truly expired result is not prepared');
+      assert(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled && !document.querySelector("dialog[open]")'), 'UI_W14_REPLAN: truly stale disables cleanup');
+    } else {
+      await wait('!!document.querySelector("dialog[open] .replan-note")', 'UI_W14_REPLAN');
+      assert.equal(await evalJs('document.querySelector(".replan-note").textContent'), '跳过名单变了，已按新的结论重新准备', 'UI_W14_REPLAN: precise recovery notice');
+      assert.equal(await callCount('clean_prepare'), prepares + 1, 'UI_W14_REPLAN: prepared exactly once');
+      assert.notEqual((await lastCall('clean_prepare')).args.conclusionVersion, previous.args.conclusionVersion, 'UI_W14_REPLAN: new conclusion version');
+      assert.equal((await lastCall('clean_prepare')).args.conclusionVersion, await control('return c.conclusion.version'), 'UI_W14_REPLAN: exact refreshed version');
+      assert.deepEqual((await control('return c.calls.slice(-3)')).map(c => c.command), ['clean_start','conclusion_get','clean_prepare'], 'UI_W14_REPLAN: recovery order');
+      assert.equal(await callCount('clean_start'), starts + 1, 'UI_W14_REPLAN: never starts the new plan automatically');
+      assert.equal(await evalJs('document.querySelectorAll(".stale").length'), 0, 'UI_W14_REPLAN: fresh result is not marked stale');
+      await shot('results-replanned'); await key('Escape');
+    }
+  }
+});
+
+test('ui_v2_quarantine_dedupe', async () => {
+  await reset({}, 'quarantine'); await wait('document.querySelectorAll("[data-quarantine]").length>0'); await shot('quarantine'); await checkPrimary();
+  assert.equal(await evalJs('document.querySelectorAll("[data-quarantine]").length'), f.v2_quarantine_list.cards.length, 'UI_V2_QUARANTINE: all cards');
+  assert(await evalJs('document.body.textContent.includes("7 天")'), 'UI_V2_QUARANTINE: seven-day reminder');
+  await click('root-' + f.v2_quarantine_list.roots[0].target_id); assert.deepEqual((await lastCall('quarantine_reveal')).args, {targetId:f.v2_quarantine_list.roots[0].target_id}, 'UI_V2_QUARANTINE: reveal sends only root ID');
+  const id = f.v2_quarantine_list.cards[0].quarantine_id;
+  await click('purge-' + id); assert.equal(await callCount('quarantine_delete'), 0, 'UI_V2_QUARANTINE: second confirmation required'); await click('purge-cancel');
+  await click('restore-20261102-174012-c'); await wait('document.querySelector("[data-key=restore-beside]")', 'UI_V2_QUARANTINE');
+  assert.deepEqual((await lastCall('quarantine_restore')).args, {quarantineId:'20261102-174012-c', beside:false}, 'UI_V2_QUARANTINE: conflict before beside');
+  await click('restore-beside'); assert.equal((await lastCall('quarantine_restore')).args.beside, true, 'UI_V2_QUARANTINE: second restore explicit');
+  await reset({}, 'quarantine'); await wait('document.querySelector("[data-key=purge-' + id + ']")'); await click('purge-' + id); await click('purge-confirm'); await control('c.purge=1');
+  await wait(`window.__waterTest.busy==="idle" && document.querySelectorAll('[data-quarantine]').length===${f.v2_quarantine_leftover.cards.length}`, 'UI_V2_QUARANTINE'); await shot('quarantine-leftover');
+  assert.equal(await evalJs('document.querySelector(".quarantine-size").textContent'), formatBytes(f.v2_app_state_leftover.quarantine.bytes), 'UI_V2_QUARANTINE: persistent navigation refreshes remaining bytes');
+  const leftId = f.v2_quarantine_leftover.cards[0].quarantine_id; await click('purge-' + leftId); await click('purge-confirm'); assert.equal((await lastCall('quarantine_delete')).args.quarantineId, leftId, 'UI_V2_QUARANTINE: retry same batch');
+  await reset({quarantine:'v2_quarantine_foreign'}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")'); assert.equal(await evalJs('document.querySelectorAll("[data-key^=restore-]").length'), 0, 'UI_V2_QUARANTINE: no restore without record');
+  await reset({quarantine:'v2_quarantine_empty'}, 'quarantine'); await wait('document.body.textContent.includes("隔离区是空的")', 'UI_V2_QUARANTINE');
+  await reset(); await click('location-menu-drive-e'); await shot('dedupe-menu'); await menuItem('查重复文件'); await shot('dedupe-intro');
+  assert.equal(await callCount('dedupe_start'), 0, 'UI_V2_DEDUPE: no content read before consent');
+  await click('dedupe-start'); await pageIs('dedupe'); assert.deepEqual((await lastCall('dedupe_start')).args, {locationId:'drive-e'}, 'UI_V2_DEDUPE: chosen location');
+  await wait('document.querySelector("[data-key=dedupe-stop]")', 'UI_V2_DEDUPE'); await click('dedupe-stop'); await wait('document.querySelector(".dedupe-row")', 'UI_V2_DEDUPE');
+  assert.equal(await evalJs('document.querySelectorAll(".dedupe-row input:checked").length'), 0, 'UI_V2_DEDUPE: none selected by default');
+  await click('dup-' + f.v2_dedupe_result.groups[0].group_id); await wait('document.querySelectorAll(".dedupe-row input:checked").length===2', 'UI_V2_DEDUPE');
+  assert.equal((await lastCall('dedupe_decide')).args.groupId, f.v2_dedupe_result.groups[0].group_id, 'UI_V2_DEDUPE: selected by ID'); await shot('dedupe');
+  await click('dedupe-prepare'); await wait('document.querySelector("dialog[open]")'); assert.deepEqual(Object.keys((await lastCall('clean_prepare')).args), ['dedupeId', 'dedupeVersion'], 'UI_V2_DEDUPE: dedupe prepare shape');
+  assert.equal(await evalJs('document.querySelectorAll("[data-key=mode-delete]").length'), 0, 'UI_V2_DEDUPE: duplicates cannot switch to direct deletion'); await key('Escape');
+  await reset({dup:'v2_dedupe_result_more'}); await click('location-menu-drive-f'); await menuItem('查重复文件'); await click('dedupe-start'); await wait('document.querySelector("[data-key=dedupe-stop]")'); await click('dedupe-stop'); await wait('document.querySelector("[data-key=dedupe-more]")'); await click('dedupe-more');
+  assert.equal((await lastCall('dedupe_result')).args.expand, true, 'UI_V2_DEDUPE: expand asks service');
+  for (const withConclusion of [false, true]) for (const exit of ['dedupe-back', 'nav-home']) {
+    await finishedDedupe(withConclusion ? {} : {noConclusion:true, noLast:true}, withConclusion);
+    assert(await evalJs('!!document.querySelector("[data-key=dedupe-back]")'), 'UI_V2_DEDUPE: result page always provides return');
+    await click(exit); await wait(`document.querySelector('#page').dataset.page===${JSON.stringify(withConclusion ? 'results' : 'home')}`, 'UI_V2_DEDUPE');
+    assert(await evalJs('document.querySelector("#notice").hidden'), 'UI_V2_DEDUPE: leaving results has no spurious error');
+  }
+  await finishedDedupe({dup:'v2_dedupe_result_more'});
+  assert(!(await evalJs('document.querySelector("h1").textContent')).includes('8 组'), 'UI_V2_DEDUPE: truncated groups do not become total count');
+  assert(await evalJs(`document.body.textContent.includes(${JSON.stringify(f.v2_dedupe_result_more.more.text_zh)})`), 'UI_V2_DEDUPE: service more text stays visible');
+  for (const command of ['dedupe_decide', 'clean_prepare']) {
+    await finishedDedupe({}, true);
+    if (command === 'clean_prepare') await click('dup-' + f.v2_dedupe_result.groups[0].group_id);
+    const reads = await callCount('dedupe_result');
+    await control(`c.nextError={command:${JSON.stringify(command)},error:{code:'stale',message_zh:'查重版本过期'}};c.dup.version='dv-refreshed'`);
+    await click(command === 'clean_prepare' ? 'dedupe-prepare' : 'dup-' + f.v2_dedupe_result.groups[0].group_id);
+    await wait(`window.__waterTest.calls.filter(x=>x.command==='dedupe_result').length>${reads}`, 'UI_V2_DEDUPE');
+    assert.deepEqual((await lastCall('dedupe_result')).args, {dedupeId:f.v2_dedupe_result.dedupe_id, expand:false}, 'UI_V2_DEDUPE: stale refresh reads the current dedupe result');
+    const conclusions = await callCount('conclusion_get'); await click('dedupe-back'); await pageIs('results');
+    assert.equal(await callCount('conclusion_get'), conclusions, 'UI_V2_DEDUPE: cached conclusion is retained without replacing it');
+    assert(!(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled')), 'UI_V2_DEDUPE: dedupe stale must not invalidate the retained conclusion');
+  }
+  await finishedDedupe({}, true);
+  await control('c.nextError={command:"dedupe_decide",error:{code:"stale",message_zh:"旧查重"}};c.rejectDedupeRefresh=true');
+  await click('dup-' + f.v2_dedupe_result.groups[0].group_id);
+  await wait('document.querySelector("#page").dataset.page==="home"', 'UI_V2_DEDUPE');
+  assert(await evalJs('document.querySelector("#notice").textContent.includes("查重结果已失效，请重新查重")'), 'UI_V2_DEDUPE: failed refresh returns home with actionable message');
+  await reset({}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")');
+  for (const root of f.v2_quarantine_list.roots) assert.equal(await evalJs(`document.querySelector(${JSON.stringify(q('root-' + root.target_id))}).textContent`), `打开 ${root.display_path[0]} 盘隔离区`, 'UI_V2_QUARANTINE: every root action names its drive');
+  await click('nav-home'); await pageIs('home');
+  await control('c.holdNextQuarantine=true;c.restoreView={bytes:"0",roots:[],cards:[]}');
+  await click('nav-quarantine'); await wait('window.__waterTest.quarantineHeld', 'UI_V2_QUARANTINE');
+  await click('restore-' + f.v2_quarantine_list.cards[0].quarantine_id);
+  await wait('document.body.textContent.includes("隔离区是空的")', 'UI_V2_QUARANTINE');
+  await control('c.releaseQuarantine()'); await wait('window.__waterTest.quarantineReleased', 'UI_V2_QUARANTINE'); await pause(100);
+  assert.equal(await evalJs('document.querySelectorAll("[data-quarantine]").length'), 0, 'UI_V2_QUARANTINE: late list cannot overwrite newer restore view');
+  await reset({noConclusion:true, noLast:true}); await click('location-menu-drive-e'); await menuItem('查重复文件'); await click('dedupe-start');
+  await wait('document.querySelector("[data-key=dedupe-stop]")', 'UI_V2_DEDUPE');
+  await control('c.nextError={command:"dedupe_progress",error:{code:"unavailable",message_zh:"查重进度中断"}}');
+  await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_DEDUPE'); await click('dedupe-stop');
+  await wait('document.querySelector(".dedupe-row")', 'UI_V2_DEDUPE');
+  assert.equal(await evalJs('document.querySelectorAll("[data-key=poll-retry]").length'), 0, 'UI_V2_DEDUPE: stop resumes paused dedupe polling');
+  await reset({}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")');
+  await click('purge-' + f.v2_quarantine_list.cards[0].quarantine_id); await click('purge-confirm');
+  await control('c.nextError={command:"quarantine_progress",error:{code:"unavailable",message_zh:"删除进度中断"}}');
+  await wait('document.querySelector("[data-key=poll-retry]")', 'UI_V2_QUARANTINE'); await click('nav-history'); await pageIs('history');
+  assert(await evalJs('!!document.querySelector("[data-key=poll-retry]")'), 'UI_V2_QUARANTINE: purge recovery survives navigation');
+  await control('c.purge=1'); await click('poll-retry'); await wait('window.__waterTest.busy==="idle" && document.querySelector("#notice").hidden', 'UI_V2_QUARANTINE');
+  for (const withConclusion of [false, true]) {
+    await finishedDedupe(withConclusion ? {} : {noConclusion:true, noLast:true}, withConclusion);
+    const reads = await callCount('conclusion_get');
+    await control('c.holdNext="dedupe_decide"'); await click('dup-' + f.v2_dedupe_result.groups[0].group_id); await wait('window.__waterTest.held==="dedupe_decide"', 'UI_V2_DEDUPE');
+    await click('nav-home'); await click('nav-home'); await pause(100);
+    assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'dedupe', 'UI_V2_DEDUPE: 体检 clicked during a pending request waits for it');
+    await control('c.release()'); await wait('document.querySelector("#page").dataset.page!=="dedupe"', 'UI_V2_DEDUPE');
+    assert.equal(await evalJs('document.querySelector("#page").dataset.page'), withConclusion ? 'results' : 'home', 'UI_V2_DEDUPE: queued 体检 returns once the pending request ends');
+    assert.equal(await callCount('conclusion_get'), reads + (withConclusion ? 0 : 1), 'UI_V2_DEDUPE: repeated 体检 clicks during a request return only once');
+    assert(await evalJs('document.querySelector("#notice").hidden'), 'UI_V2_DEDUPE: queued return has no spurious error');
+  }
+  await finishedDedupe({}, true);
+  const dedupeReads = [await callCount('dedupe_result'), await callCount('conclusion_get')];
+  await click('nav-quarantine'); await wait('document.querySelector("[data-quarantine]")', 'UI_V2_DEDUPE');
+  await click('nav-home'); await wait('location.hash==="#home" && document.querySelector("#page").dataset.page!=="quarantine"', 'UI_V2_DEDUPE'); await pause(100);
+  assert(await evalJs('document.querySelector("#page").dataset.page==="dedupe" && !!document.querySelector(".dedupe-row")'), 'UI_V2_DEDUPE: 体检 from another page shows the dedupe result left behind');
+  assert.deepEqual([await callCount('dedupe_result'), await callCount('conclusion_get')], dedupeReads, 'UI_V2_DEDUPE: going back to the dedupe result rereads neither dedupe_result nor conclusion_get');
+  await click('nav-home'); await wait('document.querySelector("#page").dataset.page!=="dedupe"', 'UI_V2_DEDUPE');
+  assert.equal(await evalJs('document.querySelector("#page").dataset.page'), 'results', 'UI_V2_DEDUPE: a second 体检 click on the dedupe result then returns');
+  const oneRoot = {...structuredClone(f.v2_quarantine_leftover), roots:f.v2_quarantine_leftover.roots.slice(0, 1)};
+  for (const purgeView of [oneRoot, f.v2_quarantine_leftover, {bytes:'0', roots:[], cards:[]}]) {
+    await reset({}, 'quarantine'); await wait('document.querySelector("[data-quarantine]")');
+    await click('purge-' + f.v2_quarantine_list.cards[0].quarantine_id); await click('purge-confirm');
+    await wait('window.__waterTest.calls.some(x=>x.command==="quarantine_progress")', 'UI_V2_QUARANTINE');
+    await click('nav-home'); await wait('document.querySelector("[data-key=home-reveal]")', 'UI_V2_QUARANTINE');
+    const reveals = await callCount('quarantine_reveal'), states = await callCount('app_state');
+    await control(`c.purgeView=${JSON.stringify(purgeView)};c.holdNextQuarantine=true`);
+    await click('home-reveal'); await wait('window.__waterTest.quarantineHeld', 'UI_V2_QUARANTINE');
+    await control('c.purge=1'); await wait(`window.__waterTest.calls.filter(x=>x.command==="app_state").length>${states}`, 'UI_V2_QUARANTINE');
+    await control('c.releaseQuarantine()'); await wait('window.__waterTest.quarantineReleased', 'UI_V2_QUARANTINE');
+    if (purgeView.roots.length === 1) {
+      await wait(`window.__waterTest.calls.filter(x=>x.command==="quarantine_reveal").length>${reveals}`, 'UI_V2_QUARANTINE');
+      assert.deepEqual((await lastCall('quarantine_reveal')).args, {targetId:purgeView.roots[0].target_id}, 'UI_V2_QUARANTINE: open folder still finishes on the newer view after a purge ends mid-read');
+    } else if (purgeView.roots.length) {
+      await wait('document.querySelector("dialog[open] [data-key^=root-open-]")', 'UI_V2_QUARANTINE');
+      assert.deepEqual(await evalJs('[...document.querySelectorAll("dialog[open] [data-key^=root-open-]")].map(n=>n.dataset.key)'), purgeView.roots.map(r => 'root-open-' + r.target_id), 'UI_V2_QUARANTINE: several roots after a purge open the chooser on the newer view');
+      await click('root-open-' + purgeView.roots[0].target_id);
+      assert.deepEqual((await lastCall('quarantine_reveal')).args, {targetId:purgeView.roots[0].target_id}, 'UI_V2_QUARANTINE: chooser opens the chosen root');
+    } else {
+      await pause(100);
+      assert(await evalJs('!document.querySelector("dialog[open]") && document.querySelector("#notice").hidden'), 'UI_V2_QUARANTINE: no roots left means no empty chooser and no error');
+      assert.equal(await callCount('quarantine_reveal'), reveals, 'UI_V2_QUARANTINE: nothing to open once every root is gone');
+    }
+  }
+});
+
+test('ui_v2_pages_layout_a11y', async () => {
+  await reset({}, 'trends'); await wait('document.querySelector("[data-key=trend-scan]")'); await shot('trends'); await checkPrimary();
+  assert(await evalJs('document.body.textContent.includes("仍在长") && document.body.textContent.includes("已止住") && document.body.textContent.includes("疑似")'), 'UI_V2_PAGES: all cluster states');
+  await click('cluster-' + f.v2_trends.clusters[0].group_id); await menuItem('标记为已修'); assert.equal((await lastCall('cluster_mark_fixed')).args.fixed, true, 'UI_V2_PAGES: mark fixed');
+  await click('nav-history'); await pageIs('history'); await wait('document.querySelector(".heatmap")'); await shot('history'); await checkPrimary();
+  assert(await evalJs('document.querySelector(".eyebrow").textContent.includes("每一次体检与清理，都有迹可循。")'), 'UI_V2_PAGES: frozen history text');
+  const dayTip = await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title');
+  for (const e of f.v2_history.filter(e=>e.at.startsWith('2026-11-02'))) assert(dayTip.includes(e.summary_zh), 'UI_V2_PAGES: heatmap retains each same-day entry');
+  // The history list arrives while the test holds it, so the redraw with an unreadable time runs under a bounded probe.
+  const unreadable = [{...f.v2_history[0], id:'unreadable-time', at:'not-a-time', summary_zh:'时间读不出的记录'}, ...f.v2_history];
+  await control(`c.history=${JSON.stringify(unreadable)};c.holdNext="history_list"`);
+  await click('nav-trends'); await pageIs('trends'); await click('nav-history'); await wait('window.__waterTest.held==="history_list"', 'UI_W12_FIXES');
+  let drawn = await bounded('(window.__waterTest.release(), true)');
+  for (let i = 0; drawn === true && i < 40; i++) { const seen = await bounded('!!document.querySelector("[data-key=history-unreadable-time]") && document.querySelectorAll(".heat").length>0'); if (seen !== false) drawn = seen === true ? 'drawn' : seen; else await pause(25); }
+  assert.equal(drawn, 'drawn', 'UI_W12_FIXES: the heatmap finishes drawing when one history time cannot be read');
+  assert(await evalJs('[...document.querySelectorAll(".heat")].every(x=>!x.title.includes("NaN") && !x.title.includes("时间读不出的记录")) && document.querySelectorAll(".heat.latest").length===1'), 'UI_W12_FIXES: the unreadable entry is skipped and the newest readable day stays latest');
+  assert.equal(await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title'), dayTip, 'UI_W12_FIXES: readable days draw as before');
+  const newTrends = structuredClone(f.v2_trends); newTrends.clusters.push({group_id:'leak:0f3e5a77c1d2b9e4', title_zh:'haste-map-*', rate_zh:'最近 14 天新增 5 个', state:'new', fixed_at:null, clue_id:null, copy_text:null});
+  await control(`c.trends=${JSON.stringify(newTrends)}`); await click('nav-trends'); await wait('document.body.textContent.includes("haste-map-*")', 'UI_W12_FIXES');
+  assert.deepEqual(await evalJs('(()=>{const t=[...document.querySelectorAll(".row")].find(r=>r.textContent.includes("haste-map-*")).querySelector(".tag");return [t.textContent,t.classList.contains("hot")]})()'), ['新发现', false], 'UI_W12_FIXES: a never-compared cluster is tagged 新发现 without the hot colour');
+  await click('nav-settings'); await wait('document.querySelector("[data-key=session-claude-code]")'); await shot('settings'); await checkPrimary();
+  await click('session-claude-code'); assert.equal((await lastCall('locations_set_session_cleanup')).args.enabled, true, 'UI_V2_PAGES: session toggle');
+  await click('settings-skip'); await wait('document.querySelector("[data-key^=skip-remove-]")');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row")].map(r=>[r.querySelector("strong").textContent,r.querySelector(".sub").textContent])'), (await evalJs(`import('/format.mjs').then(m=>${JSON.stringify(f.w12_locations.skipped.map(x => x.added_at))}.map(value=>m.dateOnly(value)))`)).map((day, i) => [f.w12_locations.skipped[i].display_zh, `加入于 ${day}`]), 'UI_W12_SKIP: the skip list shows display_zh and the localized date it was added');
+  await shot('settings-skip');
+  const emptyReads = await callCount('conclusion_get');
+  await click('skip-remove-s-000001'); assert.equal((await lastCall('skip_remove')).args.skipId, 's-000001', 'UI_V2_PAGES: remove skip ID');
+  await wait('!document.querySelector("[data-key=skip-remove-s-000001]")', 'UI_W13_FRESH');
+  assert.equal(await callCount('conclusion_get'), emptyReads, 'UI_W13_FRESH: removing a skip before loading a conclusion does not fetch one');
+  await click('settings-decl'); await wait('document.querySelector("[data-key^=trust-]")'); await shot('settings-decl');
+  const trust = f.v2_locations.manifests.find(m=>m.state==='untrusted'); await click('trust-' + trust.manifest_id); assert.deepEqual((await lastCall('manifest_trust')).args, {manifestId:trust.manifest_id, trusted:true}, 'UI_V2_PAGES: trust declaration');
+  await click('settings-about'); await wait('document.body.textContent.includes("可重新下载不等于可回滚")');
+  await wait('document.querySelector("[data-key=about-copy-homepage]")', 'UI_W12_ABOUT');
+  const info = f.w12_app_info;
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".about-info .row strong")].map(n=>n.textContent)'), [`Flick ${info.version}`, `许可证 ${info.license}`, `项目地址 ${info.homepage}`], 'UI_W12_ABOUT: the three lines come from app_info');
+  await shot('settings-about'); await checkPrimary();
+  await click('about-copy-homepage'); assert.equal(await control('return c.clipboard.at(-1)'), info.homepage, 'UI_W12_ABOUT: 复制 copies the project address');
+  const copies = await control('return c.clipboard.length'); await click('about-copy-diagnostics');
+  await wait(`window.__waterTest.clipboard.length>${copies}`, 'UI_W12_ABOUT');
+  const diagnostics = await control('return c.clipboard.at(-1)'), agent = await evalJs('navigator.userAgent');
+  assert.equal(diagnostics.split('\n')[0], 'Flick 诊断信息', 'UI_W12_ABOUT: diagnostics start with their title line');
+  assert.equal(diagnostics, `Flick 诊断信息\n${JSON.stringify({app:info, platform:agent, service:f.w12_diagnostics}, null, 2)}`, 'UI_W12_ABOUT: diagnostics are app_info, the platform and diagnostics_get as JSON');
+  await reset({locations:'v2_locations'}, 'settings/skip'); await wait('document.querySelector("[data-key^=skip-remove-]")', 'UI_W12_SKIP');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row strong")].map(n=>n.textContent)'), f.v2_locations.skipped.map(x => x.display_path), 'UI_W12_SKIP: without display_zh the skip list falls back to display_path');
+  const skippedConclusion = structuredClone(f.v2_conclusion_typical); skippedConclusion.cards.shift();
+  await results({conclusion:skippedConclusion});
+  await click('nav-settings'); await wait('document.querySelector("[data-key=settings-skip]")', 'UI_W13_FRESH'); await click('settings-skip'); await wait('document.querySelector("[data-key=skip-remove-s-000001]")', 'UI_W13_FRESH');
+  const skipReads = await callCount('conclusion_get');
+  await control(`c.nextConclusion=${JSON.stringify(f.v2_conclusion_typical)}`);
+  await click('skip-remove-s-000001'); await wait('!document.querySelector("[data-key=skip-remove-s-000001]") && !document.querySelector("[data-key=skip-remove-s-000002]:disabled")', 'UI_W13_FRESH');
+  assert.equal(await callCount('conclusion_get'), skipReads + 1, 'UI_W13_FRESH: removing a skip rereads the conclusion exactly once');
+  assert.deepEqual((await control('return c.calls.slice(-2)')).map(x => x.command), ['skip_remove', 'conclusion_get'], 'UI_W13_FRESH: the conclusion is fetched after skip removal succeeds');
+  await click('nav-home'); await pageIs('results');
+  assert.equal(await evalJs('document.body.textContent.includes("结果已过期 · 重新体检")'), false, 'UI_W13_FRESH: removing a skip does not mark the conclusion stale');
+  assert.equal(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled'), false, 'UI_W13_FRESH: cleanup remains available after removing a skip');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".judgment")].map(n=>n.dataset.card)'), f.v2_conclusion_typical.cards.map(c=>c.card_id), 'UI_W13_FRESH: the restored card is drawn from the new conclusion');
+  await click('clean-prepare');
+  assert.equal((await lastCall('clean_prepare')).args.conclusionVersion, 'cv-16Z-5d2b-2', 'UI_W13_FRESH: cleanup uses the refreshed conclusion version'); await key('Escape');
+  await click('nav-settings'); await wait('document.querySelector("[data-key=settings-skip]")', 'UI_W13_FRESH'); await click('settings-skip'); await wait('document.querySelector("[data-key=skip-remove-s-000002]")', 'UI_W13_FRESH');
+  await control('c.noConclusion=true');
+  const missingReads = await callCount('conclusion_get');
+  await click('skip-remove-s-000002'); await wait('!document.querySelector("[data-key=skip-remove-s-000002]")', 'UI_W13_FRESH');
+  assert.equal(await callCount('conclusion_get'), missingReads + 1, 'UI_W13_FRESH: a missing conclusion is checked once after removal');
+  await click('nav-home'); await pageIs('home');
+  assert(await evalJs('document.querySelector("#notice").hidden && !document.querySelector("[data-key=scan-start]").disabled'), 'UI_W13_FRESH: not_found returns to usable home without an error or the cached conclusion');
+  for (const [old, dest] of [['results', 'home'], ['locations', 'settings/content'], ['about', 'settings/about']]) { await evalJs(`location.hash=${JSON.stringify(old)}`); await wait(`location.hash===${JSON.stringify('#' + dest)}`, 'UI_V2_PAGES'); }
+  await results(); await detail('codex-runtimes');
+  await key('Tab', true); assert(await evalJs('document.querySelector("dialog").contains(document.activeElement)'), 'UI_V2_PAGES: backward focus stays in dialog');
+  await key('Escape'); assert(!(await evalJs('!!document.querySelector("dialog[open]")')), 'UI_V2_PAGES: escape closes drawer');
+  await evalJs('document.querySelector("[data-group=codex-runtimes]").focus()'); await key('Enter'); await wait('window.__waterTest.calls.some(x=>x.command==="conclusion_decide")'); assert.equal((await lastCall('conclusion_decide')).args.decision.choice, 'clean', 'UI_V2_PAGES: enter chooses clean');
+  await results(); await evalJs('document.querySelector("[data-group=codex-runtimes]").focus()'); await key('Delete'); assert.equal((await lastCall('conclusion_decide')).args.decision.choice, 'keep', 'UI_V2_PAGES: delete chooses keep');
+  await results(); await click('card-menu-codex-runtimes'); await key('ArrowDown'); assert.equal(await evalJs('document.activeElement.getAttribute("role")'), 'menuitem', 'UI_V2_PAGES: menu arrows'); await key('Escape');
+  await browser.size(1040, 720);
+  for (const route of ['home', 'quarantine', 'trends', 'history', 'settings/content', 'settings/skip', 'settings/decl', 'settings/about']) { await reset({}, route); await noOverflow(); await checkPrimary(); }
+  await browser.size(1240, 820);
+  const css = readFileSync(join(ui, 'styles/app.css'), 'utf8'), tokens = readFileSync(join(ui, 'styles/tokens.css'));
+  assert(!css.includes('--w-'), 'UI_V2_PAGES: no old token references'); assert.deepEqual(tokens, readFileSync(join(root, 'docs/design/water-ui-v3/tokens.css')), 'UI_V2_PAGES: v3 tokens exact');
+  await reset({unavailable:true}); assert(await evalJs('document.body.textContent.includes("无法连接 Flick 服务")'), 'UI_V2_PAGES: unavailable state');
+  await browser.send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion', value:'reduce'}]}); await reset(); assert.equal(await evalJs('getComputedStyle(document.querySelector(".btn")).transitionDuration'), '0s', 'UI_V2_PAGES: reduced motion');
+  await safeCalls();
+  await results(); await click('nav-settings'); await wait('document.querySelector("[data-key=setting-browser]")');
+  await click('setting-browser'); await click('nav-home'); await pageIs('results');
+  assert(!(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled')), 'UI_V2_PAGES: category preference does not expire the current conclusion');
+  const negativeTrends = structuredClone(f.v2_trends); negativeTrends.forecast.find(x => x.root.startsWith('F:')).bytes_per_day = '-1073741824';
+  negativeTrends.forecast.find(x => x.root.startsWith('F:')).days_to_full = 2;
+  for (const data of [f.v2_trends, negativeTrends]) {
+    await reset({trends:data}, 'trends'); await wait('document.querySelector("[data-key=trend-scan]")');
+    assert(!(await evalJs('document.querySelector(".proportions").textContent')).includes('F 盘'), 'UI_V2_PAGES: no fabricated daily bytes for null or nonpositive forecast');
+    assert(await evalJs(`document.body.textContent.includes(${JSON.stringify(data.forecast.find(x=>x.root.startsWith('F:')).note_zh)})`), 'UI_V2_PAGES: forecast explanation displayed');
+  }
+  await browser.send('Emulation.setTimezoneOverride', {timezoneId:'Asia/Tokyo'});
+  try {
+    const entry = {...f.v2_history[0], id:'local-midnight', at:'2026-11-02T15:30:00Z', summary_zh:'本地零点后的清理'};
+    await reset({history:[entry]}, 'history'); await wait('document.querySelector(".heatmap")');
+    const expected = await evalJs(`import('/format.mjs').then(m=>m.localDateKey(${JSON.stringify(entry.at)}))`);
+    assert.notEqual(expected, entry.at.slice(0, 10), 'UI_V2_PAGES: controlled timezone covers the date boundary');
+    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.title.startsWith(${JSON.stringify(expected)}) && x.title.includes(${JSON.stringify(entry.summary_zh)}))`), 'UI_V2_PAGES: heat cell uses the same local date as list formatting');
+  } finally { await browser.send('Emulation.setTimezoneOverride', {timezoneId:''}); }
+  await finishedDedupe();
+  const missingName = f.v2_dedupe_result.groups[3].name_zh;
+  assert((await evalJs('(()=>{const chart=document.querySelector(".treemap").cloneNode(true);chart.querySelectorAll("title").forEach(n=>n.remove());return chart.textContent})()')).includes(missingName), 'UI_V2_PAGES: narrow treemap tile has a visible name outside its tooltip');
+  await browser.size(1040, 720); await reset();
+  assert.equal(await evalJs('getComputedStyle(document.querySelector(".location-list")).scrollbarWidth'), 'thin', 'UI_V2_PAGES: home location scrollbar matches v3');
+  await browser.size(1240, 820);
+  await browser.send('Emulation.setTimezoneOverride', {timezoneId:'America/Santiago'});
+  try {
+    const dst = [{...f.v2_history[0], id:'dst-after', at:'2026-09-08T15:00:00Z', summary_zh:'夏令时之后的清理'}, {...f.v2_history[0], id:'dst-before', at:'2026-09-03T15:00:00Z', summary_zh:'夏令时之前的清理'}];
+    await reset({history:dst}, 'history'); await wait('document.querySelector(".heatmap")');
+    const latest = await evalJs(`import('/format.mjs').then(m=>m.localDateKey(${JSON.stringify(dst[0].at)}))`);
+    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.title.startsWith(${JSON.stringify(latest)}) && x.classList.contains('latest') && x.title.includes(${JSON.stringify(dst[0].summary_zh)}))`), 'UI_V2_PAGES: a midnight skipped by DST still leaves a latest cell for the newest day');
+    const keys = await evalJs('[...document.querySelectorAll(".heat")].map(x=>x.title.slice(0,10))'), day = key => Date.parse(key + 'T00:00:00Z');
+    assert(new Date(day(keys[0])).getUTCDay() === 1 && keys.at(-1) === latest && keys.every((key, i) => !i || day(key) - day(keys[i - 1]) === 86400000), 'UI_V2_PAGES: heat cells cover every local day from Monday to the newest, none missing or repeated');
+  } finally { await browser.send('Emulation.setTimezoneOverride', {timezoneId:''}); }
+  for (const language of ['zh', 'en']) for (const [width, height] of [[1240, 820], [1040, 720]]) {
+    const wide = width === 1240, options = {language, progress:true};
+    await browser.size(width, height);
+    const inspect = async name => { await oneScreen(`${language} ${width} ${name}`); if (language === 'en') await englishPage(name); };
+    await reset(options); await inspect('home');
+    if (language === 'en') await shot('home', !wide);
+    await click('scan-start'); await pageIs('scan'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS'); await inspect('scan');
+    if (language === 'en') await shot('scan', !wide);
+    for (const [index, label, percent] of [[1,'Measuring the whole drive',82],[2,'Putting the results together',95]]) {
+      await control(`c.scan=${index}`); await wait(`document.querySelector('.dial-value')?.textContent==='${percent}%'`, 'UI_W14_PROGRESS');
+      if (language === 'en') assert.equal(await evalJs('document.querySelector("h1").textContent'), label, 'UI_W14_PROGRESS: English phase');
+      await inspect('scan phase'); if (language === 'en' && wide) await shot(index === 1 ? 'scan-space' : 'scan-finishing');
+    }
+    await control('c.scan=3'); await pageIs('results'); await inspect('results');
+    if (language === 'en' || !wide) await shot('results', !wide);
+    if (language === 'en' && wide) {
+      await click('copy-' + f.v2_conclusion_typical.clues[0].clue_id);
+      assert.equal(await control('return c.clipboard.at(-1)'), english[f.v2_conclusion_typical.clues[0].copy_text], 'UI_W14_EN: copy the exact English lead');
+      await detail('codex-runtimes'); await englishPage('drawer'); await shot('drawer'); await key('Escape');
+      await click('details-open'); await pageIs('details'); await click('section-dev_cache'); await englishPage('details'); await shot('details'); await click('details-back'); await pageIs('results');
+    }
+    await click('clean-codex-runtimes'); await wait('!!document.querySelector(".decided-text")');
+    await click('clean-prepare'); await wait('!!document.querySelector("dialog[open] [data-key=confirm-start]")'); await inspect('confirm');
+    if (language === 'en' && wide) await shot('confirm');
+    await click('confirm-start'); await pageIs('cleaning'); await wait('!!document.querySelector("[data-key=clean-stop]")'); await inspect('cleaning');
+    if (language === 'en' && wide) await shot('cleaning');
+    await control('c.clean=2'); await pageIs('done'); await inspect('done'); if (language === 'en' && wide) await shot('done');
+    for (const [route, ready, name] of [['quarantine','[data-quarantine]','quarantine'],['trends','[data-key=trend-scan]','trends'],['history','.heatmap','history'],['settings/content','[data-key=setting-browser]','settings'],['settings/language','[data-key=language]','settings-language'],['settings/about','[data-key=about-copy-homepage]','settings-about']]) {
+      await evalJs(`location.hash=${JSON.stringify(route)}`); await wait(`!!document.querySelector(${JSON.stringify(ready)})`); await inspect(name);
+      if (wide && (language === 'en' || name === 'settings-language')) await shot(name);
+    }
+    if (language === 'en' && wide) {
+      await finishedDedupe({language:'en'}); await englishPage('dedupe'); await shot('dedupe');
+      await evalJs('localStorage.removeItem("flick.intro.v1")'); await reset({language:'en',intro:'fresh'}); await pageIs('intro'); await englishPage('intro'); await shot('intro'); await click('intro-start');
+      await evalJs('location.hash="settings/language"'); await wait('!!document.querySelector("[data-key=language]")');
+      const scans = await callCount('scan_start'); await switchLanguage('zh');
+      assert.equal(await evalJs('document.title'), 'Flick · 磁盘体检', 'UI_W14_EN: title switches immediately');
+      assert.equal(await evalJs('document.querySelector("[data-key=nav-home] span").textContent'), '体检', 'UI_W14_EN: navigation switches immediately');
+      await switchLanguage('en'); await englishPage('switched back');
+      assert.equal(await callCount('scan_start'), scans, 'UI_W14_EN: switching does not start another checkup');
+      assert.equal(await evalJs('localStorage.getItem("flick.language.v1")'), 'en', 'UI_W14_EN: choice persists');
+      await reset({preserveLanguage:true}); assert.equal(await evalJs('document.title'), 'Flick · Disk checkup', 'UI_W14_EN: saved choice survives a new launch');
+      await reset({language:'system', systemLanguage:'en-GB'}); await englishPage('system English');
+      await reset({language:'system', systemLanguage:'zh-TW'}); assert.equal(await evalJs('document.documentElement.lang'), 'zh-CN', 'UI_W14_EN: host language takes priority');
+      // Explicit legacy exception: a stored history entry with no English sibling.
+      const legacy = {...f.v2_history[0], summary_zh:'旧记录只有中文', summary_en:'旧记录只有中文'};
+      await reset({language:'en',history:[legacy]}, 'history'); await wait('!!document.querySelector(".heatmap")'); await englishPage('legacy record', ['旧记录只有中文']);
+    }
+  }
+  await browser.size(1240, 820);
+});

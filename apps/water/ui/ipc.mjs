@@ -1,4 +1,5 @@
-const invalid = () => ({code:'invalid', message_zh:'所选内容无法清理，请重新选择。'});
+import {strings} from './views/strings.mjs';
+const invalid = () => ({code:'invalid', message_zh:strings.zh.invalidSelection, message_en:strings.en.invalidSelection});
 function id(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._-]{0,255}$/.test(value) || (/^[A-Za-z]:/.test(value) && !/^(m:[a-z0-9._-]+|r:[a-f0-9]{16})$/.test(value))) throw invalid();
   return value;

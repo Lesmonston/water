@@ -1,0 +1,665 @@
+{
+  "task": "WATER-W14-U1",
+  "mode": "browser",
+  "finalGate": false,
+  "manifest": "docs/dispatch/wave14/manifest.json",
+  "startedAt": "2026-11-08T09:15:44.630Z",
+  "realDataRead": false,
+  "productTestsRun": true,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Program Files\\nodejs\\node.exe",
+      "argv": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "apps/water/ui/tests/browser.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T09-15-44.629Z-2404-browser-1.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "apps/water/ui/app.mjs",
+    "apps/water/ui/format.mjs",
+    "apps/water/ui/index.html",
+    "apps/water/ui/ipc.mjs",
+    "apps/water/ui/model.mjs",
+    "apps/water/ui/styles/app.css",
+    "apps/water/ui/tests/browser.test.mjs",
+    "apps/water/ui/tests/fixtures-en.json",
+    "apps/water/ui/tests/unit.test.mjs",
+    "apps/water/ui/views/about.mjs",
+    "apps/water/ui/views/charts.mjs",
+    "apps/water/ui/views/cleaning.mjs",
+    "apps/water/ui/views/common.mjs",
+    "apps/water/ui/views/confirm.mjs",
+    "apps/water/ui/views/dedupe.mjs",
+    "apps/water/ui/views/detail.mjs",
+    "apps/water/ui/views/done.mjs",
+    "apps/water/ui/views/history.mjs",
+    "apps/water/ui/views/home.mjs",
+    "apps/water/ui/views/intro.mjs",
+    "apps/water/ui/views/locations.mjs",
+    "apps/water/ui/views/quarantine.mjs",
+    "apps/water/ui/views/results.mjs",
+    "apps/water/ui/views/scan.mjs",
+    "apps/water/ui/views/strings.mjs",
+    "apps/water/ui/views/trends.mjs"
+  ],
+  "before": {
+    "head": "f0915570cbc2ea1c7dee03e10fed1d5e0a97d87e",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "apps/water/ui/.gitattributes",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-0.txt",
+        "sha256": "5cc80342beda57a939d17b28e92712c5625e1e1c8b307c205c80ec2d5ebea5aa",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/README.md",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-1.txt",
+        "sha256": "7e01bc53b4b40e813de91578fa990e5348cab557bae6050e0f49b2ad8d270fa2",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/app.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-2.txt",
+        "sha256": "69b6224239ceacff89eb5003019a02e019d17d66b4b6f5bf75833a5cdce3e577",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/format.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-3.txt",
+        "sha256": "260c74bae1b9b589d0ba1ea5dad3aac487b83d34db8a9a1a2b284d6134551a78",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/index.html",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-4.txt",
+        "sha256": "931d9e8253f73fba3f6853ca50d669978f8ea919736585fd621be304d86f82c7",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/ipc.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-5.txt",
+        "sha256": "2552b237b47d67734e0df836a874010ea7901898a8bf8f23a35ff4db10ff170c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/model.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-6.txt",
+        "sha256": "eb818199802c708647ad6d013f4e58197f439342c63f350af1da98d62c8e21f0",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/app.css",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-7.txt",
+        "sha256": "b156b4907131fd839dfbf4322272f649247580fca714e36b343a4babd263998a",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/styles/tokens.css",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-8.txt",
+        "sha256": "2850d65eb9e51eedcfc319850ce92b000184f39766499aa7d84de757223f2697",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/browser.test.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-9.txt",
+        "sha256": "9359c96a3444ddba2bf45ed8788fbd8278b14f1737f89199f14483aa1fe853ca",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/tests/fixtures-en.json",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-10.txt",
+        "sha256": "3cddd77ad72801ff2e84aecd7c0d39dd56d34a1d7ee418ca37b3b60f5e615e0f",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/tests/unit.test.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-11.txt",
+        "sha256": "ee5fc3784fc3c55b281537714af48adeae6994edfe3c32b84c7c9297165f4cb8",
+        "test": true
+      },
+      {
+        "path": "apps/water/ui/views/about.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-12.txt",
+        "sha256": "a94bdeb49cbcbc504269008bb03caf7e759dbf8e63f0052fb98b9e6f51d36bc2",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/charts.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-13.txt",
+        "sha256": "0e0687035b6e2c4eec48db7c28f703dd9b2050a716141e80719aaa8072bdb40c",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/cleaning.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-14.txt",
+        "sha256": "7520f837f1ad78a9950ced7c66877e13073f51049ed895f153c8ea4dd523e56a",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/common.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-15.txt",
+        "sha256": "da908af09823a05a0a600a1ecd1114f312dbe771661a242939775e42929cae0b",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/confirm.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-16.txt",
+        "sha256": "7dd7fa1f415c05ced043ff31c5f6faaff19d719f1e230fe977386571bbba024b",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/dedupe.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-17.txt",
+        "sha256": "fe0f21f7b11b73f820221b7eeb564fb7ebe0036c1196622c01c41f305703debb",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/detail.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-18.txt",
+        "sha256": "f195bcc3394fda98e84c4ce27801bc8a15535cc96cbeec6d4944a2997aaeeaad",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/done.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-19.txt",
+        "sha256": "4e6378ee9bf0ad1a7b03f445e7dda4329afa04fc67b80965195257cd214defc9",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/history.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-20.txt",
+        "sha256": "c82e78f391d96d7cb328dbe2bbb199efbaddc3f0d63442b0f6bcf34f7d7396bc",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/home.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-21.txt",
+        "sha256": "d4005bef53d24a23956eeff7b7014b0d7b3708f0139b0cab8a3dbb0874760d28",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/intro.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-22.txt",
+        "sha256": "0cf351975a33dc6e5a9fb8f5ff087c5a6adcc04909f4f73bbd0132cf355ee0fb",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/locations.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-23.txt",
+        "sha256": "9ca3bc96a5907588e09a871add99d9119c94d8d05f3cc063b50299c163f313e0",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/quarantine.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-24.txt",
+        "sha256": "03c7fbe934d2399b4282f1368c1dc57e4c43c9981e767123562399681ee7144e",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/results.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-25.txt",
+        "sha256": "fe2173a7433200118f58e3a64c6747a133191c6f5cadbfff1466ace790e9f254",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/scan.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-26.txt",
+        "sha256": "91cc0ea23d8b1054200a34a0403f40320c5af99e8783e4e919f60e8224b2b2fa",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/strings.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-27.txt",
+        "sha256": "9f7a89e48dabf7e14b9b353a997c854f7903484457d46aab260e1e7736de5320",
+        "test": false
+      },
+      {
+        "path": "apps/water/ui/views/trends.mjs",
+        "snapshot": "2026-11-08T09-15-44.629Z-2404-browser-source-28.txt",
+        "sha256": "e102ba9fe4a267805fb33cd478a4b241dc7b848161fdb9170a41433978013f3d",
+        "test": false
+      }
+    ],
+    "productionHash": "594bcd42d091cc4662029379596038a76f9b316da4910f9c6b159250035ba89d",
+    "testHash": "4cff2da2e505abfe30c9b67ef824787c01cc01a8e8b7195029b8765eaf513d78"
+  },
+  "uiFiles": 29,
+  "browserUsed": true,
+  "screenshots": {
+    "dir": ".local/checks/WATER-W14-U1/2026-11-08T09-15-44.629Z-2404-browser-shots",
+    "files": [
+      {
+        "name": "v4-en-cleaning-1240x820.png",
+        "bytes": 45522,
+        "sha256": "f370e73219fef413b0d85dc3d5bdc0cb0b14f2edd8b0ed0142c2fd71bdf1f5c1"
+      },
+      {
+        "name": "v4-en-confirm-1240x820.png",
+        "bytes": 159599,
+        "sha256": "f31d3991c509036d211e461c4ff822f1ddd48cbb344404fd911f8ae4c61b0b02"
+      },
+      {
+        "name": "v4-en-dedupe-1240x820.png",
+        "bytes": 84154,
+        "sha256": "5b18c9b72c6cea9d6b83ceb8037ca3eec4867313f5c1fff0447316a24f5d975b"
+      },
+      {
+        "name": "v4-en-details-1240x820.png",
+        "bytes": 65839,
+        "sha256": "bb11736e8488f94dbc64494d6435c3d65adadb42afbd9e34dc11e7e9182b930f"
+      },
+      {
+        "name": "v4-en-done-1240x820.png",
+        "bytes": 81263,
+        "sha256": "a8ca2809ff0081b1250085f38de184ec3c2b63aa9ec1e4651a5bd9e4199cf642"
+      },
+      {
+        "name": "v4-en-drawer-1240x820.png",
+        "bytes": 150437,
+        "sha256": "edf1d671f349c59018ad1ffbc4ca01c3a174085ca2b4fa61059616ecc6f6a5e3"
+      },
+      {
+        "name": "v4-en-history-1240x820.png",
+        "bytes": 82190,
+        "sha256": "727a7e13a0e5f8c7a3f66eb4834dfc4953d3870da5a43129a06c9d03b3ee0003"
+      },
+      {
+        "name": "v4-en-home-1040x720.png",
+        "bytes": 89070,
+        "sha256": "0268968d5bc993799fd6cd3c068cece7419e979a428878b5ea1352c34b0b59f7"
+      },
+      {
+        "name": "v4-en-home-1240x820.png",
+        "bytes": 102777,
+        "sha256": "b903529617d6da3b6371921796f997e029c35d90af32f577af4b5ec12ccefafa"
+      },
+      {
+        "name": "v4-en-intro-1240x820.png",
+        "bytes": 31755,
+        "sha256": "60f753246938d137ef233d789b1fa12d2beb4267e9ff2d6ff7145e0e929e4fda"
+      },
+      {
+        "name": "v4-en-quarantine-1240x820.png",
+        "bytes": 69232,
+        "sha256": "efced892bbaae03569d4094072374ee0a4cc7a3f5d73cf9834a411fdcecc6160"
+      },
+      {
+        "name": "v4-en-results-1040x720.png",
+        "bytes": 121751,
+        "sha256": "d66c8b6c45adb7993fc79bee25e87998dbd290129c0352f985113727646a5446"
+      },
+      {
+        "name": "v4-en-results-1240x820.png",
+        "bytes": 153554,
+        "sha256": "d216c1a556446571071bd1661f3cb13a29118f6f12a0160e579d75ff3a416f1e"
+      },
+      {
+        "name": "v4-en-scan-1040x720.png",
+        "bytes": 60908,
+        "sha256": "3957d786952cefd043b29b80089beddc070c5245795e743ad5e2e71dad9a55b4"
+      },
+      {
+        "name": "v4-en-scan-1240x820.png",
+        "bytes": 66568,
+        "sha256": "07047f7ebbe8d58bc7219a607ac256d589431030ec63e7c769bb0b89ba8c234e"
+      },
+      {
+        "name": "v4-en-scan-finishing-1240x820.png",
+        "bytes": 66554,
+        "sha256": "020d4a28859a3ba2322b8f65bda77efba3a9a68cde823737d48e6d4be0ee7701"
+      },
+      {
+        "name": "v4-en-scan-space-1240x820.png",
+        "bytes": 70797,
+        "sha256": "d2324b9378e49a6251cd107e0a5926a7fe71b1b9f382e7f322635ce33617685d"
+      },
+      {
+        "name": "v4-en-settings-1240x820.png",
+        "bytes": 113964,
+        "sha256": "4770946776ec36145123504509f29d19857c951b21e37beae5e478b13f30843d"
+      },
+      {
+        "name": "v4-en-settings-about-1240x820.png",
+        "bytes": 97912,
+        "sha256": "915dcb7878cc4b9db9854826e17d9e1de16f7ad0189a9204e0991c0339448376"
+      },
+      {
+        "name": "v4-en-settings-language-1240x820.png",
+        "bytes": 53012,
+        "sha256": "9eb6a0f27df58b0d2e425df4a7b79323685835bdb84a0a51184c65472863d9a3"
+      },
+      {
+        "name": "v4-en-trends-1240x820.png",
+        "bytes": 81231,
+        "sha256": "d83aa0ab51bdda78059c20adedf68d8614e0fcf8e9bf860882e02f589432f0a4"
+      },
+      {
+        "name": "v4-zh-cleaning-1240x820.png",
+        "bytes": 41263,
+        "sha256": "4031a1fef4f16d57c4b12bc1e4ebc6188e783f7af7c2e9c021a4c57181f81068"
+      },
+      {
+        "name": "v4-zh-confirm-1240x820.png",
+        "bytes": 146071,
+        "sha256": "9a2fddb0c9a1b683de72674a220d758651c6453867150f6a2144ef786610300f"
+      },
+      {
+        "name": "v4-zh-confirm-direct-1240x820.png",
+        "bytes": 146349,
+        "sha256": "27034ff681aece22249fef13ebd2f05e5e300ffc0c863eadcbe75d0e1af8ab8c"
+      },
+      {
+        "name": "v4-zh-dedupe-1240x820.png",
+        "bytes": 85856,
+        "sha256": "e05cdf7bed6dedffd1f895ba39c07cbe7cc35ae079d6a29578f1544ed7f5a254"
+      },
+      {
+        "name": "v4-zh-dedupe-intro-1240x820.png",
+        "bytes": 92872,
+        "sha256": "b9e8d6868044ed80025504a86739732d5bf28e195b22c7fe7b4aabb9ad0b4030"
+      },
+      {
+        "name": "v4-zh-dedupe-menu-1240x820.png",
+        "bytes": 90331,
+        "sha256": "9d7a12b380314fc1f8f3652c80d486577b7bf80b7e57c12e0006a12ceab521b6"
+      },
+      {
+        "name": "v4-zh-details-1240x820.png",
+        "bytes": 54761,
+        "sha256": "6a801c36639bd2c0058622efd3ec60b1faee60e302696496b3c69c08d9769421"
+      },
+      {
+        "name": "v4-zh-done-1240x820.png",
+        "bytes": 68070,
+        "sha256": "4829a89c3b6b5b918b02ace707d8cb8bf30b566d3bc93a242874148196bce380"
+      },
+      {
+        "name": "v4-zh-drawer-1240x820.png",
+        "bytes": 135009,
+        "sha256": "832fe9d7227c1de723e63214a6944307f20b7714561645e9da1151b5ff480613"
+      },
+      {
+        "name": "v4-zh-drawer-big-1240x820.png",
+        "bytes": 133530,
+        "sha256": "8ed31b45b52f593564321c6e9bed6ada41de5a9a8accc06d3dcb34b3e21c1b3c"
+      },
+      {
+        "name": "v4-zh-history-1240x820.png",
+        "bytes": 65579,
+        "sha256": "2853ec41d462af02aa9b45705c147d78b488f640e7af99b4d62dff309d25247f"
+      },
+      {
+        "name": "v4-zh-home-1040x720.png",
+        "bytes": 75666,
+        "sha256": "e2fbc185c8edfa30a792eec9d17a02994a0f3dfade240418eb5ce47dca06bed3"
+      },
+      {
+        "name": "v4-zh-home-1240x820.png",
+        "bytes": 87123,
+        "sha256": "aad0e38949cf59e12fe57860c247b33a56f07ca0b8b64557482233ed6f024359"
+      },
+      {
+        "name": "v4-zh-home-new-1240x820.png",
+        "bytes": 84117,
+        "sha256": "2a844362b908356d6435f81bcfc3af2bbafc676d6f4d8523c801ceac06d45281"
+      },
+      {
+        "name": "v4-zh-intro-1240x820.png",
+        "bytes": 25905,
+        "sha256": "28726ae9326fc0ec40c1a4e972cee404c89f4292e15910068c3c3606cbe41193"
+      },
+      {
+        "name": "v4-zh-menu-1240x820.png",
+        "bytes": 153782,
+        "sha256": "6dbff8db44edc8045a0a36ede0094e133bc15733156306f38e01244ff71847e9"
+      },
+      {
+        "name": "v4-zh-quarantine-1240x820.png",
+        "bytes": 60421,
+        "sha256": "ae6d381f99b2058abb7c7d3b5dddbd145a612e51c8f739257ccd8e8dc6690944"
+      },
+      {
+        "name": "v4-zh-quarantine-leftover-1240x820.png",
+        "bytes": 59717,
+        "sha256": "f3aa1830e30a95f0cb943ee2fb50d1df5507a669fd3d60bd043e336027f103e6"
+      },
+      {
+        "name": "v4-zh-results-1040x720.png",
+        "bytes": 119093,
+        "sha256": "4293f6c7ddd07383ce89f1ae70a3cacee59333bdbf1fee26b6ac2eefb531d907"
+      },
+      {
+        "name": "v4-zh-results-1240x820.png",
+        "bytes": 144434,
+        "sha256": "622d973790c9bf1e1150b6fcb1cdd1612338f762d82e80a81299668bd90f25b9"
+      },
+      {
+        "name": "v4-zh-results-decided-1240x820.png",
+        "bytes": 135244,
+        "sha256": "274207e569dbe324c077eee331bf132489ffb60d4d6a62d77b29a2301e05b7f8"
+      },
+      {
+        "name": "v4-zh-results-empty-1240x820.png",
+        "bytes": 41693,
+        "sha256": "a734166183ae4e1dae09df3402f93a39d4cb2c3342aef1de31c723922dcd3838"
+      },
+      {
+        "name": "v4-zh-results-folds-1240x820.png",
+        "bytes": 129520,
+        "sha256": "ca26e9c51c23dd9593a0068fb6325c5abd8453ec89194b88ca7c3eb359e98982"
+      },
+      {
+        "name": "v4-zh-results-replanned-1240x820.png",
+        "bytes": 146022,
+        "sha256": "eb2cab9987a475fa38786ce5b55d4c23f941de2dd53a37eecef5f9307a76f71f"
+      },
+      {
+        "name": "v4-zh-results-stale-1240x820.png",
+        "bytes": 143053,
+        "sha256": "a2f3ab29c16c7492099f5f8ca549348363b2e4c03f36761a3571359a7bc4d4f7"
+      },
+      {
+        "name": "v4-zh-scan-1040x720.png",
+        "bytes": 56056,
+        "sha256": "4af8b352a672d00ce7cd9752cf04473f4d8940b949809f78c280af8518fbf723"
+      },
+      {
+        "name": "v4-zh-scan-1240x820.png",
+        "bytes": 60088,
+        "sha256": "b0af638fcd21037af3c40a9d51c52640b1a4ecd0ca2c54718aed0e82f5e71c94"
+      },
+      {
+        "name": "v4-zh-scan-finishing-1240x820.png",
+        "bytes": 59327,
+        "sha256": "03fcb0df6115627622afae0c00e954473b317e79e211a114a4b9cc4182e549b8"
+      },
+      {
+        "name": "v4-zh-scan-space-1240x820.png",
+        "bytes": 62063,
+        "sha256": "fbb5b6084c4506870a090df3862cbca7f3cc1b1f4f81850c8d8745df92237b37"
+      },
+      {
+        "name": "v4-zh-settings-1240x820.png",
+        "bytes": 87244,
+        "sha256": "d5027b837eabf0a2d46c94770f093557fda40bd4bab5eabe625ccfc2ace8e23e"
+      },
+      {
+        "name": "v4-zh-settings-about-1240x820.png",
+        "bytes": 78649,
+        "sha256": "fd4720f707bf4328b239c491d345ef89250e49c4d963a83de2b6a89077b40f97"
+      },
+      {
+        "name": "v4-zh-settings-decl-1240x820.png",
+        "bytes": 70998,
+        "sha256": "b5838f9db133af3aa09b05a34be18256f3dfbe703f0aaeb3cd6a489964058c4f"
+      },
+      {
+        "name": "v4-zh-settings-language-1240x820.png",
+        "bytes": 42588,
+        "sha256": "e16c7b2a8b2803dc43c3c0d0ceb6e368837d087f984faf840df5a4ab5b1c8af4"
+      },
+      {
+        "name": "v4-zh-settings-skip-1240x820.png",
+        "bytes": 60910,
+        "sha256": "a6f8de6082359b71cfe31e8da329344d78d4086fd51a0a00f8e0bf1e120c1729"
+      },
+      {
+        "name": "v4-zh-trends-1240x820.png",
+        "bytes": 68571,
+        "sha256": "d8628ab019c06fe8e9c0f0ba5a66cf14ab203ff2555f9b4144f23a815aa63ab0"
+      }
+    ]
+  },
+  "after": {
+    "head": "f0915570cbc2ea1c7dee03e10fed1d5e0a97d87e",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-08T09:17:14.440Z"
+}
