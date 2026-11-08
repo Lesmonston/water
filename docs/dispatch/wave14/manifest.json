@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave14-english-progress-onescreen",
-  "status": "R1_J1_VERIFIED_U1_ADDENDUM_S1_READY",
+  "status": "R1_J1_VERIFIED_U1_ADDENDUM_S1_PART_A_J2_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -770,7 +770,7 @@
       "branch": "worker/water-w14-s1",
       "baseCommit": "5f6ff198f1822c1ae3508588d239f73c12e11533",
       "snapshotRef": "refs/tags/water-w14-s1-base-20261108",
-      "status": "DISPATCHED",
+      "status": "ADDENDUM_01_ISSUED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "every IPC *_zh has an *_en sibling (copy_text_en, message_en on IpcError), rule texts from the R1 fields, runtime sentences in English, new records store both languages, old records read with _en = _zh; logic no longer keyed on Chinese sentences; scan progress gets finishing and per-location space states, unchanged labels, found_bytes without space bytes, a monotonic percent with the W14 3.3 weights; trends test independent of real scan time",
       "report": "docs/dispatch/reports/WATER-W14-S1-REPORT.md",
@@ -882,7 +882,167 @@
       "model": null,
       "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/s1/",
       "dispatchReportedAt": "2026-11-08T10:54:21.761Z",
-      "dispatchEvidence": "user 2026-11-08: \"派重了，我停了一个，你不用管了。\" (S1 was pasted into two sessions; one stopped after committing a blocked report 414d42bf about the concurrent writer, the other continues in the same worktree)"
+      "dispatchEvidence": "user 2026-11-08: \"派重了，我停了一个，你不用管了。\" (S1 was pasted into two sessions; one stopped after committing a blocked report 414d42bf about the concurrent writer, the other continues in the same worktree)",
+      "blocked": {
+        "submittedHead": "1587c1cc780c8680d971817f4c3ce67d5508ec86",
+        "wipCommit": "78acd3b66ecb417d9fe561785313342049af63a5",
+        "earlierBlockedReport": "414d42bf (the stopped duplicate session: concurrent writer)",
+        "reason": "ScanProgress cannot tell when a target is done (throttled within-group emits, forced emits on unmatched directories, one final emit per target), so W14 3.3 \"percent by completed targets\" is not computable inside the service whitelist",
+        "controllerVerdict": "confirmed by reading packages/junk-scan/src/scan.rs and scan/streaming.rs; fixed by contract W14-ADD-01 (scanner on_root_done, J2) and a two-part S1 continuation"
+      },
+      "addenda": [
+        {
+          "id": "WATER-W14-S1-ADDENDUM-01",
+          "ticket": "docs/dispatch/tickets/WATER-W14-S1-ADDENDUM-01-20261108.md",
+          "issuedAt": "2026-11-08T11:45:14.326Z",
+          "resumeFrom": "1587c1cc780c8680d971817f4c3ce67d5508ec86",
+          "part": "A",
+          "why": "everything except the rules-stage count (W14-ADD-01 section 2): bilingual fields, old records, codes instead of Chinese sentences, six failing tests, space stage; interim rules stage (0 until scan_full returns); check and test green, no NCs, finals or archive; the hand-back head becomes the H1 base"
+        }
+      ]
+    },
+    {
+      "id": "WATER-W14-J2",
+      "title": "扫描：报“根目录走完”",
+      "status": "READY",
+      "slot": "w14-j2",
+      "kind": "rust",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w14-j2",
+      "branch": "worker/water-w14-j2",
+      "baseCommit": "a9a17310ffb65800e28e21710e3d5091cea180f3",
+      "snapshotRef": "refs/tags/water-w14-j2-base-20261108",
+      "ticket": "docs/dispatch/tickets/WATER-W14-J2-SCAN-20261108.md",
+      "report": "docs/dispatch/reports/WATER-W14-J2-REPORT.md",
+      "spec": "contracts/w14-v1/W14-ADD-01.md",
+      "outputRoot": "packages/junk-scan",
+      "packageName": "water-junk-scan",
+      "testTarget": "scan_v1",
+      "expectedTests": [
+        "scan_plan_contract",
+        "scan_pattern_marker_discovery",
+        "scan_overlap_and_guards",
+        "scan_reparse_budget_cancel",
+        "scan_snapshot_growth_keys"
+      ],
+      "proofTargets": {
+        "nc1": "SCAN_W14_ROOTS",
+        "nc2": "SCAN_W14_ROOTS",
+        "nc3": "SCAN_W14_ROOTS"
+      },
+      "testFiles": [
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W14-J2-REPORT.md"
+      ],
+      "allowedPrefixes": [
+        "packages/junk-scan/",
+        "docs/acceptance/wave14/j2/"
+      ],
+      "evidenceDir": "docs/acceptance/wave14/j2/",
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "archive",
+        "real",
+        "red-nc1",
+        "red-nc2",
+        "red-nc3"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "real"
+      ],
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W14-WORKER-RULES.md",
+        "contracts/w14-v1/W14-ADD-01.md",
+        "contracts/w14-v1/W14.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/src/scan/streaming.rs",
+        "packages/junk-scan/src/lib.rs",
+        "packages/junk-scan/tests/scan_v1.rs"
+      ],
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/core/registry",
+      "realMode": "scan-plan",
+      "nativeModule": "native_windows.rs",
+      "nativeWindowBudget": 0,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "read-only metadata per ADR-018; group-level output only",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "macOS": "unverified",
+      "gate": "medium",
+      "purpose": "ScanObserver gets on_root_done(&RootProgress) with an empty default; every distinct root of a non-fallback target is reported exactly once (skipped-up-front roots first, skipped roots when reached, walked roots after their subtree), roots_done counts 1..roots_total, nothing after cancel or an early end, space_overview never reports; on_progress unchanged",
+      "modelHint": "Scan: W14-ADD-01 section 1; interface copied verbatim; roots_total must include ignored and inside-git roots; tests in existing functions with SCAN_W14_ROOTS; three NCs (nested root not reported, walked root reported at start, roots_total without skipped-up-front roots).",
+      "frozenFiles": [
+        {
+          "path": "contracts/w14-v1/W14.md",
+          "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+        },
+        {
+          "path": "contracts/w13-v1/W13.md",
+          "sha256": "eb978b7eb75b90348fe6724c3b8f92609ec5c7b0a61c46e422098145d74b89ea"
+        },
+        {
+          "path": "contracts/m35-v1/SCAN-M35.md",
+          "sha256": "89d99d991d4fcfbdde3275137bfd14406466fc0ade676057e0073fb16a8edf90"
+        },
+        {
+          "path": "contracts/checkup-v1/SCAN.md",
+          "sha256": "c72b72d16635f57827d460e0c12e0044d86677e1a2a93e9f72664625dfa6d5e3"
+        },
+        {
+          "path": "contracts/checkup-v1/MODEL.md",
+          "sha256": "fe0c9a4f5d96ce9297e8f72e75df8c6f666f9a6af440fc198aa7b3362692188b"
+        },
+        {
+          "path": "contracts/m3c-v1/SCAN-M3C.md",
+          "sha256": "9ae9c1eab0f0c81a2943a7bff30163f9504e102c69ba9b9d56d3d8db9d38f2e2"
+        },
+        {
+          "path": "contracts/m3d-v1/SCAN-M3D.md",
+          "sha256": "d79fb5867ec84083d9c4cecebe23dbaf6f1a4cef5d92b9ce6085ad057dbee850"
+        },
+        {
+          "path": "contracts/m3d-v1/RULES-M3D.md",
+          "sha256": "65b68ff3f3ba1f01d9b85f922c97c8c8b018494385ba38ce584166a0e549e393"
+        },
+        {
+          "path": "contracts/m35-v1/RULES-M35.md",
+          "sha256": "3dfc034799404b45dbd19b7e44f99dc1875584e7b87285cdcd53340af9193a17"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/w14-v1/W14-ADD-01.md",
+          "sha256": "e3cf3fd206783123fca7845fe475a15aedae15a0516bf402625931a2bb6b07a5"
+        }
+      ],
+      "outputRootExists": true,
+      "allowedFfi": [
+        "CloseHandle",
+        "CoTaskMemFree",
+        "CreateFileW",
+        "DeviceIoControl",
+        "GetFileInformationByHandleEx",
+        "GetVolumeInformationByHandleW",
+        "SHGetKnownFolderPath"
+      ],
+      "readyOn": "2026-11-08",
+      "defaultExecutor": "sol",
+      "issuedAt": "2026-11-08T11:45:14.320Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave14/PLAN.md",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/j2/"
     }
   ],
   "mergeOrder": [
