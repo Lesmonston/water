@@ -1,0 +1,314 @@
+{
+  "task": "WATER-W13-ACCEPT-INTEG11-SVC",
+  "kind": "service",
+  "mode": "real",
+  "finalGate": true,
+  "manifest": ".local/w13-integ11/desktop-manifest.json",
+  "startedAt": "2026-11-08T02:56:09.273Z",
+  "realDataRead": true,
+  "productTestsRun": false,
+  "nativeWindows": 0,
+  "directoryDialogs": 0,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "6ba7cdbb28c5505da03a1b99a2082f9dbd128ab9",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "6ba7cdbb28c5505da03a1b99a2082f9dbd128ab9",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T02-56-09.271Z-39076-real-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T02-56-09.271Z-39076-real-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T02-56-09.271Z-39076-real-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/water-service/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T02-56-09.271Z-39076-real-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "run",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/water-service/Cargo.toml",
+        "--example",
+        "service_smoke",
+        "--",
+        "F:\\new\\smaltalk\\water\\.worktrees\\integ-w8a\\.local\\w3-f1-real\\2026-11-08T02-56-09.271Z-39076"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T02-56-09.271Z-39076-real-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "6ba7cdbb28c5505da03a1b99a2082f9dbd128ab9",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "6ba7cdbb28c5505da03a1b99a2082f9dbd128ab9",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [],
+  "before": {
+    "head": "6ba7cdbb28c5505da03a1b99a2082f9dbd128ab9",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/water-service/src/clean.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-0.txt",
+        "sha256": "0988f8156abba1e61d3b2df5c8fb513a30b0eb344900c041f5b1495af917f7e1",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/conclusion.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-1.txt",
+        "sha256": "c67127ea9ecee28de58888d15916ef2599ff7c3e19ef7b50108564e928cc2b6a",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/dedupe.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-2.txt",
+        "sha256": "88d102b0df6c8adf8f57c5568d47908a72361050251f11b0a1a968feeb04c3c3",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/lib.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-3.txt",
+        "sha256": "5657209afecaa236b91620edbf9d381888005a43552a4dc5068204f207c667c7",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/m35.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-4.txt",
+        "sha256": "59715b09628fc0d41ec52bdaff6e0ab3998fc82917d1b6016b5fa5cb1d00e7d3",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/native_windows.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-5.txt",
+        "sha256": "04a3af31f6b9c1acf0cc1cecc49afed30f08672500fbf764ce8ea75872f1599b",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/quarantine.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-6.txt",
+        "sha256": "eb0d1106f50f6d1dd2c63a4c5517e0341ca63400da69579b82132b9c2f13098c",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/service.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-7.txt",
+        "sha256": "374db6881da3d5d2f4e533b8ba0d78b8d0f4371d331f62d97b95f7933382bee9",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/storage.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-8.txt",
+        "sha256": "3af3234af01a5ae6aa87911e2994a23b852c05047f07d47a7e9f881dabe3b64a",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/util.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-9.txt",
+        "sha256": "ace417259ed3e0c31f29eb88e4221448872998ef1d9bd58fdf05d312b7d3ac5f",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/src/views.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-10.txt",
+        "sha256": "c466b524b52fa1af2e3bcb72ede57ca8f2c5312bfad7df303f95cb233bf61ba6",
+        "test": false
+      },
+      {
+        "path": "packages/water-service/tests/service_v1.rs",
+        "snapshot": "2026-11-08T02-56-09.271Z-39076-real-source-11.txt",
+        "sha256": "ce1d2b4345f68909bfaebfb19f699a6fbcefb586d98cd3f71784f8de6a62057b",
+        "test": true
+      }
+    ],
+    "productionHash": "71f9c4bc56223e83c6a1d9ab9a0d8c6fef602f92c9b0a2b7092e1a49151fdc50",
+    "testHash": "1d398ef88b50da381da6e0e3aa406f3e66a05731a9ae3d0d0a96ccf6b1da7f0b"
+  },
+  "registryPackages": 11,
+  "realSummary": {
+    "cards": 5,
+    "clues": 3,
+    "conclusion_rows": 13,
+    "drives": 4,
+    "folds": 3,
+    "quarantine_cards": 0
+  },
+  "after": {
+    "head": "6ba7cdbb28c5505da03a1b99a2082f9dbd128ab9",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-08T02:57:35.057Z"
+}
