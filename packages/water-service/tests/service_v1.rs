@@ -635,6 +635,26 @@ fn age(path: &Path, seconds: u64) {
     )
     .unwrap();
 }
+// Explicit exceptions: a user-supplied declaration title and Chinese text saved by legacy fixtures.
+// New product text is checked even when it appears inside a longer summary or copy text.
+fn english_text(text: &str) -> bool {
+    let mut text = text.to_owned();
+    for user_or_legacy in [
+        "声明构建目录",
+        "旧提示",
+        "备注一",
+        "备注二",
+        "备注三",
+        "备注四",
+        "位置一",
+        "位置二",
+    ] {
+        text = text.replace(user_or_legacy, "");
+    }
+    !text.chars().any(
+        |c| matches!(c,'\u{3400}'..='\u{9fff}'|'\u{f900}'..='\u{faff}'|'\u{20000}'..='\u{3347f}'),
+    )
+}
 fn english_pairs(value: &Value, check_english: bool) {
     match value {
         Value::Object(map) => {
@@ -649,9 +669,15 @@ fn english_pairs(value: &Value, check_english: bool) {
                         .unwrap_or_else(|| panic!("SERVICE_W14_EN: missing {sibling}"));
                     match (zh, en) {
                         (Value::String(_), Value::String(en)) => {
-                            assert!(!en.is_empty(), "SERVICE_W14_EN: empty {sibling}");
+                            assert!(
+                                !en.is_empty(),
+                                "SERVICE_W14_EN: empty {sibling} next to {key}={zh}"
+                            );
                             if check_english {
-                                assert!(!en.chars().any(|c|matches!(c,'\u{3400}'..='\u{9fff}'|'\u{f900}'..='\u{faff}')),"SERVICE_W14_EN: Chinese in {sibling}: {en}");
+                                assert!(
+                                    english_text(en),
+                                    "SERVICE_W14_EN: Chinese in {sibling}: {en}"
+                                );
                             }
                         }
                         (Value::Null, Value::Null) => {}
@@ -667,9 +693,7 @@ fn english_pairs(value: &Value, check_english: bool) {
                             );
                             if check_english {
                                 assert!(
-                                    !en.iter().filter_map(Value::as_str).any(|s| s
-                                        .chars()
-                                        .any(|c| matches!(c, '\u{3400}'..='\u{9fff}'))),
+                                    en.iter().filter_map(Value::as_str).all(english_text),
                                     "SERVICE_W14_EN: Chinese in array {sibling}: {en:?}"
                                 );
                             }
@@ -693,7 +717,7 @@ fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
     // Old records and user-provided folder/project names may legitimately contain Chinese.
-    english_pairs(&result, false);
+    english_pairs(&result, true);
     // SERVICE.md L46: call except custom_root_add (folder picker) must return in 50 ms.
     // Commands that write files synchronously in the same call get 200 ms.
     if c == "custom_root_add" {
@@ -944,6 +968,26 @@ fn groups(result: &Value) -> Vec<&Value> {
 fn service_ipc_contract() {
     fn send_sync<T: Send + Sync>() {}
     send_sync::<Service>();
+    assert_eq!(
+        m35::amount(1234u64 << 30),
+        "1234.0 GB",
+        "SERVICE_W14_EN: Chinese size preserved"
+    );
+    assert_eq!(
+        m35::amount_en(1234u64 << 30),
+        "1,234.0 GB",
+        "SERVICE_W14_EN: English size grouping"
+    );
+    assert_eq!(
+        language::stamp("2025-11-08T14:05:00Z", "2026-11-08T00:00:00Z", true),
+        "Nov 8, 2025, 14:05 UTC",
+        "SERVICE_W14_EN: cross-year timestamp"
+    );
+    assert_eq!(
+        language::stamp("2026-11-08", "2026-11-09T00:00:00Z", false),
+        "Nov 8",
+        "SERVICE_W14_EN: same-year date"
+    );
     let f = Fixture::new();
     f.seed();
     let s = f.service(true);
@@ -1029,6 +1073,34 @@ fn service_ipc_contract() {
     shape(
         &call(&s, "group_detail", json!({"groupId":"chrome-cache"})),
         &samples["group_details"]["chrome-cache"],
+    );
+    let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
+    let rules = water_junk_rules::RuleSet::embedded();
+    let rule = rules.rule("chrome-cache").unwrap();
+    for (field, expected) in [
+        ("title_en", rule.title_en.as_str()),
+        ("owner_en", rule.owner_en.as_str()),
+    ] {
+        assert_eq!(
+            detail["group"][field], expected,
+            "SERVICE_W14_EN: rule {field}"
+        );
+    }
+    for (field, expected) in [
+        ("what_en", rule.what_en.as_str()),
+        ("why_en", rule.why_en.as_str()),
+        ("after_en", rule.after_en.as_str()),
+    ] {
+        assert_eq!(detail[field], expected, "SERVICE_W14_EN: rule {field}");
+    }
+    let invalid = s.call("unknown", json!({})).unwrap_err();
+    assert_eq!(
+        (invalid.message_zh.as_str(), invalid.message_en.as_str()),
+        (
+            "所选内容无法清理，请重新选择。",
+            "The selection cannot be cleaned. Please select again."
+        ),
+        "SERVICE_W14_EN: exact error"
     );
     shape(&call(&s, "locations_get", json!({})), &samples["locations"]);
     shape(
@@ -1141,10 +1213,13 @@ fn service_scan_views() {
             sequence[0]["state"], "running",
             "SERVICE_W14_PROGRESS: rules state"
         );
+        assert!(
+            sequence[0]["percent"].as_u64().unwrap() <= if whole_drive { 40 } else { 90 },
+            "SERVICE_W14_PROGRESS: rule range"
+        );
         assert_eq!(
-            sequence[0]["percent"],
-            if whole_drive { 40 } else { 90 },
-            "SERVICE_W14_PROGRESS: rule weight"
+            sequence[0]["percent"], mid_target["percent"],
+            "SERVICE_W14_PROGRESS: repeated callbacks do not advance completion"
         );
         let labels = sequence[0]["locations"]
             .as_array()
@@ -1241,9 +1316,9 @@ fn service_scan_views() {
         }
         *scan::GATE.lock().unwrap() = None;
         // Assert only after releasing every barrier, so a failure cannot leave a worker behind.
-        assert_eq!(
-            mid_target["percent"], 0,
-            "SERVICE_W14_PROGRESS: repeated within-target callbacks are not completed targets"
+        assert!(
+            mid_target["percent"].as_u64().unwrap() < if whole_drive { 40 } else { 90 },
+            "SERVICE_W14_PROGRESS: repeated within-target callbacks cannot finish the rule phase"
         );
     }
 
@@ -1801,6 +1876,15 @@ fn service_trends_locations() {
             .iter()
             .all(|v| v["message_zh"].as_str().unwrap().contains("+<1 MB"))
     );
+    let leak = insights.iter().find(|i| i["kind"] == "leak").unwrap();
+    assert_eq!(
+        leak["message_zh"], "与 1 月 15 日相比多了 25 个（+<1 MB），每天约 +<1 MB。",
+        "SERVICE_W14_EN: exact growth Chinese"
+    );
+    assert_eq!(
+        leak["message_en"], "Compared with Jan 15, 25 more items (+<1 MB), about +<1 MB per day.",
+        "SERVICE_W14_EN: exact growth English"
+    );
     // Scan timestamps include real elapsed time; query after both scans finish.
     f.fake.now.store(
         util::parse_time(result["finished_at"].as_str().unwrap())
@@ -2138,6 +2222,16 @@ fn service_storage_safety() {
             .unwrap()
             .iter()
             .all(|c| c["enabled"] == true)
+    );
+    // Replay records carry the first scan's real completion time; keep the fake clock chronological.
+    f.fake.now.store(
+        util::parse_time(saved["finished_at"].as_str().unwrap())
+            .unwrap()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 1,
+        Ordering::SeqCst,
     );
     let fresh = scanned(&s);
     assert_eq!(
@@ -2903,7 +2997,7 @@ fn m3c_unique_inuse() {
     let unknown = "暂时无法确认是否在运行，清理时会再次检查";
     assert_eq!(
         group_in_use(&result, "chrome-cache"),
-        json!({"process_label_zh":unknown,"item_count":2}),
+        json!({"process_label_zh":unknown,"process_label_en":"Cannot confirm whether it is running. Cleaning will check again","item_count":2}),
         "SERVICE_M3C_INUSE_ITEM: unavailable snapshot"
     );
     let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
@@ -3842,7 +3936,7 @@ fn m3c_compat() {
     let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
     assert_eq!(
         detail["group"]["in_use"],
-        json!({"process_label_zh":"旧提示","item_count":null}),
+        json!({"process_label_zh":"旧提示","process_label_en":"旧提示","item_count":null}),
         "SERVICE_M3C_INUSE_ITEM: old group label"
     );
     assert!(
@@ -3993,8 +4087,13 @@ fn m3c_trends() {
     let drive = |root: &str| fc.iter().find(|p| p["root"] == root).unwrap();
     assert_eq!(
         drive("F:\\"),
-        &json!({"root":"F:\\","days_to_full":8,"bytes_per_day":"100","basis_days":4.0,"note_zh":null}),
+        &json!({"root":"F:\\","days_to_full":8,"bytes_per_day":"100","basis_days":4.0,"note_zh":null,"note_en":null}),
         "SERVICE_M3C_FORECAST: cleanup jump adjusted"
+    );
+    assert_eq!(
+        drive("Z:\\")["note_en"],
+        "An estimate needs at least 3 checkups spanning 3 days",
+        "SERVICE_W14_EN: exact forecast English"
     );
     assert_eq!(
         drive("X:\\")["note_zh"],
@@ -4694,10 +4793,10 @@ fn m35_safety_facts() {
         .iter()
         .position(|i| i["group_id"] == "npm-cache")
         .unwrap();
-    for (key, value, reason) in [
-        ("referenced_count", json!(1), "引用"),
-        ("valuable_count", json!(1), "贵重文件"),
-        ("odd_count", json!(1), "名字特殊"),
+    for (key, value, reason, code) in [
+        ("referenced_count", json!(1), "引用", "junction_referenced"),
+        ("valuable_count", json!(1), "贵重文件", "valuable_files"),
+        ("odd_count", json!(1), "名字特殊", "reserved_name"),
     ] {
         let mut raw = base.clone();
         let i = &mut raw["result"]["items"][index];
@@ -4714,13 +4813,20 @@ fn m35_safety_facts() {
         let mut typed = water_junk_scan::result_from_json(&raw["result"].to_string()).unwrap();
         let notes = m35::supplement(&s.core, &mut typed, &[], &BTreeMap::new());
         assert!(
-            !typed.items[index].eligible
-                && typed.items[index]
-                    .ineligible_reason
-                    .as_deref()
-                    .unwrap()
-                    .contains(reason),
-            "SERVICE_M35_SCOPE: {key}"
+            !typed.items[index].eligible,
+            "SERVICE_M35_SCOPE: {key} remains protected"
+        );
+        assert_eq!(
+            typed.items[index].ineligible_reason.as_deref(),
+            Some(code),
+            "SERVICE_W14_CODES: {key} stable reason"
+        );
+        assert!(
+            notes["item_reason_zh"][&typed.items[index].item_id]
+                .as_str()
+                .unwrap()
+                .contains(reason),
+            "SERVICE_M35_SCOPE: {key} explanation retained"
         );
         for (k, v) in notes.as_object().unwrap() {
             raw[k] = v.clone();
@@ -4818,14 +4924,18 @@ fn m14_program_directories() {
             .find(|i| i["path"] == slash(&f.root.join(rel)))
             .unwrap_or_else(|| panic!("SERVICE_M35_SCOPE: missing {rel}"))
     };
-    for (rel, reason) in [
+    for (rel, reason, code, en) in [
         (
             "selected/apps/Bar/Bar-1.2.0.exe",
             "在已安装程序 Bar 的安装目录里",
+            "installed_program_directory",
+            "Inside the installation folder of Bar",
         ),
         (
             "selected/prog/App/App-setup.exe",
             "在程序目录 App 里（有卸载程序）",
+            "program_directory",
+            "Inside program folder App (an uninstaller is present)",
         ),
     ] {
         let i = at(rel);
@@ -4834,8 +4944,13 @@ fn m14_program_directories() {
             "SERVICE_M35_SCOPE: program file {rel}"
         );
         assert_eq!(
-            i["ineligible_reason"], reason,
-            "SERVICE_M35_SCOPE: first reason {rel}"
+            i["ineligible_reason"], code,
+            "SERVICE_W14_CODES: first reason {rel}"
+        );
+        assert_eq!(
+            saved["item_notes_en"][i["item_id"].as_str().unwrap()][0],
+            en,
+            "SERVICE_W14_EN: program directory"
         );
         assert_eq!(
             saved["item_notes"][i["item_id"].as_str().unwrap()][0],
@@ -4855,7 +4970,7 @@ fn m14_program_directories() {
             "SERVICE_M35_SCOPE: program file {uninstaller}"
         );
         assert_eq!(
-            i["ineligible_reason"], "在程序目录 App 里（有卸载程序）",
+            i["ineligible_reason"], "program_directory",
             "SERVICE_M35_SCOPE: first reason {uninstaller}"
         );
     }
@@ -4915,8 +5030,9 @@ fn m14_program_directories() {
         "SERVICE_M35_SCOPE: application cluster members"
     );
     assert!(
-        members.iter().all(|i| i["eligible"] == false
-            && i["ineligible_reason"] == "在程序目录 App 里（有卸载程序）"),
+        members
+            .iter()
+            .all(|i| i["eligible"] == false && i["ineligible_reason"] == "program_directory"),
         "SERVICE_M35_SCOPE: cluster protected by ancestor"
     );
     let c = call(&s, "conclusion_get", json!({}));
@@ -4941,6 +5057,39 @@ fn m14_program_directories() {
         "SERVICE_M35_SCOPE: protected cluster has no clue"
     );
 
+    let mut old = saved.clone();
+    for item in old["result"]["items"].as_array_mut().unwrap() {
+        if matches!(
+            item["ineligible_reason"].as_str(),
+            Some("installed_program_directory" | "program_directory")
+        ) {
+            let id = item["item_id"].as_str().unwrap().to_owned();
+            item["ineligible_reason"] = saved["item_reason_zh"][&id].clone();
+        }
+    }
+    old.as_object_mut().unwrap().remove("item_note_codes");
+    strip_english(&mut old);
+    m35_replace_record(&s, old);
+    let legacy = s.call("conclusion_get", json!({})).unwrap();
+    assert_eq!(
+        legacy["clues"], c["clues"],
+        "SERVICE_W14_CODES: legacy program directories suppress the same clues"
+    );
+    assert_eq!(
+        legacy["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["group_id"].clone())
+            .collect::<Vec<_>>(),
+        c["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["group_id"].clone())
+            .collect::<Vec<_>>(),
+        "SERVICE_W14_CODES: legacy program directory protection is unchanged"
+    );
     // The same production supplement still detects uninstallers when the registry is unavailable.
     *f.fake.apps.lock().unwrap() = None;
     let scan = m35_scan(&s, json!([id]));
@@ -4952,7 +5101,7 @@ fn m14_program_directories() {
         .find(|i| i["path"] == slash(&f.root.join("selected/prog/App/App-setup.exe")))
         .unwrap();
     assert_eq!(
-        app_item["ineligible_reason"], "在程序目录 App 里（有卸载程序）",
+        app_item["ineligible_reason"], "program_directory",
         "SERVICE_M35_SCOPE: no installed list still checks uninstallers"
     );
 }
@@ -5118,15 +5267,19 @@ fn m35_scope_and_plan() {
     let d = m35_decl(&f, "local_app_data/npm-cache", json!(["cache"]));
     let loaded = water_cleanup_manifest::read_manifest(&slash(&d));
     result.items[index].path = format!(r"\\?\{}\cache", original);
-    m35::supplement(&ss.core, &mut result, &[loaded], &BTreeMap::new());
+    let explanation = m35::supplement(&ss.core, &mut result, &[loaded], &BTreeMap::new());
     assert!(
-        !result.items[index].eligible
-            && result.items[index]
-                .ineligible_reason
-                .as_deref()
-                .unwrap_or("")
-                .contains("项目声明"),
+        !result.items[index].eligible,
         "SERVICE_M35_SCOPE: extended path protects"
+    );
+    assert_eq!(
+        result.items[index].ineligible_reason.as_deref(),
+        Some("declaration_protected"),
+        "SERVICE_W14_CODES: extended path reason"
+    );
+    assert_eq!(
+        explanation["item_reason_zh"][&result.items[index].item_id], "项目声明为不能碰",
+        "SERVICE_M35_SCOPE: extended path explanation"
     );
     result.items[index].path = "\\\\server\\share\\cache".into();
     result.items[index].eligible = true;
@@ -5134,7 +5287,7 @@ fn m35_scope_and_plan() {
     m35::supplement(&ss.core, &mut result, &[], &BTreeMap::new());
     assert_eq!(
         result.items[index].ineligible_reason.as_deref(),
-        Some("路径格式无法核对项目声明"),
+        Some("path_unverifiable"),
         "SERVICE_M35_SCOPE: UNC"
     );
     result.items[index].path = original;
@@ -5143,7 +5296,7 @@ fn m35_scope_and_plan() {
     m35::supplement(&ss.core, &mut result, &[loaded], &BTreeMap::new());
     assert_eq!(
         result.items[index].ineligible_reason.as_deref(),
-        Some("里面有项目的声明文件，不能整块清理"),
+        Some("contains_declaration"),
         "SERVICE_M35_SCOPE: declaration ancestor"
     );
     let mut rules: Value =
@@ -5191,13 +5344,15 @@ fn m35_scope_and_plan() {
     });
     let extra = m35::supplement(core, &mut result, &[], &BTreeMap::new());
     let i = result.items.last().unwrap();
-    assert!(
-        !i.eligible
-            && i.ineligible_reason
-                .as_deref()
-                .unwrap()
-                .contains("QQ 还装着"),
-        "SERVICE_M35_SCOPE: loose installed match"
+    assert!(!i.eligible, "SERVICE_M35_SCOPE: loose installed match");
+    assert_eq!(
+        i.ineligible_reason.as_deref(),
+        Some("app_installed"),
+        "SERVICE_W14_CODES: installed app reason"
+    );
+    assert_eq!(
+        extra["item_reason_zh"][&i.item_id], "QQ 还装着，这是它的数据",
+        "SERVICE_M35_SCOPE: loose installed explanation"
     );
     assert_eq!(
         extra["installed_apps_at"], "1969-12-31T23:59:59Z",
@@ -5357,6 +5512,7 @@ fn w11_wording() {
         .filter(|i| i["group_id"] == gid)
         .map(|i| i["item_id"].as_str().unwrap().to_owned())
         .collect::<Vec<_>>();
+    saved.as_object_mut().unwrap().remove("item_notes_en");
     for id in &ids {
         saved["item_created"][id] = json!(util::timestamp(
             UNIX_EPOCH + Duration::from_secs(NOW - 20 * 86400)
@@ -5559,6 +5715,8 @@ fn m14_conclusion_text() {
     assert_eq!(
         c["clues"],
         json!([{"clue_id":clue_id,"text_zh":text,
+        "text_en":format!("{link} references 4 items, {} total; repoint it before cleaning these items",m35::amount_en(bytes)),
+        "copy_text_en":format!("{link} references 4 items, {} total; repoint it before cleaning these items\n{}",m35::amount_en(bytes),sources.iter().map(|i|i["path"].as_str().unwrap()).collect::<Vec<_>>().join("\n")),
         "copy_text":format!("{text}\n{}", sources.iter().map(|i| i["path"].as_str().unwrap()).collect::<Vec<_>>().join("\n"))}]),
         "SERVICE_M35_CONCLUSION: four references merge case insensitively"
     );
@@ -5799,6 +5957,7 @@ fn m14_conclusion_text() {
 
 #[test]
 fn m35_conclusion_cards() {
+    w14_codes_and_legacy();
     w11_wording();
     m35_selection_layers();
     m14_conclusion_text();
@@ -5814,7 +5973,7 @@ fn m35_conclusion_cards() {
     for n in 0..7 {
         m35_add(&s, &f, &format!("project{n}"));
     }
-    scanned(&s);
+    let initial_scan = scanned(&s);
     let locations = call(&s, "locations_get", json!({}));
     for m in locations["manifests"].as_array().unwrap() {
         call(
@@ -5823,7 +5982,15 @@ fn m35_conclusion_cards() {
             json!({"manifestId":m["manifest_id"],"trusted":true}),
         );
     }
-    f.fake.now.store(NOW + 60, Ordering::SeqCst);
+    f.fake.now.store(
+        util::parse_time(initial_scan["finished_at"].as_str().unwrap())
+            .unwrap()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 60,
+        Ordering::SeqCst,
+    );
     let r = scanned(&s);
     let c = call(&s, "conclusion_get", json!({}));
     assert_eq!(
@@ -5926,7 +6093,15 @@ fn m35_conclusion_cards() {
         .unwrap()
         .set_len(4 << 20)
         .unwrap();
-    f.fake.now.store(NOW + 120, Ordering::SeqCst);
+    f.fake.now.store(
+        util::parse_time(r["finished_at"].as_str().unwrap())
+            .unwrap()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 60,
+        Ordering::SeqCst,
+    );
     scanned(&s);
     let c = call(&s, "conclusion_get", json!({}));
     assert!(
@@ -7487,6 +7662,11 @@ fn m35_session_unlocks() {
             p["chosen"]["note_zh"], "清掉后这些对话不能再续接或回看",
             "SERVICE_M35_CLEAN: session warning"
         );
+        assert_eq!(
+            p["chosen"]["note_en"],
+            "These conversations cannot be resumed or reviewed after cleaning",
+            "SERVICE_W14_EN: exact session warning"
+        );
         let (_, r) = m35_run_clean(&s, &p);
         assert!(
             !session.exists() && !cache.exists(),
@@ -7518,6 +7698,25 @@ fn m35_quarantine() {
     m35_run_clean(&s, &p);
     let q = call(&s, "quarantine_list", json!({}));
     let id = q["cards"][0]["quarantine_id"].clone();
+    let quarantine_path = f
+        .data
+        .join("quarantine")
+        .join(format!("{}.json", id.as_str().unwrap()));
+    let quarantine_bytes = fs::read(&quarantine_path).unwrap();
+    let mut legacy_record: Value = serde_json::from_slice(&quarantine_bytes).unwrap();
+    strip_english(&mut legacy_record);
+    fs::write(&quarantine_path, legacy_record.to_string()).unwrap();
+    drop(s);
+    let legacy_service = f.service(true);
+    let legacy = legacy_service.call("quarantine_list", json!({})).unwrap();
+    english_pairs(&legacy, false);
+    assert_eq!(
+        legacy["cards"][0]["rows"][0]["label_en"], legacy["cards"][0]["rows"][0]["label_zh"],
+        "SERVICE_W14_EN: old quarantine group fallback"
+    );
+    drop(legacy_service);
+    fs::write(&quarantine_path, quarantine_bytes).unwrap();
+    let s = f.service(true);
     assert!(
         !call(&s, "app_state", json!({}))["quarantine"].is_null(),
         "SERVICE_M35_QUARANTINE: bar"
@@ -7603,6 +7802,15 @@ fn m35_quarantine() {
             .unwrap()
             .contains("关掉后再试"),
         "SERVICE_M35_QUARANTINE: reason"
+    );
+    assert_eq!(
+        q["cards"][0]["leftovers"][0]["reason_zh"], "有程序正在用（关掉后再试）",
+        "SERVICE_W14_EN: exact quarantine Chinese"
+    );
+    assert_eq!(
+        q["cards"][0]["leftovers"][0]["reason_en"],
+        "An app is using it; close the app and try again",
+        "SERVICE_W14_EN: exact quarantine English"
     );
     drop(held);
     call(&s, "quarantine_delete", json!({"quarantineId":id}));
@@ -9437,5 +9645,114 @@ fn m35_cluster_and_forecast() {
             .iter()
             .any(|g| g["state"] == "suspected"),
         "SERVICE_M35_TRENDS: suspected cluster"
+    );
+}
+
+fn strip_english(v: &mut Value) {
+    match v {
+        Value::Object(m) => {
+            m.retain(|k, _| !k.ends_with("_en"));
+            for value in m.values_mut() {
+                strip_english(value);
+            }
+        }
+        Value::Array(values) => {
+            for value in values {
+                strip_english(value)
+            }
+        }
+        _ => {}
+    }
+}
+fn w14_codes_and_legacy() {
+    let f = Fixture::new();
+    f.seed();
+    let s = source_service(&f, false);
+    let scanned = scanned(&s);
+    let mut raw = scan_saved(&f, &scanned);
+    let item = raw["result"]["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["group_id"] == "downloads-installers")
+        .unwrap()
+        .clone();
+    let id = item["item_id"].as_str().unwrap();
+    let legacy_title = "SyntheticApp 似乎已卸载，这是它留下的数据";
+    raw["item_notes"][id] = json!([legacy_title]);
+    raw["item_notes_en"][id] =
+        json!(["SyntheticApp appears to have been uninstalled; this is its leftover data"]);
+    raw["item_note_codes"][id] = json!(["app_uninstalled"]);
+    m35_replace_record(&s, raw.clone());
+    let coded = s.call("conclusion_get", json!({})).unwrap();
+    english_pairs(&coded, true);
+    let card = |v: &Value| {
+        v["cards"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["group_id"] == "downloads-installers")
+            .unwrap()
+            .clone()
+    };
+    assert_eq!(
+        card(&coded)["title_zh"],
+        legacy_title,
+        "SERVICE_W14_CODES: code selects uninstalled title"
+    );
+    raw["item_notes"][id] = json!(["说明已改写"]);
+    m35_replace_record(&s, raw.clone());
+    let rewritten = s.call("conclusion_get", json!({})).unwrap();
+    assert_eq!(
+        card(&rewritten)["title_zh"],
+        "说明已改写",
+        "SERVICE_W14_CODES: code works without the old sentence"
+    );
+    assert_eq!(
+        card(&rewritten)["title_en"],
+        card(&coded)["title_en"],
+        "SERVICE_W14_CODES: English stays independent"
+    );
+    raw["item_notes"][id] = json!([legacy_title]);
+    raw.as_object_mut().unwrap().remove("item_note_codes");
+    strip_english(&mut raw);
+    m35_replace_record(&s, raw.clone());
+    // This deliberately old record contains only Chinese. Inspect it without the new-record English-only check.
+    let legacy = s.call("conclusion_get", json!({})).unwrap();
+    english_pairs(&legacy, false);
+    assert_eq!(
+        card(&legacy)["title_zh"],
+        card(&coded)["title_zh"],
+        "SERVICE_W14_CODES: legacy and code agree"
+    );
+    assert_eq!(
+        card(&legacy)["title_en"],
+        card(&legacy)["title_zh"],
+        "SERVICE_W14_EN: legacy title fallback"
+    );
+    raw["item_notes"][id] = json!(["说明已改写"]);
+    raw["item_notes_en"] = json!({id:["Detached from git"]});
+    raw["item_note_codes"] = json!({id:["git_detached"]});
+    m35_replace_record(&s, raw.clone());
+    let coded = s.call("conclusion_get", json!({})).unwrap();
+    let git = |v: &Value| {
+        v["clues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["clue_id"].as_str().unwrap().starts_with("cl-git-"))
+            .unwrap()
+            .clone()
+    };
+    let coded_clue = git(&coded);
+    raw["item_notes"][id] = json!(["已脱离 git"]);
+    raw.as_object_mut().unwrap().remove("item_note_codes");
+    strip_english(&mut raw);
+    m35_replace_record(&s, raw);
+    let legacy = s.call("conclusion_get", json!({})).unwrap();
+    assert_eq!(
+        git(&legacy),
+        coded_clue,
+        "SERVICE_W14_CODES: detached git code and legacy produce the same clue"
     );
 }

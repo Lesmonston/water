@@ -43,10 +43,32 @@ pub(crate) struct Keep {
     pub decided_at: String,
 }
 
+#[derive(Clone, Copy)]
+pub(crate) enum StaleReason {
+    NewScan,
+    Consumed,
+    SettingsChanged,
+}
+impl StaleReason {
+    pub(crate) fn text(self) -> (&'static str, &'static str) {
+        match self {
+            Self::NewScan => ("有了更新的体检", "A newer checkup is available"),
+            Self::Consumed => (
+                "这次体检已被清理用掉",
+                "This checkup has already been used for cleaning",
+            ),
+            Self::SettingsChanged => (
+                "会话开关或项目声明的信任变了",
+                "Session cleanup settings or trust in the project declaration changed",
+            ),
+        }
+    }
+}
+
 #[derive(Default)]
 pub(crate) struct Extension {
     pub conclusion: Option<conclusion::Model>,
-    pub stale: BTreeMap<String, String>,
+    pub stale: BTreeMap<String, StaleReason>,
     pub quarantine: quarantine::Cache,
     pub dedupes: BTreeMap<String, dedupe::Record>,
     pub dedupe_progress: Value,
@@ -87,9 +109,9 @@ pub(crate) fn startup(core: &Arc<Core>) -> Result<(), IpcError> {
     quarantine::refresh(core)
 }
 
-pub(crate) fn invalidate(s: &mut State, reason: &str) {
+pub(crate) fn invalidate(s: &mut State, reason: StaleReason) {
     if let Some(id) = &s.last {
-        s.m35.stale.insert(id.clone(), reason.into());
+        s.m35.stale.insert(id.clone(), reason);
     }
     s.stale_plans.extend(s.plans.keys().cloned());
 }
@@ -227,7 +249,7 @@ pub(crate) fn scope_roots(scope: &[Location]) -> Vec<water_junk_rules::CustomRoo
         .collect()
 }
 pub(crate) fn progress_locations(scope: &[Location]) -> Vec<Value> {
-    scope.iter().map(|l|json!({"location_id":l.location_id,"label_zh":l.label_zh,"label_en":l.english(),"state":"waiting","found_bytes":"0"})).collect()
+    scope.iter().map(|l|json!({"location_id":l.location_id,"label_zh":l.label_zh,"label_en":l.english(),"state":"running","found_bytes":"0"})).collect()
 }
 
 pub(crate) fn trusted_plan(
@@ -1089,7 +1111,7 @@ fn settings_command(core: &Arc<Core>, command: &str, a: &Value) -> Result<Value,
     bound(&mut settings);
     core.store.write("", "settings.json", &json!(settings))?;
     s.settings = settings;
-    invalidate(&mut s, "会话开关或项目声明的信任变了");
+    invalidate(&mut s, StaleReason::SettingsChanged);
     Ok(crate::service::locations(core, &s))
 }
 

@@ -72,6 +72,9 @@ pub(crate) fn list(values: &[String]) -> String {
 }
 
 pub(crate) fn date(month: u32, day: u32) -> String {
+    if !(1..=12).contains(&month) || !(1..=31).contains(&day) {
+        return "Unknown date".into();
+    }
     let month = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ]
@@ -79,4 +82,47 @@ pub(crate) fn date(month: u32, day: u32) -> String {
     .copied()
     .unwrap_or("Unknown date");
     format!("{month} {day}")
+}
+
+pub(crate) fn stamp(value: &str, reference: &str, with_time: bool) -> String {
+    let raw = if value.len() == 10 {
+        format!("{value}T00:00:00Z")
+    } else {
+        value.into()
+    };
+    let Some(at) = crate::util::parse_time(&raw) else {
+        return "Unknown date".into();
+    };
+    let [year, month, day, hour, minute, _] = crate::util::parts(at);
+    let reference_year = crate::util::parse_time(reference).map(|at| crate::util::parts(at)[0]);
+    let mut out = date(u32::from(month), u32::from(day));
+    if reference_year != Some(year) {
+        out.push_str(&format!(", {year}"));
+    }
+    if with_time {
+        out.push_str(&format!(", {hour:02}:{minute:02} UTC"));
+    }
+    out
+}
+
+pub(crate) fn local_date(at: std::time::SystemTime, platform: &dyn crate::Platform) -> String {
+    let local_year = |at| {
+        let [year, month, _, _, _, _] = crate::util::parts(at);
+        let (local_month, _) = platform.local_date(at);
+        i32::from(year)
+            + if month == 12 && local_month == 1 {
+                1
+            } else if month == 1 && local_month == 12 {
+                -1
+            } else {
+                0
+            }
+    };
+    let (month, day) = platform.local_date(at);
+    let mut out = date(month, day);
+    let year = local_year(at);
+    if year != local_year(platform.now()) {
+        out.push_str(&format!(", {year}"));
+    }
+    out
 }

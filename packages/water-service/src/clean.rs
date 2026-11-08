@@ -846,7 +846,7 @@ fn consume_confirmation(stored: &mut Value, state: &mut State, scan_id: &str) {
         state
             .m35
             .stale
-            .insert(scan_id.into(), "这次体检已被清理用掉".into());
+            .insert(scan_id.into(), m35::StaleReason::Consumed);
     }
 }
 

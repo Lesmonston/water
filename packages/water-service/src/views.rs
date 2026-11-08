@@ -224,7 +224,7 @@ pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> (Valu
             }
         }
         if let Some(label) = first {
-            saved.insert(g.group_id.clone(), json!({"process_label_en":if unknown { UNKNOWN_TEXT_EN.to_owned() } else {format!("{} is running; {} in-use items will be skipped", product_name_en(&label), language::number(count))},"process_label_zh":if unknown { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在运行，将跳过 {count} 个占用的项") },"item_count":count}));
+            saved.insert(g.group_id.clone(), json!({"process_label_en":if unknown { UNKNOWN_TEXT_EN.to_owned() } else {format!("{} is running; {} will be skipped", product_name_en(&label), language::count(count,"in-use item","in-use items"))},"process_label_zh":if unknown { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在运行，将跳过 {count} 个占用的项") },"item_count":count}));
         }
     }
     (Value::Object(saved), Value::Object(items))
@@ -528,7 +528,7 @@ impl Projection {
             let count = occupied.map_or(0,BTreeSet::len);
             let unknown = self.unknown.get(id).is_some_and(|s|!s.is_empty());
             let label_en = record.saved["item_in_use"][&record.result.items[*first].item_id]["process_label_en"].as_str().unwrap_or(label).trim_end_matches(" is in use");
-            json!({"process_label_en":if unknown {UNKNOWN_TEXT_EN.to_owned()} else {format!("{label_en} is running; {} in-use items will be skipped",language::number(count))},"process_label_zh":if unknown {UNKNOWN_TEXT.to_owned()} else {format!("{label} 正在运行，将跳过 {count} 个占用的项")},"item_count":count})
+            json!({"process_label_en":if unknown {UNKNOWN_TEXT_EN.to_owned()} else {format!("{label_en} is running; {} will be skipped",language::count(count,"in-use item","in-use items"))},"process_label_zh":if unknown {UNKNOWN_TEXT.to_owned()} else {format!("{label} 正在运行，将跳过 {count} 个占用的项")},"item_count":count})
         }).unwrap_or(Value::Null);
         self.view["categories"][ci]["groups"][gi]["in_use"] = value.clone();
         self.details.get_mut(id).expect("indexed group")["group"]["in_use"] = value;
@@ -741,12 +741,12 @@ fn summary_en(g: &Group, count: u64, rules: &RuleSet, platform: &dyn Platform) -
     if g.item_count == 0 {
         return "None found".into();
     }
-    let (month, day) = g
+    let date = g
         .newest_activity
         .as_deref()
         .and_then(util::parse_time)
-        .map(|at| platform.local_date(at))
-        .unwrap_or((0, 0));
+        .map(|at| language::local_date(at, platform))
+        .unwrap_or_else(|| "Unknown date".into());
     let (one, many) = match rules.rule(&g.rule_id).map(|r| r.item_type) {
         Some(water_junk_rules::ItemType::Dir) => ("folder", "folders"),
         Some(water_junk_rules::ItemType::File) => ("file", "files"),
@@ -755,7 +755,7 @@ fn summary_en(g: &Group, count: u64, rules: &RuleSet, platform: &dyn Platform) -
     let mut text = format!(
         "{} · latest {}",
         language::count(g.item_count, one, many),
-        language::date(month, day)
+        date
     );
     if count < g.item_count {
         text += &format!(" · {} skipped", language::number(g.item_count - count));
@@ -826,7 +826,15 @@ pub(crate) fn insight(
     let compared_en = if record.previous_at.is_none() {
         "Compared with an earlier checkup".into()
     } else {
-        format!("Compared with {}", language::date(date.0, date.1))
+        format!(
+            "Compared with {}",
+            record
+                .previous_at
+                .as_deref()
+                .and_then(util::parse_time)
+                .map(|at| language::local_date(at, platform))
+                .unwrap_or_else(|| "an unknown date".into())
+        )
     };
     let message_en = if growth.leak_suspect {
         format!(
@@ -916,11 +924,7 @@ pub(crate) fn build(
                 }
             }
             let item_views: Vec<_> = items.iter().take(200).map(|i| {
-                let reason = if skipped(i, settings) { Some("已设为以后都跳过".into()) } else { i.ineligible_reason.as_deref().map(|r| match r {
-                    "level_not_cleanable"=>"这一类只统计占用，不清理".into(),"hard_guard"=>"这是系统或用户的关键目录".into(),
-                    "contains_protected"=>"里面有受保护的数据".into(),"inside_protected"=>"位于受保护的数据之内".into(),"repository"=>"这是代码仓库".into(),
-                    "too_recent"=>format!("最近 {} 小时内有改动",rule.map(|r|r.min_age_hours).unwrap_or(0)),
-                    "user_skipped"=>"已设为以后都跳过".into(),"keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),"identity_unavailable"=>"无法确认这一项的身份".into(),_=>r.into() }) };
+                let reason=if skipped(i,settings){Some("已设为以后都跳过".to_owned())}else{i.ineligible_reason.as_deref().map(|reason|reason_zh(record,&i.item_id,reason,rule))};
                 json!({"item_id":i.item_id,"in_use":if eligible(i, settings) { record.saved["item_in_use"].get(&i.item_id).cloned().unwrap_or(Value::Null) } else { Value::Null },"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(i, settings),"reason_zh":reason,"reason_en":if skipped(i,settings){Some("Always skipped".to_owned())}else{i.ineligible_reason.as_deref().map(|r|reason_en(record,&i.item_id,r,rule))}})
             }).collect();
             details.insert(g.group_id.clone(),json!({"group":view,"what_en":text.as_ref().map(|t|t.what_en.as_str()).unwrap_or("An unrecognized location. Only its size is measured."),"what_zh":text.as_ref().map(|t|t.what_zh.as_str()).unwrap_or("未识别的位置，只统计占用。"),
@@ -1042,6 +1046,35 @@ pub(crate) fn reason_en(
             language::number(rule.map(|r| r.keep_newest).unwrap_or(0))
         ),
         "identity_unavailable" => "Cannot confirm this item's identity".into(),
+        _ => reason.into(),
+    }
+}
+
+pub(crate) fn reason_zh(
+    record: &Record,
+    id: &str,
+    reason: &str,
+    rule: Option<&water_junk_rules::Rule>,
+) -> String {
+    if let Some(text) = record.saved["item_reason_zh"][id].as_str() {
+        return text.into();
+    }
+    match reason {
+        "level_not_cleanable" => "这一类只统计占用，不清理".into(),
+        "hard_guard" => "这是系统或用户的关键目录".into(),
+        "contains_protected" => "里面有受保护的数据".into(),
+        "inside_protected" => "位于受保护的数据之内".into(),
+        "repository" => "这是代码仓库".into(),
+        "too_recent" => format!(
+            "最近 {} 小时内有改动",
+            rule.map(|r| r.min_age_hours).unwrap_or(0)
+        ),
+        "user_skipped" => "已设为以后都跳过".into(),
+        "keep_newest" => format!(
+            "按规则保留最新的 {} 个",
+            rule.map(|r| r.keep_newest).unwrap_or(0)
+        ),
+        "identity_unavailable" => "无法确认这一项的身份".into(),
         _ => reason.into(),
     }
 }

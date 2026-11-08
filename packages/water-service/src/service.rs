@@ -671,7 +671,7 @@ impl Service {
             s.consumed.insert(previous.result.scan_id.clone());
             s.m35
                 .stale
-                .insert(previous.result.scan_id.clone(), "有了更新的体检".into());
+                .insert(previous.result.scan_id.clone(), m35::StaleReason::NewScan);
         }
         s.stale_plans = s.plans.keys().cloned().collect();
         let cancel = scan::CancelToken::new();
@@ -1055,12 +1055,15 @@ impl ScanJob {
         let plan_json = water_junk_rules::plan_to_json(&plan);
         let parsed = scan::ScanPlan::from_json(&plan_json).expect("validated scan plan");
         if let Ok(mut s) = lock(&worker_core) {
-            s.scan_progress["categories"] = json!(progress_categories(&plan));
+            let mut categories = progress_categories(&plan);
+            for row in &mut categories {
+                row["state"] = json!("running");
+            }
+            s.scan_progress["categories"] = json!(categories);
         }
         let observer = Progress {
             core: worker_core.clone(),
             plan: plan.clone(),
-            reported: Mutex::new(BTreeMap::new()),
             last_found: Mutex::new(0),
             started,
             category_roots: progress_category_roots(&plan),
@@ -1129,6 +1132,7 @@ impl ScanJob {
                 issues: vec![],
             },
         };
+        observer.rules_done();
         // A shadowed legacy declaration loses its old consent as well as its
         // targets. Removing the new file later must not revive that consent.
         {
@@ -1295,7 +1299,6 @@ impl ScanJob {
             s.local_scans.remove(&worker_id);
             s.records.retain(|r| r.result.scan_id != worker_id);
             s.scan_progress["state"] = json!("failed");
-            s.scan_progress["percent"] = json!(100);
             s.scan_progress["percent"] = json!(100);
             s.busy = "idle";
             s.cancel = None;
@@ -1478,7 +1481,6 @@ fn progress_category_roots(plan: &water_junk_rules::ScanPlan) -> Vec<Option<Stri
 struct Progress {
     core: Arc<Core>,
     plan: water_junk_rules::ScanPlan,
-    reported: Mutex<BTreeMap<String, usize>>,
     last_found: Mutex<u64>,
     started: Instant,
     category_roots: Vec<Option<String>>,
@@ -1487,6 +1489,32 @@ struct Progress {
     space: Mutex<(u128, u64)>,
 }
 impl Progress {
+    fn rules_done(&self) {
+        if let Ok(mut s) = lock(&self.core) {
+            s.scan_progress["percent"] = json!(if self.drive_ids.is_empty() { 90 } else { 40 });
+            for row in s.scan_progress["categories"]
+                .as_array_mut()
+                .into_iter()
+                .flatten()
+            {
+                row["state"] = json!("done");
+            }
+            for row in s.scan_progress["locations"]
+                .as_array_mut()
+                .into_iter()
+                .flatten()
+            {
+                row["state"] = json!(if self
+                    .drive_ids
+                    .contains(row["location_id"].as_str().unwrap_or(""))
+                {
+                    "waiting"
+                } else {
+                    "done"
+                });
+            }
+        }
+    }
     fn end_space(&self) {
         let mut space = self.space.lock().unwrap_or_else(PoisonError::into_inner);
         space.0 = space.0.saturating_add(u128::from(space.1));
@@ -1499,11 +1527,12 @@ impl scan::ScanObserver for Progress {
             let mut space = self.space.lock().unwrap_or_else(PoisonError::into_inner);
             space.1 = space.1.max(p.found_bytes);
             let measured = space.0.saturating_add(u128::from(space.1));
-            let percent = if self.space_used == 0 {
-                40
-            } else {
-                40 + (measured.saturating_mul(54) / self.space_used).min(54) as u64
-            };
+            let percent = 40
+                + measured
+                    .saturating_mul(54)
+                    .checked_div(self.space_used)
+                    .unwrap_or(0)
+                    .min(54) as u64;
             if let Ok(mut s) = lock(&self.core) {
                 s.scan_progress["percent"] =
                     json!(percent.max(s.scan_progress["percent"].as_u64().unwrap_or(0)));
@@ -1511,9 +1540,7 @@ impl scan::ScanObserver for Progress {
             }
             return;
         }
-        // The accepted scanner emits exactly once at each target boundary (pattern/marker, then discovery).
-        let mut reported = self.reported.lock().unwrap_or_else(PoisonError::into_inner);
-        *reported.entry(p.group_id.clone()).or_default() += 1;
+        // Byte callbacks do not identify completion. Completion is published when the rule scan returns.
         let mut last_found = self
             .last_found
             .lock()
@@ -1526,12 +1553,6 @@ impl scan::ScanObserver for Progress {
             progress["visited_entries"] = json!(p.visited_entries);
             progress["found_bytes"] = json!(p.found_bytes.to_string());
             progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
-            let n: usize = reported.values().sum();
-            let ceiling = if self.drive_ids.is_empty() { 90 } else { 40 };
-            progress["percent"] = json!(
-                ((n * ceiling / self.plan.targets.len().max(1)).min(ceiling) as u64)
-                    .max(progress["percent"].as_u64().unwrap_or(0))
-            );
             for (row_index, row) in progress["categories"]
                 .as_array_mut()
                 .expect("progress array")
@@ -1556,17 +1577,6 @@ impl scan::ScanObserver for Progress {
                     })
                     .collect();
                 let groups: BTreeSet<_> = targets.iter().map(|t| t.group_id.as_str()).collect();
-                let done: usize = groups
-                    .iter()
-                    .map(|id| reported.get(*id).copied().unwrap_or(0))
-                    .sum();
-                row["state"] = json!(if done >= targets.len() {
-                    "done"
-                } else if done > 0 {
-                    "running"
-                } else {
-                    "waiting"
-                });
                 // B reports cumulative bytes; attribute each target's delta to its category.
                 if groups.contains(p.group_id.as_str()) {
                     let previous = util::bytes(&row["found_bytes"]);
@@ -1592,21 +1602,6 @@ impl scan::ScanObserver for Progress {
                     .iter()
                     .map(|t| t.group_id.as_str())
                     .collect::<BTreeSet<_>>();
-                let done = groups
-                    .iter()
-                    .map(|id| reported.get(*id).copied().unwrap_or(0))
-                    .sum::<usize>();
-                row["state"] = json!(if done >= targets.len() {
-                    if self.drive_ids.contains(id) {
-                        "waiting"
-                    } else {
-                        "done"
-                    }
-                } else if done > 0 {
-                    "running"
-                } else {
-                    "waiting"
-                });
                 if groups.contains(p.group_id.as_str()) {
                     row["found_bytes"] = json!(
                         util::bytes(&row["found_bytes"])

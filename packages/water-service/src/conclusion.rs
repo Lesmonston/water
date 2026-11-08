@@ -85,7 +85,11 @@ impl Row {
     fn bare(id: String, label: String, items: Vec<String>, indices: Vec<usize>) -> Self {
         Self {
             id,
-            label_en: label.clone(),
+            label_en: if label.is_empty() {
+                "Unnamed item".into()
+            } else {
+                label.clone()
+            },
             label,
             items,
             indices,
@@ -313,17 +317,23 @@ pub(crate) fn version(c: &Model) -> String {
     let id = &c.record.result.scan_id;
     format!("cv-{}-{}", &id[id.len().saturating_sub(8)..], c.serial)
 }
+fn stale_reason(s: &State, c: &Model) -> Option<m35::StaleReason> {
+    s.m35
+        .stale
+        .get(&c.record.result.scan_id)
+        .copied()
+        .or_else(|| {
+            if s.last.as_deref() != Some(&c.record.result.scan_id) {
+                Some(m35::StaleReason::NewScan)
+            } else if s.consumed.contains(&c.record.result.scan_id) {
+                Some(m35::StaleReason::Consumed)
+            } else {
+                None
+            }
+        })
+}
 pub(crate) fn stale(s: &State, c: &Model) -> Option<String> {
-    if let Some(reason) = s.m35.stale.get(&c.record.result.scan_id) {
-        return Some(reason.clone());
-    }
-    if s.last.as_deref() != Some(&c.record.result.scan_id) {
-        Some("有了更新的体检".into())
-    } else if s.consumed.contains(&c.record.result.scan_id) {
-        Some("这次体检已被清理用掉".into())
-    } else {
-        None
-    }
+    stale_reason(s, c).map(|r| r.text().0.into())
 }
 pub(crate) fn current(s: &State, c: &Model, v: &str) -> Result<(), IpcError> {
     if version(c) != v || stale(s, c).is_some() {
@@ -873,7 +883,7 @@ fn view(core: &Core, s: &State, c: &Model) -> Value {
         .collect::<Vec<_>>();
     let scope: Vec<m35::Location> =
         serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
-    json!({"version":version(c),"scan_id":r.result.scan_id,"status":r.result.status,"finished_at":r.saved["finished_at"],"duration_ms":r.saved["duration_ms"],"stale":stale(s,c).is_some(),"stale_reason_zh":stale(s,c),"stale_reason_en":stale_en(s,c),"scope":{"labels_en":if scope.is_empty(){vec!["Common locations".to_owned()]}else{scope.iter().map(|l|l.english().to_owned()).collect()},"labels_zh":if scope.is_empty(){vec!["常用位置".to_owned()]}else{scope.iter().map(|l|l.label_zh.clone()).collect()},"only_folder":scope.len()==1 && scope[0].kind=="folder"},"quarantine":quarantine::bar(s),"plan":{"bytes":bytes.to_string(),"delete_bytes":(bytes-chosen).to_string(),"chosen_bytes":chosen.to_string(),"item_count":selected.len(),"summary_zh":summary.join(" · "),"summary_en":summary_en.join(" · "),"categories":categories,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"expected_skip":skip},"cards":cards,"more_cards":more,"kept_before":kept,"clues":clues.iter().take(3).cloned().collect::<Vec<_>>(),"more_clues":clues.len().saturating_sub(3),"folds":folds,"detail_pending":{"count":pending.len(),"bytes":pending.iter().map(|u|unit_bytes(s,c,u,true)).sum::<u64>().to_string()}})
+    json!({"version":version(c),"scan_id":r.result.scan_id,"status":r.result.status,"finished_at":r.saved["finished_at"],"duration_ms":r.saved["duration_ms"],"stale":stale(s,c).is_some(),"stale_reason_zh":stale(s,c),"stale_reason_en":stale_en(s,c),"scope":{"labels_en":if scope.is_empty(){vec!["Common locations".to_owned()]}else{scope.iter().map(|l|l.english().to_owned()).collect()},"labels_zh":if scope.is_empty(){vec!["常用位置".to_owned()]}else{scope.iter().map(|l|l.label_zh.clone()).collect()},"only_folder":scope.len()==1 && scope[0].kind=="folder"},"quarantine":quarantine::bar(s),"plan":{"bytes":bytes.to_string(),"delete_bytes":(bytes-chosen).to_string(),"chosen_bytes":chosen.to_string(),"item_count":selected.len(),"summary_zh":summary.join(" · "),"summary_en":if summary_en.is_empty(){"Nothing selected".to_owned()}else{summary_en.join(" · ")},"categories":categories,"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"expected_skip":skip},"cards":cards,"more_cards":more,"kept_before":kept,"clues":clues.iter().take(3).cloned().collect::<Vec<_>>(),"more_clues":clues.len().saturating_sub(3),"folds":folds,"detail_pending":{"count":pending.len(),"bytes":pending.iter().map(|u|unit_bytes(s,c,u,true)).sum::<u64>().to_string()}})
 }
 
 pub(crate) fn skip_specs(
@@ -1282,9 +1292,13 @@ fn card(core: &Core, s: &State, c: &Model, u: &Unit, clues: &[Value]) -> Value {
         "{} · {} · {}",
         language::count(items.len(), "item", "items"),
         if oldest == newest {
-            display_date(oldest)
+            language::stamp(oldest, r.saved["finished_at"].as_str().unwrap_or(""), false)
         } else {
-            format!("{} to {}", display_date(oldest), display_date(newest))
+            format!(
+                "{} to {}",
+                language::stamp(oldest, r.saved["finished_at"].as_str().unwrap_or(""), false),
+                language::stamp(newest, r.saved["finished_at"].as_str().unwrap_or(""), false)
+            )
         },
         items
             .first()
@@ -1713,7 +1727,7 @@ fn row_view_base(
         }
     };
     if count == 0 {
-        return json!({"row_id":row.id,"label_zh":row.label,"label_en":row_label_en(r,row),"count":0,"bytes":"0","oldest":null,"newest":null,"included":false,"selectable":false,"release_zh":null,"release_en":null,"expandable":false});
+        return json!({"row_id":row.id,"label_zh":row.label,"label_en":row.label_en,"count":0,"bytes":"0","oldest":null,"newest":null,"included":false,"selectable":false,"release_zh":null,"release_en":null,"expandable":false});
     }
     let first = at(0);
     let group = r
@@ -1744,7 +1758,7 @@ fn row_view_base(
         {
             let kept = c.is_some_and(|m| unit_kept(m, &first.group_id));
             let included = can_clean && row.any_eligible && recommended && !kept;
-            return json!({"row_id":row.id,"label_zh":row.label,"label_en":row_label_en(r,row),"count":count,"bytes":row.bytes.to_string(),"oldest":r.result.items[row.oldest].newest_activity,"newest":r.result.items[row.newest].newest_activity,"included":included,"selectable":can_clean && row.any_eligible,"release_zh":null,"release_en":null,"expandable":count>1});
+            return json!({"row_id":row.id,"label_zh":row.label,"label_en":row.label_en,"count":count,"bytes":row.bytes.to_string(),"oldest":r.result.items[row.oldest].newest_activity,"newest":r.result.items[row.newest].newest_activity,"included":included,"selectable":can_clean && row.any_eligible,"release_zh":null,"release_en":null,"expandable":count>1});
         }
     }
     let mut bytes = 0u64;
@@ -1818,7 +1832,7 @@ fn row_view_base(
     } else {
         None
     };
-    json!({"row_id":row.id,"label_zh":row.label,"label_en":row_label_en(r,row),"count":count,"bytes":bytes.to_string(),"oldest":oldest,"newest":newest,"included":all_eligible_included && any_eligible,"selectable":selectable,"release_zh":release,"release_en":release_en,"expandable":count>1})
+    json!({"row_id":row.id,"label_zh":row.label,"label_en":row.label_en,"count":count,"bytes":bytes.to_string(),"oldest":oldest,"newest":newest,"included":all_eligible_included && any_eligible,"selectable":selectable,"release_zh":release,"release_en":release_en,"expandable":count>1})
 }
 
 pub(crate) fn group_detail(
@@ -2067,11 +2081,22 @@ pub(crate) fn detail(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     current(&s, c, a["version"].as_str().unwrap())?;
     let chosen = selected(&s, c);
     let mut sections = BTreeMap::<String, Vec<Value>>::new();
+    let mut section_titles_en = BTreeMap::<String, String>::new();
     for u in &c.units {
         let loc = if u.groups.len() > 1 {
             format!("{} 个位置", u.groups.len())
         } else {
             location(&c.record, &u.groups[0])
+        };
+        let mut title_en = if u.level.cleanable() {
+            views::category_en(&u.category).0.to_owned()
+        } else {
+            "Protected and reference only".into()
+        };
+        let loc_en = if u.groups.len() > 1 {
+            format!("{} locations", language::number(u.groups.len()))
+        } else {
+            loc.clone()
         };
         let key = if a["mode"] == "category" {
             if u.level.cleanable() {
@@ -2092,16 +2117,19 @@ pub(crate) fn detail(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                             .any(|i| util::contains(path, &i.path))
                     })
                 })
-                .map(|l| l.label_zh.clone())
                 .collect::<Vec<_>>();
             if matches.len() == 1 {
-                matches[0].clone()
+                title_en = matches[0].english().into();
+                matches[0].label_zh.clone()
             } else if matches.is_empty() {
+                title_en = "Common locations".into();
                 "常用位置".into()
             } else {
+                title_en = loc_en.clone();
                 loc.clone()
             }
         };
+        section_titles_en.insert(key.clone(), title_en);
         let bytes = unit_bytes(&s, c, u, false);
         let selected_bytes = u
             .items
@@ -2116,7 +2144,7 @@ pub(crate) fn detail(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         let mut unchanged=Vec::new();rows.retain(|row|{let same=c.record.previous_at.is_some() && c.units.iter().find(|u|u.id==row["row_key"]).is_some_and(|u|u.groups.iter().all(|id|{
             if let Some(base)=&c.base {let old=base.result.groups.iter().find(|g|g.group_id==*id);let now=c.record.result.groups.iter().find(|g|g.group_id==*id);old.zip(now).is_some_and(|(a,b)|a.item_count==b.item_count && a.unique_bytes==b.unique_bytes)}else{c.record.growth.iter().any(|g|g.group_id==*id && g.count_delta==0 && g.bytes_delta=="0")}
         }));if same{unchanged.push(row.clone());}!same});
-        json!({"section_id":format!("section-{}",&util::digest(&key)[..12]),"title_en":section_title_en(&c.record,&key),"title_zh":views::CATEGORIES.iter().find(|c|c.0==key).map(|c|c.1.to_owned()).unwrap_or_else(||if key=="zz-other" {"受保护与仅供参考".into()}else{key}),"group_count":n,"bytes":bytes.to_string(),"chosen_bytes":chosen.to_string(),"rows":rows,"unchanged":if unchanged.is_empty(){Value::Null}else{json!({"count":unchanged.len(),"bytes":unchanged.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>().to_string(),"rows":unchanged})}})
+        json!({"section_id":format!("section-{}",&util::digest(&key)[..12]),"title_en":section_titles_en[&key],"title_zh":views::CATEGORIES.iter().find(|c|c.0==key).map(|c|c.1.to_owned()).unwrap_or_else(||if key=="zz-other" {"受保护与仅供参考".into()}else{key}),"group_count":n,"bytes":bytes.to_string(),"chosen_bytes":chosen.to_string(),"rows":rows,"unchanged":if unchanged.is_empty(){Value::Null}else{json!({"count":unchanged.len(),"bytes":unchanged.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>().to_string(),"rows":unchanged})}})
     }).collect::<Vec<_>>();
     let total = c
         .record
@@ -2280,14 +2308,18 @@ fn clues(_core: &Core, s: &State, r: &Record) -> Vec<Value> {
                     .take(14)
                     .map(|(d, n)| format!(
                         "{} {}",
-                        display_date(d),
+                        language::stamp(d, r.saved["finished_at"].as_str().unwrap_or(""), false),
                         language::count(n, "item", "items")
                     ))
                     .collect::<Vec<_>>()
                     .join("; "),
                 g.newest_activity
                     .as_deref()
-                    .map(display_date)
+                    .map(|date| language::stamp(
+                        date,
+                        r.saved["finished_at"].as_str().unwrap_or(""),
+                        true
+                    ))
                     .unwrap_or_else(|| "Unknown".into()),
                 repo.as_deref().unwrap_or("Not found")
             );
@@ -2600,26 +2632,7 @@ fn space_label(v: &Value) -> (&'static str, &'static str) {
 }
 
 fn stale_en(s: &State, c: &Model) -> Option<String> {
-    stale(s, c).map(|zh| match zh.as_str() {
-        "有了更新的体检" => "A newer checkup is available".into(),
-        "这次体检已被清理用掉" => {
-            "This checkup has already been used for cleaning".into()
-        }
-        "位置设置变了" => "Location settings changed".into(),
-        "项目声明的信任变了" => "Trust in the project declaration changed".into(),
-        _ => zh,
-    })
-}
-fn display_date(date: &str) -> String {
-    let parts = date.split('-').collect::<Vec<_>>();
-    if parts.len() != 3 {
-        return date.into();
-    }
-    format!(
-        "{}, {}",
-        language::date(parts[1].parse().unwrap_or(0), parts[2].parse().unwrap_or(0)),
-        parts[0]
-    )
+    stale_reason(s, c).map(|r| r.text().1.into())
 }
 fn recent_text_en(count: usize) -> String {
     if count == 0 {
@@ -2630,35 +2643,4 @@ fn recent_text_en(count: usize) -> String {
             language::count(count, "item", "items")
         )
     }
-}
-fn section_title_en(r: &Record, key: &str) -> String {
-    if views::CATEGORIES.iter().any(|c| c.0 == key) {
-        return views::category_en(key).0.into();
-    }
-    if key == "zz-other" {
-        return "Protected and reference only".into();
-    }
-    if key == "常用位置" {
-        return "Common locations".into();
-    }
-    let scope: Vec<m35::Location> =
-        serde_json::from_value(r.saved["scope"].clone()).unwrap_or_default();
-    scope
-        .iter()
-        .find(|l| l.label_zh == key)
-        .map(|l| l.english().to_owned())
-        .unwrap_or_else(|| key.into())
-}
-
-fn row_label_en(r: &Record, row: &Row) -> String {
-    r.result
-        .groups
-        .iter()
-        .find(|g| g.group_id == row.id)
-        .and_then(|g| {
-            r.projection().details[&g.group_id]["group"]["title_en"]
-                .as_str()
-                .map(str::to_owned)
-        })
-        .unwrap_or_else(|| row.label_en.clone())
 }
