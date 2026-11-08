@@ -43,8 +43,8 @@
 2. **F 盘**（[普查](maintenance/F-USAGE-20261109.md)、[清理记录](maintenance/F-CLEANUP-20261109.md)，STATUS 117）：
    - 用户选“隔离1-4”：73 棵已合入的 Water 工作树（197.8 GB）已移进 `F:\_water-quarantine-20261109`，并跑了 `git worktree prune`；
    - 用户说自己删，总控已在资源管理器里打开这个文件夹。
-   - **下次先核对**：隔离目录已不在、F 盘可用约 320 GB，结果补进清理记录第 4 节。
-   - 第 6 项 denglou `worktrees` 交 denglou 总控（[简报](maintenance/DENGLOU-DISK-BRIEF-20261109.md)）；它回话后记一句。
+   - 03:59 核对：两个隔离目录都已删掉，F 盘可用 **347.14 GB**（清理前 122.06）。
+   - 第 6 项 denglou `worktrees` 由 denglou 总控处理（[简报](maintenance/DENGLOU-DISK-BRIEF-20261109.md)），已回话并记录。**F 盘这件事已收尾。**
    - **以后每次收单合入后就收树**：执行者树与验收树移进隔离区，只留还在做的。
 3. **S1 + H1 一起合入**：
    - 先合 S1 分支，再合 H1 分支；H1 的底是 S1 第 A 段 `f91a982a`，应当没有冲突；
@@ -103,8 +103,7 @@ WATER-W14-S1 补单 03
   - `E:\flick-ci`（7.9 GB）还等用户自己删。
 - **用户方面**：
   - 没有在外面做的单；S1 补单 03 待派；
-  - 用户在删 `F:\_water-quarantine-20261109`；
-  - denglou 简报在用户手里，要转给 denglou 总控；
+  - F 盘清理已收尾（两个隔离目录都删了，可用 347 GB）；
   - 没有后台任务。
 
 ## 6. 粘贴语
