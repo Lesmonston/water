@@ -1,0 +1,13 @@
+Fix CI: add the root workspace, tests no longer assume the checkout drive
+
+- Add the root Cargo.toml and Cargo.lock: crates/water-contracts inherits its
+  edition, rust-version and dependency versions from the root workspace, so every
+  crate that depends on it failed `cargo metadata` without them.
+- water-service tests use the checkout's drive instead of a fixed F:.
+- process-scan test sessions get a per-process counter in their token, so two tests
+  that read the same clock value no longer collide.
+- skip_unit_add writes settings synchronously, so its test return budget is 200 ms
+  like skip_add.
+- actions/checkout v4 -> v5 (Node 20 is deprecated on GitHub's runners).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

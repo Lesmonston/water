@@ -1,0 +1,44 @@
+{
+  "tree": "E:\\flick-ci\\tree",
+  "toolchain": "1.95.0",
+  "steps": 4,
+  "failed": 0,
+  "results": [
+    {
+      "crate": "ci",
+      "step": "fixtures",
+      "ok": true,
+      "seconds": 0,
+      "log": "E:\\flick-ci\\logs-run3\\01-ci-fixtures.log",
+      "panics": [],
+      "errors": []
+    },
+    {
+      "crate": "packages/water-service",
+      "step": "fmt",
+      "ok": true,
+      "seconds": 2,
+      "log": "E:\\flick-ci\\logs-run3\\02-packages_water-service-fmt.log",
+      "panics": [],
+      "errors": []
+    },
+    {
+      "crate": "packages/water-service",
+      "step": "clippy",
+      "ok": true,
+      "seconds": 1,
+      "log": "E:\\flick-ci\\logs-run3\\03-packages_water-service-clippy.log",
+      "panics": [],
+      "errors": []
+    },
+    {
+      "crate": "packages/water-service",
+      "step": "test",
+      "ok": true,
+      "seconds": 35,
+      "log": "E:\\flick-ci\\logs-run3\\04-packages_water-service-test.log",
+      "panics": [],
+      "errors": []
+    }
+  ]
+}

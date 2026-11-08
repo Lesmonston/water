@@ -1,0 +1,872 @@
+{
+  "commit": "d9d902e0199864e03d96f34c13b769b210104b4e",
+  "stamp": "20261108T063936Z",
+  "tree": ".local/public-export/push-d9d902e0/tree",
+  "crates": [
+    "apps/water/host",
+    "crates/water-contracts",
+    "packages/cleanup-manifest",
+    "packages/dup-finder",
+    "packages/installed-apps",
+    "packages/junk-clean",
+    "packages/junk-rules",
+    "packages/junk-scan",
+    "packages/native-picker",
+    "packages/native-root",
+    "packages/process-scan",
+    "packages/scope-registry",
+    "packages/water-service"
+  ],
+  "files": 192,
+  "bytes": 3349274,
+  "overlay": [
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/rule_request.yml",
+    ".gitignore",
+    "CONTRIBUTING.md",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "README.en.md",
+    "README.md",
+    "SECURITY.md",
+    "THIRD-PARTY-LICENSES.md"
+  ],
+  "pulledIn": {
+    "contracts/checkup-v1/IPC.md": "apps/water/host/tests/host_v1.rs",
+    "contracts/checkup-v1/ui-fixtures.json": "apps/water/ui/tests/unit.test.mjs",
+    "contracts/m35-v1/IPC-M35.md": "apps/water/host/tests/host_v1.rs",
+    "contracts/m35-v1/ui-fixtures-m35.json": "apps/water/ui/tests/unit.test.mjs",
+    "contracts/m3c-v1/IPC-M3C.md": "apps/water/host/tests/host_v1.rs",
+    "contracts/m3c-v1/ui-fixtures-m3c.json": "apps/water/ui/tests/unit.test.mjs",
+    "contracts/v1/conformance-cases.json": "crates/water-contracts/tests/contract_v1.rs",
+    "contracts/v1/examples/valid-report.json": "crates/water-contracts/tests/contract_v1.rs",
+    "contracts/v1/scan-report.schema.json": "crates/water-contracts/tests/contract_v1.rs",
+    "docs/design/flick-brand/flick-app-icon.ico": "apps/water/host/tests/host_v1.rs",
+    "scripts/acceptance/native-vw-private-browser.mjs": "apps/water/ui/tests/browser.test.mjs",
+    "scripts/browser-lab.mjs": "scripts/acceptance/native-vw-private-browser.mjs"
+  },
+  "errors": 0,
+  "warnings": 117,
+  "hits": [
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "apps/water/ui/tests/unit.test.mjs",
+      "line": 159,
+      "text": "for (const bad of ['C:\\\\Users\\\\private', 'C:/Users/private', '/tmp/private', '..', '', 12, null]) await assert.rejects(ipc.group_detail(bad), e => e.code === 'invalid');"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/checkup-v1/ui-fixtures.json",
+      "line": 1293,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\desktop-demo\\\\.local\\\\desktop-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/checkup-v1/ui-fixtures.json",
+      "line": 1300,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\runtime-demo\\\\.local\\\\next-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/checkup-v1/ui-fixtures.json",
+      "line": 1307,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\session-demo\\\\.local\\\\next-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/checkup-v1/ui-fixtures.json",
+      "line": 1314,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\integration-demo\\\\.local\\\\next-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 241,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 299,
+      "text": "\"label_zh\": \".worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 300,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 505,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 570,
+      "text": "\"label_zh\": \".worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 571,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 776,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 834,
+      "text": "\"label_zh\": \".worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 835,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 1031,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 1089,
+      "text": "\"label_zh\": \".worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 1090,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 1667,
+      "text": "\"text_zh\": \"D:\\\\code\\\\demo-app\\\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 1668,
+      "text": "\"copy_text\": \"工作树检查清单（Flick 只看了名字和大小，没有跑 git）\\n位置：D:\\\\code\\\\demo-app\\\\.worktrees，11 棵，约 2.6 GB\\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\\nfix-demo 里有签名文件 release.jks\\n1. 在主仓库运行 git worktree list，确认它们不在列表里\\n2"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 2034,
+      "text": "\"text_zh\": \"D:\\\\code\\\\demo-app\\\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 2035,
+      "text": "\"copy_text\": \"工作树检查清单（Flick 只看了名字和大小，没有跑 git）\\n位置：D:\\\\code\\\\demo-app\\\\.worktrees，11 棵，约 2.6 GB\\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\\nfix-demo 里有签名文件 release.jks\\n1. 在主仓库运行 git worktree list，确认它们不在列表里\\n2"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 2401,
+      "text": "\"text_zh\": \"D:\\\\code\\\\demo-app\\\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 2402,
+      "text": "\"copy_text\": \"工作树检查清单（Flick 只看了名字和大小，没有跑 git）\\n位置：D:\\\\code\\\\demo-app\\\\.worktrees，11 棵，约 2.6 GB\\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\\nfix-demo 里有签名文件 release.jks\\n1. 在主仓库运行 git worktree list，确认它们不在列表里\\n2"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 2768,
+      "text": "\"text_zh\": \"D:\\\\code\\\\demo-app\\\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 2769,
+      "text": "\"copy_text\": \"工作树检查清单（Flick 只看了名字和大小，没有跑 git）\\n位置：D:\\\\code\\\\demo-app\\\\.worktrees，11 棵，约 2.6 GB\\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\\nfix-demo 里有签名文件 release.jks\\n1. 在主仓库运行 git worktree list，确认它们不在列表里\\n2"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 3111,
+      "text": "\"text_zh\": \"D:\\\\code\\\\demo-app\\\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 3112,
+      "text": "\"copy_text\": \"工作树检查清单（Flick 只看了名字和大小，没有跑 git）\\n位置：D:\\\\code\\\\demo-app\\\\.worktrees，11 棵，约 2.6 GB\\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\\nfix-demo 里有签名文件 release.jks\\n1. 在主仓库运行 git worktree list，确认它们不在列表里\\n2"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 3130,
+      "text": "\"note_zh\": \"D:\\\\code\\\\demo-app\\\\.worktrees\""
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 4749,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\cache-b\\\\target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 4991,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\fix-demo\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5004,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\ui\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5017,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-c\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5029,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-d\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5041,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-e\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5053,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\audit-demo\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5065,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-f\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5077,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-g\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5089,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-h\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5101,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\feature-i\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 5113,
+      "text": "\"display_path\": \"D:\\\\code\\\\demo-app\\\\.worktrees\\\\example-demo\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6294,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-a\\\\.local\\\\chrome-profile-01\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6300,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-b\\\\.local\\\\chrome-profile-02\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6306,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-c\\\\.local\\\\chrome-profile-03\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6312,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-d\\\\.local\\\\chrome-profile-04\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6318,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-a\\\\.local\\\\chrome-profile-05\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6324,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-b\\\\.local\\\\chrome-profile-06\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6330,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-c\\\\.local\\\\chrome-profile-07\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6336,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-d\\\\.local\\\\chrome-profile-08\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6342,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-a\\\\.local\\\\chrome-profile-09\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6348,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-b\\\\.local\\\\chrome-profile-10\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6354,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-c\\\\.local\\\\chrome-profile-11\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6360,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-d\\\\.local\\\\chrome-profile-12\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6366,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-a\\\\.local\\\\chrome-profile-13\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6372,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-b\\\\.local\\\\chrome-profile-14\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6378,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-c\\\\.local\\\\chrome-profile-15\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6384,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-d\\\\.local\\\\chrome-profile-16\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6390,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-a\\\\.local\\\\chrome-profile-17\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6396,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-b\\\\.local\\\\chrome-profile-18\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6402,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-c\\\\.local\\\\chrome-profile-19\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m35-v1/ui-fixtures-m35.json",
+      "line": 6408,
+      "text": "\"display_name\": \"code\\\\flick\\\\.worktrees\\\\cache-d\\\\.local\\\\chrome-profile-20\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+      "line": 1372,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\desktop-demo\\\\.local\\\\desktop-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+      "line": 1381,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\runtime-demo\\\\.local\\\\next-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+      "line": 1390,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\session-demo\\\\.local\\\\next-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+      "line": 1399,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\integration-demo\\\\.local\\\\next-target\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+      "line": 1594,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\feature-a\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "contracts/m3c-v1/ui-fixtures-m3c.json",
+      "line": 1603,
+      "text": "\"display_path\": \"D:\\\\code\\\\flick\\\\.worktrees\\\\feature-b\","
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/README.md",
+      "line": 16,
+      "text": "The real_smoke example finds the first ancestor containing a .worktrees directory,"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/examples/real_smoke.rs",
+      "line": 7,
+      "text": ".find(|ancestor| ancestor.join(\".worktrees\").is_dir())"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/examples/real_smoke.rs",
+      "line": 10,
+      "text": "for entry in std::fs::read_dir(repo.join(\".worktrees\"))"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/tests/manifest_v1.rs",
+      "line": 8,
+      "text": "\"id\":\"worktree-builds\",\"title\":\"工作树里的构建产物\",\"paths\":[\".worktrees/*/.local/target\",\".worktrees/*/.local/*-profile-*\"],"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/tests/manifest_v1.rs",
+      "line": 11,
+      "text": "\"worktrees\":[{\"path\":\".worktrees/feature-a\",\"note\":\"功能分支 A\"}]})"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/tests/manifest_v1.rs",
+      "line": 247,
+      "text": "json!([\".worktrees\", \"*\", \".local\", \"target\"]),"
+    },
+    {
+      "level": "warn",
+      "kind": "worktrees",
+      "path": "packages/cleanup-manifest/tests/manifest_v1.rs",
+      "line": 248,
+      "text": "json!([\".worktrees\", \"*\", \".local\", \"*-profile-*\"]),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 402,
+      "text": "r\"C:\\Users\\u\\AppData\\LocalLow\\VRChat\\VRChat\\Cache-WindowsPlayer\\*\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 403,
+      "text": "r\"C:\\Users\\u\\AppData\\LocalLow\\VRChat\\VRChat\\TextureDiskCache-WindowsPlayer\\*\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 408,
+      "text": "&[r\"C:\\Users\\u\\AppData\\Roaming\\Tencent\\WXWork\\upgrade\\*\"],"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 413,
+      "text": "r\"C:\\Users\\u\\AppData\\Roaming\\npm\\node_modules\\.*-*\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 414,
+      "text": "r\"C:\\Users\\u\\AppData\\Roaming\\npm\\node_modules\\@*\\.*-*\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 419,
+      "text": "&[r\"C:\\Users\\u\\AppData\\Roaming\\Tencent\\xwechat\\log\\*.xlog\"],"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 424,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\Google\\Chrome\\User Data\\component_crx_cache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 425,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\Microsoft\\Edge\\User Data\\component_crx_cache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 426,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\component_crx_cache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 431,
+      "text": "&[r\"C:\\Users\\u\\AppData\\Local\\Microsoft\\OneDrive\\logs\\*\"],"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 435,
+      "text": "&[r\"C:\\Users\\u\\AppData\\Local\\github-copilot-sdk\\cli\\copilot-sdk-runtime-*\"],"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 439,
+      "text": "&[r\"C:\\Users\\u\\.claude\\downloads\\*\"],"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 444,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\NVIDIA\\DXCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 445,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\NVIDIA\\GLCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 446,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\D3DSCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 447,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\AMD\\DxCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 448,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\AMD\\GLCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 449,
+      "text": "r\"C:\\Users\\u\\AppData\\Local\\Intel\\ShaderCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 450,
+      "text": "r\"C:\\Users\\u\\AppData\\LocalLow\\Intel\\ShaderCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 451,
+      "text": "r\"C:\\Users\\u\\AppData\\LocalLow\\NVIDIA\\DXCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 452,
+      "text": "r\"C:\\Users\\u\\AppData\\LocalLow\\NVIDIA\\GLCache\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 769,
+      "text": "let expected = r#\"{\"plan_version\":\"water.scan-plan.v1\",\"rules_data_version\":\"2026-10-26.1\",\"created_at\":\"2026-10-26T04:00:00Z\",\"targets\":[{\"target_id\":\"sample-cache#1\",\"group_id\":\"sample-cache\",\"rule_"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 1498,
+      "text": "\"user_profile\": \"C:\\\\Users\\\\u\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 1499,
+      "text": "\"local_app_data\": \"C:\\\\Users\\\\u\\\\AppData\\\\Local\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 1500,
+      "text": "\"roaming_app_data\": \"C:\\\\Users\\\\u\\\\AppData\\\\Roaming\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 1501,
+      "text": "\"user_temp\": \"C:\\\\Users\\\\u\\\\AppData\\\\Local\\\\Temp\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 1505,
+      "text": "\"downloads\": \"C:\\\\Users\\\\u\\\\Downloads\""
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 2887,
+      "text": "assert_eq!(base, \"C:\\\\Users\\\\u\");"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 2938,
+      "text": "assert_eq!(base, \"C:\\\\Users\\\\u\\\\AppData\\\\Local\");"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3121,
+      "text": "\"user_profile\" => \"C:\\\\Users\\\\u\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3122,
+      "text": "\"local_app_data\" => \"C:\\\\Users\\\\u\\\\AppData\\\\Local\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3123,
+      "text": "\"roaming_app_data\" => \"C:\\\\Users\\\\u\\\\AppData\\\\Roaming\","
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3159,
+      "text": "\"C:\\\\Users\\\\u\".to_string(),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3160,
+      "text": "\"C:\\\\Users\\\\u\\\\AppData\\\\Local\".to_string(),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3161,
+      "text": "\"C:\\\\Users\\\\u\\\\AppData\\\\Roaming\".to_string(),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3162,
+      "text": "\"C:\\\\Users\\\\u\\\\AppData\\\\Local\\\\Temp\".to_string(),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-rules/tests/rules_v1.rs",
+      "line": 3166,
+      "text": "\"C:\\\\Users\\\\u\\\\Downloads\".to_string(),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 236,
+      "text": "json!({\"kind\":\"pattern\",\"base\":r\"C:\\Users\\..\\Windows\",\"segments\":[\"a\"]}),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 250,
+      "text": "json!({\"kind\":\"pattern\",\"base\":r\"C:\\Users\\u\",\"segments\":[\"a:b\"]}),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 264,
+      "text": "json!({\"kind\":\"pattern\",\"base\":r\"C:\\Users\\u\",\"segments\":[\"\"]}),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 279,
+      "text": "json!({\"kind\":\"pattern\",\"base\":r\"C:\\Users\\u\",\"segments\":nine}),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 293,
+      "text": "json!({\"kind\":\"marker\",\"root\":r\"C:\\Users\\u\",\"marker\":{\"kind\":\"dir_name\",\"names\":[\"target\"]},\"max_depth\":0}),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 307,
+      "text": "json!({\"kind\":\"marker\",\"root\":r\"C:\\Users\\u\",\"marker\":{\"kind\":\"dir_name\",\"names\":[\"target\"]},\"max_depth\":17}),"
+    },
+    {
+      "level": "warn",
+      "kind": "home-path",
+      "path": "packages/junk-scan/tests/scan_v1.rs",
+      "line": 321,
+      "text": "json!({\"kind\":\"pattern\",\"base\":r\"C:\\Users\\u\",\"segments\":[\"AppData\",\"Local\",\"*\"]}),"
+    }
+  ]
+}

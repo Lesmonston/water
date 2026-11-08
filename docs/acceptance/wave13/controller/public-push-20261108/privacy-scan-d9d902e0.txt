@@ -1,0 +1,132 @@
+== 7890: 2
+   apps/water/host/Cargo.lock:2410  checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
+   packages/junk-scan/tests/scan_v1.rs:2316  ("scoped_dir12345_678901234", false, "scoped_dir<d>"),
+== water-w1: 6
+   packages/cleanup-manifest/tests/manifest_v1.rs:326  let root = parent.join(format!("water-w10-m3-{}-{id}", std::process::id()));
+   packages/cleanup-manifest/tests/manifest_v1.rs:358  .starts_with("water-w10-m3-"),
+   packages/dup-finder/tests/dup_v1.rs:46  let root = parent.join(format!("water-w10-m8-{}-{stamp}", std::process::id()));
+   packages/dup-finder/tests/dup_v1.rs:108  .starts_with("water-w10-m8-"),
+   packages/junk-clean/tests/clean_v1.rs:3105  let base = temp.join(format!("water-w10-q-{}", std::process::id()));
+   packages/junk-clean/tests/clean_v1.rs:3130  .starts_with("water-w10-q-")
+== water-w: 6
+   packages/cleanup-manifest/tests/manifest_v1.rs:326  let root = parent.join(format!("water-w10-m3-{}-{id}", std::process::id()));
+   packages/cleanup-manifest/tests/manifest_v1.rs:358  .starts_with("water-w10-m3-"),
+   packages/dup-finder/tests/dup_v1.rs:46  let root = parent.join(format!("water-w10-m8-{}-{stamp}", std::process::id()));
+   packages/dup-finder/tests/dup_v1.rs:108  .starts_with("water-w10-m8-"),
+   packages/junk-clean/tests/clean_v1.rs:3105  let base = temp.join(format!("water-w10-q-{}", std::process::id()));
+   packages/junk-clean/tests/clean_v1.rs:3130  .starts_with("water-w10-q-")
+== controller: 4
+   contracts/v1/scan-report.schema.json:5  "description": "frozen controller-owned structure. semantics.md defines relations, risk invariants and rust api; not a cleanup authorization
+   scripts/acceptance/native-vw-private-browser.mjs:1  // isolated browser context for one controller session; original helper unchanged.
+   scripts/browser-lab.mjs:1  // controller-owned headless browser acceptance support. never uses the user's profile.
+   scripts/browser-lab.mjs:56  writefilesync(join(profile, 'controller-browser-stderr.log'), stderr);
+== grok: 121
+   contracts/checkup-v1/ui-fixtures.json:460  "subtitle_zh": "codex â· claude â· cursor â· grok",
+   contracts/checkup-v1/ui-fixtures.json:506  "group_id": "grok-downloads",
+   contracts/checkup-v1/ui-fixtures.json:507  "title_zh": "grok ä¸è½½ç¼å­",
+   contracts/checkup-v1/ui-fixtures.json:508  "owner_zh": "grok cli",
+   contracts/checkup-v1/ui-fixtures.json:1405  "group_id": "grok-downloads",
+   contracts/checkup-v1/ui-fixtures.json:1406  "title_zh": "grok ä¸è½½ç¼å­",
+== workbuddy: 42
+   contracts/checkup-v1/ui-fixtures.json:743  "owner_zh": "vs code â· workbuddy â· codebuddy",
+   contracts/m35-v1/ui-fixtures-m35.json:6173  "display_name": "workbuddy\\logs\\main.log",
+   contracts/m35-v1/ui-fixtures-m35.json:6175  "reason_zh": "workbuddy æ­£å¨ç¨ï¼å³æ workbuddy ååè¯ï¼",
+   contracts/m35-v1/ui-fixtures-m35.json:6179  "display_name": "workbuddy\\logs\\main.1.log",
+   contracts/m35-v1/ui-fixtures-m35.json:6181  "reason_zh": "workbuddy æ­£å¨ç¨ï¼å³æ workbuddy ååè¯ï¼",
+   contracts/m35-v1/ui-fixtures-m35.json:6236  "display_name": "workbuddy\\logs\\main.log",
+== claude: 220
+   apps/water/ui/tests/browser.test.mjs:584  await click('nav-settings'); await wait('document.queryselector("[data-key=session-claude-code]")'); await shot('settings'); await checkprim
+   apps/water/ui/tests/browser.test.mjs:585  await click('session-claude-code'); assert.equal((await lastcall('locations_set_session_cleanup')).args.enabled, true, 'ui_v2_pages: session
+   contracts/checkup-v1/ui-fixtures.json:460  "subtitle_zh": "codex â· claude â· cursor â· grok",
+   contracts/checkup-v1/ui-fixtures.json:487  "group_id": "claude-desktop-old-versions",
+   contracts/checkup-v1/ui-fixtures.json:488  "title_zh": "claude æ¡é¢çæ§çæ¬",
+   contracts/checkup-v1/ui-fixtures.json:489  "owner_zh": "claude",
+== anthropic: 4
+   packages/junk-rules/rules/windows.json:104  "anthropicclaude",
+   packages/junk-rules/rules/windows.json:148  "anthropicclaude",
+   packages/junk-rules/tests/rules_v1.rs:3940  vec![p("local_app_data", "anthropicclaude/app-*")],
+   packages/junk-rules/tests/rules_v1.rs:3951  vec![p("local_app_data", "anthropicclaude/packages")],
+== codex: 238
+   apps/water/ui/tests/browser.test.mjs:88  const source = args.groupid === 'codex-runtimes' ? f.w12_group_detail_items : args.groupid.startswith('m:') ? f.w12_group_detail_merged : f.
+   apps/water/ui/tests/browser.test.mjs:305  await click('clean-codex-runtimes'); await wait(`document.body.textcontent.includes(${json.stringify(formatbytes(f.v2_conclusion_after_decid
+   apps/water/ui/tests/browser.test.mjs:306  assert.equal(await evaljs('document.queryselector("[data-group=codex-runtimes] .decided-text").textcontent'), 'å·²å å¥æ¸ç â· ' + format
+   apps/water/ui/tests/browser.test.mjs:335  await results(); await detail('codex-runtimes');
+   apps/water/ui/tests/browser.test.mjs:630  await results(); await detail('codex-runtimes');
+   apps/water/ui/tests/browser.test.mjs:633  await evaljs('document.queryselector("[data-group=codex-runtimes]").focus()'); await key('enter'); await wait('window.__watertest.calls.some
+== gemini: 6
+   packages/junk-rules/rules/windows.json:4969  "owner_zh": "geminiãcopilotãdsh",
+   packages/junk-rules/rules/windows.json:4977  ".gemini",
+   packages/junk-rules/rules/windows.json:5008  "what_zh": "geminiãcopilot å deepseek harness ä¿å­çå¯¹è¯ä¼è¯è®°å½ã",
+   packages/junk-rules/rules/windows.json:5020  "ref": "https://geminicli.com/docs/cli/session-management/",
+   packages/junk-rules/tests/rules_v1.rs:3721  "https://geminicli.com/docs/cli/session-management/",
+   packages/junk-rules/tests/rules_v1.rs:4731  p("user_profile", ".gemini/tmp/*/chats"),
+== @gmail: 1
+   THIRD-PARTY-LICENSES.md:3177  copyright (c) 2016 titus wormer <tituswormer@gmail.com>
+== password: 1
+   scripts/browser-lab.mjs:38  '--disable-sync', '--disable-default-apps', '--password-store=basic', '--use-mock-keychain',
+== secret: 11
+   packages/junk-scan/tests/scan_v1.rs:690  write_file(&fx.join("tree/secret/note.txt"), b"s");
+   packages/junk-scan/tests/scan_v1.rs:691  write_file(&fx.join("tree/secret/cache/b.bin"), b"bb");
+   packages/junk-scan/tests/scan_v1.rs:742  "secret",
+   packages/junk-scan/tests/scan_v1.rs:745  json!({"kind":"pattern","base":fx.path,"segments":["tree","secret"]}),
+   packages/junk-scan/tests/scan_v1.rs:751  "secret-cache",
+   packages/junk-scan/tests/scan_v1.rs:754  json!({"kind":"pattern","base":fx.path,"segments":["tree","secret","cache"]}),
+== ustc: 21
+   apps/water/host/Cargo.lock:512  "rustc_version",
+   apps/water/host/Cargo.lock:652  "rustc_version",
+   apps/water/host/Cargo.lock:703  "rustc_version",
+   apps/water/host/Cargo.lock:2386  name = "rustc-hash"
+   apps/water/host/Cargo.lock:2392  name = "rustc_version"
+   apps/water/host/Cargo.lock:2486  "rustc-hash",
+== .local/: 23
+   .github/workflows/ci.yml:48  # native-root and scope-registry read small junction fixtures from .local/; this creates them and sets the
+   .gitignore:2  .local/
+   apps/water/host/README.md:136  worktree's `.local/w3-f3-fixtures/`. each run removes only its newly created random
+   apps/water/host/tests/host_v1.rs:1623  let parent = tree.join(".local/w3-f3-fixtures");
+   apps/water/host/tests/host_v1.rs:1884  // the fixture root keeps the slash from `.local/w3-f3-fixtures`; `\\?\` rejects it.
+   apps/water/host/tests/host_v1.rs:2028  let parent = tree.join(".local/w3-f3-fixtures");
+== e:/: 1
+   apps/water/host/tests/host_v1.rs:257  "file:///c:/data/index.html",
+== e:\: 49
+   contracts/checkup-v1/ui-fixtures.json:24  "root": "e:\\",
+   contracts/checkup-v1/ui-fixtures.json:61  "root": "e:\\",
+   contracts/m35-v1/ui-fixtures-m35.json:23  "root": "e:\\",
+   contracts/m35-v1/ui-fixtures-m35.json:86  "root": "e:\\",
+   contracts/m35-v1/ui-fixtures-m35.json:146  "root": "e:\\",
+   contracts/m35-v1/ui-fixtures-m35.json:282  "display_path": "e:\\",
+== c:\users\: 31
+   .github/ISSUE_TEMPLATE/rule_request.yml:13  placeholder: c:\users\alice\appdata\local\sometool\cache
+   CONTRIBUTING.md:9  - ä¸è¦å¨ issueãprãæµè¯æè§åéåçå®çç¨æ·åãç§äººè·¯å¾æé®ç®±ãè·¯å¾è¯·æ¢æ `c:\users\alice\...` è¿æ ·çæ ·
+   CONTRIBUTING.md:81  - never put real user names, private paths or emails in issues, prs, tests or rules; use paths like `c:\users\alice\...`.
+   packages/junk-rules/tests/rules_v1.rs:402  r"c:\users\u\appdata\locallow\vrchat\vrchat\cache-windowsplayer\*",
+   packages/junk-rules/tests/rules_v1.rs:403  r"c:\users\u\appdata\locallow\vrchat\vrchat\texturediskcache-windowsplayer\*",
+   packages/junk-rules/tests/rules_v1.rs:408  &[r"c:\users\u\appdata\roaming\tencent\wxwork\upgrade\*"],
+== c:/users/: 1
+   apps/water/ui/tests/unit.test.mjs:159  for (const bad of ['c:\\users\\private', 'c:/users/private', '/tmp/private', '..', '', 12, null]) await assert.rejects(ipc.group_detail(bad)
+== administrator: 2
+   packaging/windows/flick.nsi:1  ; flick installer for windows (per-user, no administrator rights).
+   README.en.md:23  - `flick-setup-<version>.exe` installs for the current user, needs no administrator rights and adds a start menu shortcut;
+== dispatch: 13
+   apps/water/host/Cargo.lock:548  name = "dispatch2"
+   apps/water/host/Cargo.lock:1848  "dispatch2",
+   apps/water/host/Cargo.lock:1859  "dispatch2",
+   apps/water/host/Cargo.lock:2888  "dispatch2",
+   apps/water/ui/tests/browser.test.mjs:157  await browser.send('input.dispatchkeyevent', {type:'keydown', key:value, code:value, windowsvirtualkeycode:vk, modifiers:shift ? 8 : 0, ...(
+   apps/water/ui/tests/browser.test.mjs:158  await browser.send('input.dispatchkeyevent', {type:'keyup', key:value, code:value, windowsvirtualkeycode:vk, modifiers:shift ? 8 : 0});
+== acceptance: 6
+   apps/water/ui/tests/browser.test.mjs:7  import {openprivatebrowser} from '../../../../scripts/acceptance/native-vw-private-browser.mjs';
+   LICENSE-APACHE:167  and charge a fee for, acceptance of support, warranty, indemnity,
+   scripts/acceptance/native-vw-private-browser.mjs (name)
+   scripts/browser-lab.mjs:1  // controller-owned headless browser acceptance support. never uses the user's profile.
+   THIRD-PARTY-LICENSES.md:192  and charge a fee for, acceptance of support, warranty, indemnity,
+   THIRD-PARTY-LICENSES.md:288  9. accepting warranty or additional liability. while redistributing the work or derivative works thereof, you may choose to offer, and charg
+== ticket: 1
+   apps/water/ui/styles/tokens.css:1  /* water ui v3 tokens (2026-11-06, final: approved round 5 rolled out to all eleven screens). source of truth for the v3 mockup and the m6 u
+== executor: 39
+   apps/water/host/Cargo.lock:787  name = "futures-executor"
+   apps/water/host/Cargo.lock:988  "futures-executor",
+   packages/dup-finder/tests/dup_v1.rs:314  "dup_groups: executor-compatible 32-bit volume"
+   packages/junk-clean/examples/real_smoke.rs:7  // discover drive metadata only, without new native functions in the executor.
+   packages/junk-clean/README.md:3  windows handle-based cleanup and quarantine executor. this independent rust 1.95 workspace
+   packages/junk-scan/README.md:39  `scan_full` can additionally report leak clusters, junction references and declaration file locations (`.flick-cleanup.json` and `.water-cle
+clean patterns: 37310 | xiluotaka | smaltalk | f:\new | f:/new | /f/new | riku | mirasim | usr_40dd | git-central | keeper | dfan0519-tech/water | water.git | handoff | vaultsystem | @qq. | @163. | ghp_ | github_pat_ | gho_ | akia | begin private | begin rsa | rsproxy | tuna. | npmmirror | mirrors. | sjtu | aliyun | d:\code | deford | noreply | status.md | plan-open | jst

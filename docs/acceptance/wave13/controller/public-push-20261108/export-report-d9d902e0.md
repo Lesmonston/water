@@ -1,0 +1,143 @@
+# Public export d9d902e0 (20261108T063936Z)
+
+- files 192, 3.2 MB; crates 13; overlay 11
+- errors 0: none
+- warnings 117: home-path 45, worktrees 72
+
+## Pulled in by reference
+
+- contracts/checkup-v1/IPC.md (from apps/water/host/tests/host_v1.rs)
+- contracts/checkup-v1/ui-fixtures.json (from apps/water/ui/tests/unit.test.mjs)
+- contracts/m35-v1/IPC-M35.md (from apps/water/host/tests/host_v1.rs)
+- contracts/m35-v1/ui-fixtures-m35.json (from apps/water/ui/tests/unit.test.mjs)
+- contracts/m3c-v1/IPC-M3C.md (from apps/water/host/tests/host_v1.rs)
+- contracts/m3c-v1/ui-fixtures-m3c.json (from apps/water/ui/tests/unit.test.mjs)
+- contracts/v1/conformance-cases.json (from crates/water-contracts/tests/contract_v1.rs)
+- contracts/v1/examples/valid-report.json (from crates/water-contracts/tests/contract_v1.rs)
+- contracts/v1/scan-report.schema.json (from crates/water-contracts/tests/contract_v1.rs)
+- docs/design/flick-brand/flick-app-icon.ico (from apps/water/host/tests/host_v1.rs)
+- scripts/acceptance/native-vw-private-browser.mjs (from apps/water/ui/tests/browser.test.mjs)
+- scripts/browser-lab.mjs (from scripts/acceptance/native-vw-private-browser.mjs)
+
+## Errors
+
+
+## Warnings
+
+- [home-path] apps/water/ui/tests/unit.test.mjs:159 for (const bad of ['C:\\Users\\private', 'C:/Users/private', '/tmp/private', '..', '', 12, null]) await assert.rejects(ipc.group_detail(bad), e => e.code === 'invalid');
+- [worktrees] contracts/checkup-v1/ui-fixtures.json:1293 "display_path": "D:\\code\\flick\\.worktrees\\desktop-demo\\.local\\desktop-target",
+- [worktrees] contracts/checkup-v1/ui-fixtures.json:1300 "display_path": "D:\\code\\flick\\.worktrees\\runtime-demo\\.local\\next-target",
+- [worktrees] contracts/checkup-v1/ui-fixtures.json:1307 "display_path": "D:\\code\\flick\\.worktrees\\session-demo\\.local\\next-target",
+- [worktrees] contracts/checkup-v1/ui-fixtures.json:1314 "display_path": "D:\\code\\flick\\.worktrees\\integration-demo\\.local\\next-target",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:241 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:299 "label_zh": ".worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:300 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:505 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:570 "label_zh": ".worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:571 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:776 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:834 "label_zh": ".worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:835 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:1031 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:1089 "label_zh": ".worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:1090 "display_path": "D:\\code\\flick\\.worktrees",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:1667 "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:1668 "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:2034 "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:2035 "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:2401 "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:2402 "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:2768 "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:2769 "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:3111 "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:3112 "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:3130 "note_zh": "D:\\code\\demo-app\\.worktrees"
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:4749 "display_path": "D:\\code\\flick\\.worktrees\\cache-b\\target",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:4991 "display_path": "D:\\code\\demo-app\\.worktrees\\fix-demo",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5004 "display_path": "D:\\code\\demo-app\\.worktrees\\ui",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5017 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-c",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5029 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-d",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5041 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-e",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5053 "display_path": "D:\\code\\demo-app\\.worktrees\\audit-demo",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5065 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-f",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5077 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-g",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5089 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-h",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5101 "display_path": "D:\\code\\demo-app\\.worktrees\\feature-i",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:5113 "display_path": "D:\\code\\demo-app\\.worktrees\\example-demo",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6294 "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-01",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6300 "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-02",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6306 "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-03",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6312 "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-04",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6318 "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-05",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6324 "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-06",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6330 "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-07",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6336 "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-08",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6342 "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-09",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6348 "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-10",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6354 "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-11",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6360 "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-12",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6366 "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-13",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6372 "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-14",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6378 "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-15",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6384 "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-16",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6390 "display_name": "code\\flick\\.worktrees\\cache-a\\.local\\chrome-profile-17",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6396 "display_name": "code\\flick\\.worktrees\\cache-b\\.local\\chrome-profile-18",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6402 "display_name": "code\\flick\\.worktrees\\cache-c\\.local\\chrome-profile-19",
+- [worktrees] contracts/m35-v1/ui-fixtures-m35.json:6408 "display_name": "code\\flick\\.worktrees\\cache-d\\.local\\chrome-profile-20",
+- [worktrees] contracts/m3c-v1/ui-fixtures-m3c.json:1372 "display_path": "D:\\code\\flick\\.worktrees\\desktop-demo\\.local\\desktop-target",
+- [worktrees] contracts/m3c-v1/ui-fixtures-m3c.json:1381 "display_path": "D:\\code\\flick\\.worktrees\\runtime-demo\\.local\\next-target",
+- [worktrees] contracts/m3c-v1/ui-fixtures-m3c.json:1390 "display_path": "D:\\code\\flick\\.worktrees\\session-demo\\.local\\next-target",
+- [worktrees] contracts/m3c-v1/ui-fixtures-m3c.json:1399 "display_path": "D:\\code\\flick\\.worktrees\\integration-demo\\.local\\next-target",
+- [worktrees] contracts/m3c-v1/ui-fixtures-m3c.json:1594 "display_path": "D:\\code\\flick\\.worktrees\\feature-a",
+- [worktrees] contracts/m3c-v1/ui-fixtures-m3c.json:1603 "display_path": "D:\\code\\flick\\.worktrees\\feature-b",
+- [worktrees] packages/cleanup-manifest/README.md:16 The real_smoke example finds the first ancestor containing a .worktrees directory,
+- [worktrees] packages/cleanup-manifest/examples/real_smoke.rs:7 .find(|ancestor| ancestor.join(".worktrees").is_dir())
+- [worktrees] packages/cleanup-manifest/examples/real_smoke.rs:10 for entry in std::fs::read_dir(repo.join(".worktrees"))
+- [worktrees] packages/cleanup-manifest/tests/manifest_v1.rs:8 "id":"worktree-builds","title":"工作树里的构建产物","paths":[".worktrees/*/.local/target",".worktrees/*/.local/*-profile-*"],
+- [worktrees] packages/cleanup-manifest/tests/manifest_v1.rs:11 "worktrees":[{"path":".worktrees/feature-a","note":"功能分支 A"}]})
+- [worktrees] packages/cleanup-manifest/tests/manifest_v1.rs:247 json!([".worktrees", "*", ".local", "target"]),
+- [worktrees] packages/cleanup-manifest/tests/manifest_v1.rs:248 json!([".worktrees", "*", ".local", "*-profile-*"]),
+- [home-path] packages/junk-rules/tests/rules_v1.rs:402 r"C:\Users\u\AppData\LocalLow\VRChat\VRChat\Cache-WindowsPlayer\*",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:403 r"C:\Users\u\AppData\LocalLow\VRChat\VRChat\TextureDiskCache-WindowsPlayer\*",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:408 &[r"C:\Users\u\AppData\Roaming\Tencent\WXWork\upgrade\*"],
+- [home-path] packages/junk-rules/tests/rules_v1.rs:413 r"C:\Users\u\AppData\Roaming\npm\node_modules\.*-*",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:414 r"C:\Users\u\AppData\Roaming\npm\node_modules\@*\.*-*",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:419 &[r"C:\Users\u\AppData\Roaming\Tencent\xwechat\log\*.xlog"],
+- [home-path] packages/junk-rules/tests/rules_v1.rs:424 r"C:\Users\u\AppData\Local\Google\Chrome\User Data\component_crx_cache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:425 r"C:\Users\u\AppData\Local\Microsoft\Edge\User Data\component_crx_cache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:426 r"C:\Users\u\AppData\Local\BraveSoftware\Brave-Browser\User Data\component_crx_cache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:431 &[r"C:\Users\u\AppData\Local\Microsoft\OneDrive\logs\*"],
+- [home-path] packages/junk-rules/tests/rules_v1.rs:435 &[r"C:\Users\u\AppData\Local\github-copilot-sdk\cli\copilot-sdk-runtime-*"],
+- [home-path] packages/junk-rules/tests/rules_v1.rs:439 &[r"C:\Users\u\.claude\downloads\*"],
+- [home-path] packages/junk-rules/tests/rules_v1.rs:444 r"C:\Users\u\AppData\Local\NVIDIA\DXCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:445 r"C:\Users\u\AppData\Local\NVIDIA\GLCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:446 r"C:\Users\u\AppData\Local\D3DSCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:447 r"C:\Users\u\AppData\Local\AMD\DxCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:448 r"C:\Users\u\AppData\Local\AMD\GLCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:449 r"C:\Users\u\AppData\Local\Intel\ShaderCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:450 r"C:\Users\u\AppData\LocalLow\Intel\ShaderCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:451 r"C:\Users\u\AppData\LocalLow\NVIDIA\DXCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:452 r"C:\Users\u\AppData\LocalLow\NVIDIA\GLCache",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:769 let expected = r#"{"plan_version":"water.scan-plan.v1","rules_data_version":"2026-10-26.1","created_at":"2026-10-26T04:00:00Z","targets":[{"target_id":"sample-cache#1","group_id":"sample-cache","rule_
+- [home-path] packages/junk-rules/tests/rules_v1.rs:1498 "user_profile": "C:\\Users\\u",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:1499 "local_app_data": "C:\\Users\\u\\AppData\\Local",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:1500 "roaming_app_data": "C:\\Users\\u\\AppData\\Roaming",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:1501 "user_temp": "C:\\Users\\u\\AppData\\Local\\Temp",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:1505 "downloads": "C:\\Users\\u\\Downloads"
+- [home-path] packages/junk-rules/tests/rules_v1.rs:2887 assert_eq!(base, "C:\\Users\\u");
+- [home-path] packages/junk-rules/tests/rules_v1.rs:2938 assert_eq!(base, "C:\\Users\\u\\AppData\\Local");
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3121 "user_profile" => "C:\\Users\\u",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3122 "local_app_data" => "C:\\Users\\u\\AppData\\Local",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3123 "roaming_app_data" => "C:\\Users\\u\\AppData\\Roaming",
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3159 "C:\\Users\\u".to_string(),
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3160 "C:\\Users\\u\\AppData\\Local".to_string(),
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3161 "C:\\Users\\u\\AppData\\Roaming".to_string(),
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3162 "C:\\Users\\u\\AppData\\Local\\Temp".to_string(),
+- [home-path] packages/junk-rules/tests/rules_v1.rs:3166 "C:\\Users\\u\\Downloads".to_string(),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:236 json!({"kind":"pattern","base":r"C:\Users\..\Windows","segments":["a"]}),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:250 json!({"kind":"pattern","base":r"C:\Users\u","segments":["a:b"]}),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:264 json!({"kind":"pattern","base":r"C:\Users\u","segments":[""]}),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:279 json!({"kind":"pattern","base":r"C:\Users\u","segments":nine}),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:293 json!({"kind":"marker","root":r"C:\Users\u","marker":{"kind":"dir_name","names":["target"]},"max_depth":0}),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:307 json!({"kind":"marker","root":r"C:\Users\u","marker":{"kind":"dir_name","names":["target"]},"max_depth":17}),
+- [home-path] packages/junk-scan/tests/scan_v1.rs:321 json!({"kind":"pattern","base":r"C:\Users\u","segments":["AppData","Local","*"]}),
