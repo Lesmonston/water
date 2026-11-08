@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave14-english-progress-onescreen",
-  "status": "R1_J1_U1_J2_VERIFIED_S1_PART_B_H1_READY",
+  "status": "R1_J1_U1_J2_VERIFIED_S1_PART_B_H1_DISPATCHED",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -789,7 +789,7 @@
       "branch": "worker/water-w14-s1",
       "baseCommit": "dd7ac13a975b7dac29a85c95cdb94c004bec8c81",
       "snapshotRef": "refs/tags/water-w14-s1-b-base-20261108",
-      "status": "ADDENDUM_02_ISSUED",
+      "status": "ADDENDUM_02_DISPATCHED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "every IPC *_zh has an *_en sibling (copy_text_en, message_en on IpcError), rule texts from the R1 fields, runtime sentences in English, new records store both languages, old records read with _en = _zh; logic no longer keyed on Chinese sentences; scan progress gets finishing and per-location space states, unchanged labels, found_bytes without space bytes, a monotonic percent with the W14 3.3 weights; trends test independent of real scan time",
       "report": "docs/dispatch/reports/WATER-W14-S1-REPORT.md",
@@ -950,7 +950,10 @@
           "issuedAt": "2026-11-08T13:31:35.463Z",
           "resumeFrom": "dd7ac13a975b7dac29a85c95cdb94c004bec8c81",
           "part": "B",
-          "why": "J2 merged (on_root_done); controller merged main into the S1 branch; rules stage counted by reported roots, target/location/category completion by walked roots, three NCs, finals and archive"
+          "why": "J2 merged (on_root_done); controller merged main into the S1 branch; rules stage counted by reported roots, target/location/category completion by walked roots, three NCs, finals and archive",
+          "dispatchReportedAt": "2026-11-08T13:54:24.749Z",
+          "dispatchedExecutor": "sol",
+          "dispatchEvidence": "user 2026-11-08: \"两单都是sol\""
         }
       ],
       "baseHistory": [
@@ -1552,7 +1555,7 @@
       "branch": "worker/water-w14-h1",
       "baseCommit": "f91a982acbea483df753ce37fe586b53602fcdf1",
       "snapshotRef": "refs/tags/water-w14-h1-base-20261108",
-      "status": "READY",
+      "status": "DISPATCHED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "IpcFailure gets message_en; the host's own errors have English; service errors pass message_en through; HostPicker::pick builds IpcError with message_en; app_info unchanged (W14-ADD-02: no system_language); flick.nsi in English and Simplified Chinese, picked from the system language without a language dialog",
       "report": "docs/dispatch/reports/WATER-W14-H1-REPORT.md",
@@ -1635,7 +1638,10 @@
       "dispatchedAt": null,
       "startedAt": null,
       "model": null,
-      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/h1/"
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/h1/",
+      "dispatchReportedAt": "2026-11-08T13:54:24.749Z",
+      "dispatchedExecutor": "sol",
+      "dispatchEvidence": "user 2026-11-08: \"两单都是sol\""
     }
   ],
   "mergeOrder": [
