@@ -1054,19 +1054,20 @@ impl ScanJob {
             m35::trusted_plan(&settings, &scope, &mut plan).expect("validated declaration plan");
         let plan_json = water_junk_rules::plan_to_json(&plan);
         let parsed = scan::ScanPlan::from_json(&plan_json).expect("validated scan plan");
-        if let Ok(mut s) = lock(&worker_core) {
-            let mut categories = progress_categories(&plan);
-            for row in &mut categories {
-                row["state"] = json!("running");
-            }
-            s.scan_progress["categories"] = json!(categories);
-        }
         let observer = Progress {
             core: worker_core.clone(),
             plan: plan.clone(),
-            last_found: Mutex::new(0),
+            rules: Mutex::new(RuleProgress::default()),
             started,
             category_roots: progress_category_roots(&plan),
+            location_roots: scope
+                .iter()
+                .filter_map(|l| {
+                    l.path
+                        .as_ref()
+                        .map(|path| (l.location_id.clone(), path.clone()))
+                })
+                .collect(),
             drive_ids: scope
                 .iter()
                 .filter(|l| l.kind == "drive")
@@ -1084,6 +1085,15 @@ impl ScanJob {
                 .sum(),
             space: Mutex::new((0, 0)),
         };
+        if let Ok(s) = lock(&worker_core) {
+            let mut progress = s.scan_progress.clone();
+            drop(s);
+            progress["categories"] = json!(progress_categories(&plan));
+            observer.update_rule_rows(&mut progress, &RuleProgress::default(), None);
+            if let Ok(mut s) = lock(&worker_core) {
+                s.scan_progress = progress;
+            }
+        }
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if let Some(previous) = &previous {
                 let mut invalidated = previous.saved.clone();
@@ -1437,10 +1447,8 @@ fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {
         if cat == "custom" {
             let mut seen = BTreeSet::new();
             for t in targets {
-                if let water_junk_rules::MatchSpec::Marker { root, .. }
-                | water_junk_rules::MatchSpec::Discovery { root } = &t.match_spec
-                    && seen.insert(root)
-                {
+                let root = progress_target_root(t);
+                if seen.insert(root.to_ascii_lowercase()) {
                     result.push(json!({"category":cat,"title_zh":format!("你加的位置 · {root}"),"title_en":format!("Your folder · {root}"),"state":"waiting","found_bytes":"0"}));
                 }
             }
@@ -1464,11 +1472,9 @@ fn progress_category_roots(plan: &water_junk_rules::ScanPlan) -> Vec<Option<Stri
         if cat == "custom" {
             let mut seen = BTreeSet::new();
             for t in targets {
-                if let water_junk_rules::MatchSpec::Marker { root, .. }
-                | water_junk_rules::MatchSpec::Discovery { root } = &t.match_spec
-                    && seen.insert(root)
-                {
-                    roots.push(Some(root.clone()));
+                let root = progress_target_root(t);
+                if seen.insert(root.to_ascii_lowercase()) {
+                    roots.push(Some(root.to_owned()));
                 }
             }
         } else if !targets.is_empty() {
@@ -1478,40 +1484,155 @@ fn progress_category_roots(plan: &water_junk_rules::ScanPlan) -> Vec<Option<Stri
     roots
 }
 
+fn progress_target_root(target: &water_junk_rules::Target) -> &str {
+    match &target.match_spec {
+        water_junk_rules::MatchSpec::Pattern { base, .. } => base,
+        water_junk_rules::MatchSpec::Marker { root, .. }
+        | water_junk_rules::MatchSpec::Discovery { root } => root,
+    }
+}
+
+#[derive(Default)]
+struct RuleProgress {
+    found_bytes: u64,
+    completed_roots: BTreeSet<String>,
+    active_groups: BTreeSet<String>,
+}
+
 struct Progress {
     core: Arc<Core>,
     plan: water_junk_rules::ScanPlan,
-    last_found: Mutex<u64>,
+    rules: Mutex<RuleProgress>,
     started: Instant,
     category_roots: Vec<Option<String>>,
+    location_roots: BTreeMap<String, String>,
     drive_ids: BTreeSet<String>,
     space_used: u128,
     space: Mutex<(u128, u64)>,
 }
 impl Progress {
+    fn rule_end(&self) -> u64 {
+        if self.drive_ids.is_empty() { 90 } else { 40 }
+    }
     fn rules_done(&self) {
         if let Ok(mut s) = lock(&self.core) {
-            s.scan_progress["percent"] = json!(if self.drive_ids.is_empty() { 90 } else { 40 });
-            for row in s.scan_progress["categories"]
-                .as_array_mut()
-                .into_iter()
-                .flatten()
+            // A stopped scan may leave roots unreported. End the phase without
+            // inventing completion events for their targets or categories.
+            s.scan_progress["percent"] = json!(
+                self.rule_end()
+                    .max(s.scan_progress["percent"].as_u64().unwrap_or(0))
+            );
+        }
+    }
+    fn target_root<'a>(&'a self, target: &'a water_junk_rules::Target) -> &'a str {
+        let target = if let water_junk_rules::MatchSpec::Marker {
+            fallback_for: Some(id),
+            ..
+        } = &target.match_spec
+        {
+            self.plan
+                .targets
+                .iter()
+                .find(|t| &t.target_id == id)
+                .unwrap_or(target)
+        } else {
+            target
+        };
+        progress_target_root(target)
+    }
+    fn targets_state(
+        &self,
+        targets: &[&water_junk_rules::Target],
+        rules: &RuleProgress,
+    ) -> &'static str {
+        let done = targets
+            .iter()
+            .filter(|t| {
+                rules
+                    .completed_roots
+                    .contains(&self.target_root(t).to_ascii_lowercase())
+            })
+            .count();
+        if done == targets.len() {
+            "done"
+        } else if done > 0
+            || targets
+                .iter()
+                .any(|t| rules.active_groups.contains(&t.group_id))
+        {
+            "running"
+        } else {
+            "waiting"
+        }
+    }
+    fn update_rule_rows(
+        &self,
+        progress: &mut Value,
+        rules: &RuleProgress,
+        bytes: Option<(&str, u64)>,
+    ) {
+        for (index, row) in progress["categories"]
+            .as_array_mut()
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            let targets = self
+                .plan
+                .targets
+                .iter()
+                .filter(|t| {
+                    t.category.as_str() == row["category"]
+                        && (t.category.as_str() != "custom"
+                            || self.category_roots[index]
+                                .as_deref()
+                                .is_some_and(|root| root.eq_ignore_ascii_case(self.target_root(t))))
+                })
+                .collect::<Vec<_>>();
+            row["state"] = json!(self.targets_state(&targets, rules));
+            if let Some((group, delta)) = bytes
+                && targets.iter().any(|t| t.group_id == group)
             {
-                row["state"] = json!("done");
+                row["found_bytes"] = json!(
+                    util::bytes(&row["found_bytes"])
+                        .saturating_add(delta)
+                        .to_string()
+                );
             }
-            for row in s.scan_progress["locations"]
-                .as_array_mut()
-                .into_iter()
-                .flatten()
+        }
+        for row in progress["locations"].as_array_mut().into_iter().flatten() {
+            let id = row["location_id"].as_str().unwrap_or("");
+            let prefix = format!("custom:{id}:");
+            let targets = self
+                .plan
+                .targets
+                .iter()
+                .filter(|t| {
+                    if t.group_id.starts_with("decl:") {
+                        self.location_roots
+                            .get(id)
+                            .is_some_and(|path| util::contains(path, self.target_root(t)))
+                    } else if id == "common" {
+                        !t.group_id.starts_with("custom:") && !t.group_id.starts_with("decl:")
+                    } else {
+                        t.group_id.starts_with(&prefix)
+                    }
+                })
+                .collect::<Vec<_>>();
+            let state = self.targets_state(&targets, rules);
+            row["state"] = json!(if state == "done" && self.drive_ids.contains(id) {
+                "space"
+            } else {
+                state
+            });
+            if let Some((group, delta)) = bytes
+                && targets.iter().any(|t| t.group_id == group)
             {
-                row["state"] = json!(if self
-                    .drive_ids
-                    .contains(row["location_id"].as_str().unwrap_or(""))
-                {
-                    "waiting"
-                } else {
-                    "done"
-                });
+                row["found_bytes"] = json!(
+                    util::bytes(&row["found_bytes"])
+                        .saturating_add(delta)
+                        .to_string()
+                );
             }
         }
     }
@@ -1540,76 +1661,41 @@ impl scan::ScanObserver for Progress {
             }
             return;
         }
-        // Byte callbacks do not identify completion. Completion is published when the rule scan returns.
-        let mut last_found = self
-            .last_found
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner);
-        let delta = p.found_bytes.saturating_sub(*last_found);
-        *last_found = p.found_bytes;
+        // Byte callbacks only identify activity, never newly completed roots.
+        let mut rules = self.rules.lock().unwrap_or_else(PoisonError::into_inner);
+        let delta = p.found_bytes.saturating_sub(rules.found_bytes);
+        rules.found_bytes = p.found_bytes;
+        rules.active_groups.insert(p.group_id.clone());
         if let Ok(s) = lock(&self.core) {
+            // Keep row calculation outside the IPC mutex. The rules mutex
+            // serializes callbacks while progress polls can read the last view.
             let mut progress = s.scan_progress.clone();
             drop(s);
             progress["visited_entries"] = json!(p.visited_entries);
             progress["found_bytes"] = json!(p.found_bytes.to_string());
             progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
-            for (row_index, row) in progress["categories"]
-                .as_array_mut()
-                .expect("progress array")
-                .iter_mut()
-                .enumerate()
-            {
-                let targets: Vec<_> = self
-                    .plan
-                    .targets
-                    .iter()
-                    .filter(|t| {
-                        t.category.as_str() == row["category"]
-                            && (t.category.as_str() != "custom"
-                                || match &t.match_spec {
-                                    water_junk_rules::MatchSpec::Marker { root, .. }
-                                    | water_junk_rules::MatchSpec::Discovery { root } => {
-                                        self.category_roots[row_index].as_deref()
-                                            == Some(root.as_str())
-                                    }
-                                    _ => false,
-                                })
-                    })
-                    .collect();
-                let groups: BTreeSet<_> = targets.iter().map(|t| t.group_id.as_str()).collect();
-                // B reports cumulative bytes; attribute each target's delta to its category.
-                if groups.contains(p.group_id.as_str()) {
-                    let previous = util::bytes(&row["found_bytes"]);
-                    row["found_bytes"] = json!((previous + delta).to_string());
-                }
+            self.update_rule_rows(&mut progress, &rules, Some((&p.group_id, delta)));
+            if let Ok(mut s) = lock(&self.core) {
+                s.scan_progress = progress;
             }
-            for row in progress["locations"].as_array_mut().into_iter().flatten() {
-                let id = row["location_id"].as_str().unwrap_or("");
-                let prefix = format!("custom:{id}:");
-                let targets = self
-                    .plan
-                    .targets
-                    .iter()
-                    .filter(|t| {
-                        if id == "common" {
-                            !t.group_id.starts_with("custom:") && !t.group_id.starts_with("decl:")
-                        } else {
-                            t.group_id.starts_with(&prefix)
-                        }
-                    })
-                    .collect::<Vec<_>>();
-                let groups = targets
-                    .iter()
-                    .map(|t| t.group_id.as_str())
-                    .collect::<BTreeSet<_>>();
-                if groups.contains(p.group_id.as_str()) {
-                    row["found_bytes"] = json!(
-                        util::bytes(&row["found_bytes"])
-                            .saturating_add(delta)
-                            .to_string()
-                    );
-                }
-            }
+        }
+    }
+    fn on_root_done(&self, root: &scan::RootProgress) {
+        let mut rules = self.rules.lock().unwrap_or_else(PoisonError::into_inner);
+        rules.completed_roots.insert(root.root.to_ascii_lowercase());
+        let percent = root
+            .roots_done
+            .min(root.roots_total)
+            .saturating_mul(self.rule_end())
+            .checked_div(root.roots_total)
+            .unwrap_or(0);
+        if let Ok(s) = lock(&self.core) {
+            let mut progress = s.scan_progress.clone();
+            drop(s);
+            progress["percent"] = json!(percent.max(progress["percent"].as_u64().unwrap_or(0)));
+            progress["visited_entries"] = json!(root.visited_entries);
+            progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
+            self.update_rule_rows(&mut progress, &rules, None);
             if let Ok(mut s) = lock(&self.core) {
                 s.scan_progress = progress;
             }

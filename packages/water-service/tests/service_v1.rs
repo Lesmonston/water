@@ -35,6 +35,7 @@ mod scan {
     pub struct Gate {
         pub steps: mpsc::Sender<&'static str>,
         pub resume: Mutex<mpsc::Receiver<()>>,
+        pub root_limit: Option<usize>,
     }
     impl Gate {
         fn pause(&self, step: &'static str) {
@@ -54,6 +55,7 @@ mod scan {
     ) -> Result<(ScanResult, ScanExtras), ScanError> {
         let gate = GATE.lock().unwrap().clone();
         if let Some(gate) = gate {
+            gate.pause("rule-start");
             // The accepted scanner can repeat this same untagged event while one target is still running.
             // Neither group_id, category, visited_entries nor found_bytes identifies completion.
             if let Some(t) = plan.targets.first() {
@@ -71,17 +73,49 @@ mod scan {
                 }
             }
             gate.pause("rule-mid");
-            for (n, t) in plan.targets.iter().enumerate() {
-                observer.on_progress(&ScanProgress {
-                    group_id: t.group_id.clone(),
-                    category: serde_json::to_value(t.category)
-                        .unwrap()
-                        .as_str()
-                        .unwrap()
-                        .into(),
-                    visited_entries: n as u64 + 1,
-                    found_bytes: 123,
+            let mut roots = Vec::new();
+            for t in &plan.targets {
+                let spec = serde_json::to_value(&t.match_spec).unwrap();
+                if spec["fallback_for"].is_string() {
+                    continue;
+                }
+                let root = spec["base"]
+                    .as_str()
+                    .or_else(|| spec["root"].as_str())
+                    .unwrap();
+                if !roots.iter().any(|r: &String| r.eq_ignore_ascii_case(root)) {
+                    roots.push(root.to_owned());
+                }
+            }
+            let roots_total = roots.len();
+            for (n, root) in roots
+                .iter()
+                .take(gate.root_limit.unwrap_or(roots_total))
+                .enumerate()
+            {
+                // Forced/periodic events from one group can repeat before any of its roots finish.
+                for _ in 0..3 {
+                    let t = &plan.targets[0];
+                    observer.on_progress(&ScanProgress {
+                        group_id: t.group_id.clone(),
+                        category: serde_json::to_value(t.category)
+                            .unwrap()
+                            .as_str()
+                            .unwrap()
+                            .into(),
+                        visited_entries: n as u64 + 2,
+                        found_bytes: 123,
+                    });
+                }
+                gate.pause("rule-repeat");
+                observer.on_root_done(&RootProgress {
+                    // Exercise the service's case-insensitive matching as well.
+                    root: root.to_ascii_uppercase(),
+                    roots_done: n as u64 + 1,
+                    roots_total: roots_total as u64,
+                    visited_entries: n as u64 + 2,
                 });
+                gate.pause("root");
             }
             gate.pause("rules");
             return Ok((
@@ -90,7 +124,12 @@ mod scan {
                     scan_id: id.into(),
                     started_at: util::timestamp(now),
                     ended_at: util::timestamp(now),
-                    status: "completed".into(),
+                    status: if gate.root_limit.is_some() {
+                        "partial"
+                    } else {
+                        "completed"
+                    }
+                    .into(),
                     visited_entries: plan.targets.len() as u64,
                     groups: vec![],
                     items: vec![],
@@ -1160,9 +1199,15 @@ fn service_ipc_contract() {
 
 #[test]
 fn service_scan_views() {
-    // The source-compiled service replaces only the scanner boundary. No real drive is traversed.
-    // Channels hold each stage; no polling interval or sleep determines which stages are observed.
-    for whole_drive in [true, false] {
+    // Compile the production service with only the scanner boundary replaced.
+    // Channels hold every observed stage; no sleep determines which snapshot is read.
+    for (whole_drive, root_limit, empty) in [
+        (true, None, false),
+        (false, None, false),
+        (true, Some(1), false),
+        (false, Some(1), false),
+        (false, None, true),
+    ] {
         let f = Fixture::new();
         let root = f.root.join("progress-drive");
         fs::create_dir(&root).unwrap();
@@ -1174,72 +1219,103 @@ fn service_scan_views() {
                 free_bytes: 1000,
             });
         }
-        let s = source_service(&f, false);
+        let mut s = source_service(&f, false);
+        // One common group spans a Pattern base and a Discovery root. The other
+        // location has a main Marker plus its fallback, sharing the third root.
+        let mut rules: Value =
+            serde_json::from_str(include_str!("../../junk-rules/rules/windows.json")).unwrap();
+        rules["rules"].as_array_mut().unwrap().retain(|r| {
+            matches!(
+                r["rule_id"].as_str(),
+                Some("node-modules" | "bundled-node-modules")
+            ) || (!empty && r["rule_id"] == "system-temp-old")
+        });
+        if !empty {
+            rules["rules"][0]["locate"] = json!([
+                {"kind":"pattern","base":"system_temp","segments":["*"]},
+                {"kind":"discovery","base":"user_temp"}
+            ]);
+        }
+        Arc::get_mut(&mut s.core).unwrap().rules =
+            water_junk_rules::RuleSet::from_json(&rules.to_string()).unwrap();
+        let location_id = if whole_drive {
+            format!("drive-{}", fixture_drive()[..1].to_ascii_lowercase())
+        } else if !empty {
+            f.fake.picks.lock().unwrap().push_back(Some(slash(&root)));
+            call(&s, "custom_root_add", json!({}))["added"]["root_id"]
+                .as_str()
+                .unwrap()
+                .to_owned()
+        } else {
+            String::new()
+        };
         let (steps, seen) = mpsc::channel();
         let (resume, go) = mpsc::channel();
         *scan::GATE.lock().unwrap() = Some(Arc::new(scan::Gate {
             steps,
             resume: Mutex::new(go),
+            root_limit,
         }));
         let (written, writing) = mpsc::channel();
         let (persist, save) = mpsc::channel();
         *s.core.store.after_snapshot.lock().unwrap() = Some((written, save));
-        let args = if whole_drive {
-            json!({"locationIds":["common","drive-f"]})
-        } else {
+        let args = if empty {
             json!({"locationIds":["common"]})
-        };
-        // The fixture's drive letter may differ on other Windows runners.
-        let args = if whole_drive {
-            json!({"locationIds":["common",format!("drive-{}",fixture_drive()[..1].to_ascii_lowercase())]})
         } else {
-            args
+            json!({"locationIds":["common",location_id]})
         };
         call(&s, "scan_start", args);
         assert_eq!(
             seen.recv().unwrap(),
+            "rule-start",
+            "SERVICE_W14_PROGRESS: start barrier"
+        );
+        let initial = call(&s, "scan_progress", json!({}));
+        resume.send(()).unwrap();
+        assert_eq!(
+            seen.recv().unwrap(),
             "rule-mid",
-            "SERVICE_W14_PROGRESS: periodic event barrier"
+            "SERVICE_W14_PROGRESS: periodic barrier"
         );
         let mid_target = call(&s, "scan_progress", json!({}));
         resume.send(()).unwrap();
+        let mut repeats = Vec::new();
+        let mut roots = Vec::new();
+        for _ in 0..if empty { 0 } else { root_limit.unwrap_or(3) } {
+            assert_eq!(
+                seen.recv().unwrap(),
+                "rule-repeat",
+                "SERVICE_W14_PROGRESS: forced barrier"
+            );
+            repeats.push(call(&s, "scan_progress", json!({})));
+            resume.send(()).unwrap();
+            assert_eq!(
+                seen.recv().unwrap(),
+                "root",
+                "SERVICE_W14_PROGRESS: root barrier"
+            );
+            roots.push(call(&s, "scan_progress", json!({})));
+            resume.send(()).unwrap();
+        }
         assert_eq!(
             seen.recv().unwrap(),
             "rules",
             "SERVICE_W14_PROGRESS: rules barrier"
         );
-        let mut sequence = vec![call(&s, "scan_progress", json!({}))];
-        assert_eq!(
-            sequence[0]["state"], "running",
-            "SERVICE_W14_PROGRESS: rules state"
-        );
-        assert!(
-            sequence[0]["percent"].as_u64().unwrap() <= if whole_drive { 40 } else { 90 },
-            "SERVICE_W14_PROGRESS: rule range"
-        );
-        assert_eq!(
-            sequence[0]["percent"], mid_target["percent"],
-            "SERVICE_W14_PROGRESS: repeated callbacks do not advance completion"
-        );
-        let labels = sequence[0]["locations"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|l| (l["label_zh"].clone(), l["label_en"].clone()))
-            .collect::<Vec<_>>();
-        if whole_drive {
-            assert_ne!(
-                sequence[0]["locations"][1]["state"], "done",
-                "SERVICE_W14_PROGRESS: drive is not done after rules"
-            );
+        let before_return = call(&s, "scan_progress", json!({}));
+        let mut sequence = vec![initial.clone(), mid_target.clone()];
+        for (repeat, root) in repeats.iter().zip(&roots) {
+            sequence.extend([repeat.clone(), root.clone()]);
         }
+        sequence.push(before_return.clone());
+        let mut spaces = Vec::new();
         resume.send(()).unwrap();
         if whole_drive {
-            for (step, percent) in [
-                ("space-start", 40),
-                ("space-progress", 53),
-                ("space-progress", 67),
-                ("space-progress", 94),
+            for step in [
+                "space-start",
+                "space-progress",
+                "space-progress",
+                "space-progress",
             ] {
                 assert_eq!(
                     seen.recv().unwrap(),
@@ -1247,49 +1323,150 @@ fn service_scan_views() {
                     "SERVICE_W14_PROGRESS: space barrier"
                 );
                 let p = call(&s, "scan_progress", json!({}));
-                assert_eq!(
-                    p["locations"][1]["state"], "space",
-                    "SERVICE_W14_PROGRESS: space state"
-                );
-                assert_eq!(
-                    p["percent"], percent,
-                    "SERVICE_W14_PROGRESS: used bytes weight"
-                );
-                assert_eq!(
-                    p["found_bytes"], "123",
-                    "SERVICE_W14_PROGRESS: overview bytes excluded"
-                );
+                spaces.push(p.clone());
                 sequence.push(p);
                 resume.send(()).unwrap();
             }
         }
         writing.recv().unwrap();
         let finishing = call(&s, "scan_progress", json!({}));
+        sequence.push(finishing.clone());
+        persist.send(()).unwrap();
+        let terminal = wait(&s, "scan_progress");
+        sequence.push(terminal.clone());
+        *scan::GATE.lock().unwrap() = None;
+        // Release all barriers and let the worker finish before checking behavior.
+        let end = if whole_drive { 40 } else { 90 };
+        assert_eq!(
+            initial["percent"], 0,
+            "SERVICE_W14_PROGRESS: initial percent"
+        );
+        assert_eq!(
+            mid_target["percent"], 0,
+            "SERVICE_W14_PROGRESS: periodic callbacks cannot complete roots"
+        );
+        if !empty {
+            assert!(
+                initial["locations"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|l| l["state"] == "waiting"),
+                "SERVICE_W14_PROGRESS: untouched locations wait"
+            );
+            assert_eq!(
+                mid_target["locations"][0]["state"], "running",
+                "SERVICE_W14_PROGRESS: active group runs"
+            );
+            assert_eq!(
+                mid_target["locations"][1]["state"], "waiting",
+                "SERVICE_W14_PROGRESS: untouched location waits"
+            );
+            for (n, (repeat, root)) in repeats.iter().zip(&roots).enumerate() {
+                assert_eq!(
+                    repeat["percent"],
+                    n as u64 * end / 3,
+                    "SERVICE_W14_PROGRESS: repeated forced events do not advance percent"
+                );
+                assert_eq!(
+                    repeat["locations"][0]["state"],
+                    if n < 2 { "running" } else { "done" },
+                    "SERVICE_W14_PROGRESS: repeated group events cannot finish or regress a location"
+                );
+                assert_eq!(
+                    root["percent"],
+                    (n as u64 + 1) * end / 3,
+                    "SERVICE_W14_PROGRESS: exact completed-root weight"
+                );
+                assert_eq!(
+                    root["visited_entries"],
+                    n as u64 + 2,
+                    "SERVICE_W14_PROGRESS: root event visited entries"
+                );
+                assert_eq!(
+                    root["locations"][0]["state"],
+                    if n == 0 { "running" } else { "done" },
+                    "SERVICE_W14_PROGRESS: location completes only after both roots"
+                );
+                assert_eq!(
+                    root["locations"][1]["state"],
+                    if n < 2 {
+                        "waiting"
+                    } else if whole_drive {
+                        "space"
+                    } else {
+                        "done"
+                    },
+                    "SERVICE_W14_PROGRESS: independent location and fallback completion"
+                );
+                assert_eq!(
+                    root["categories"][0]["state"],
+                    if n == 0 { "running" } else { "done" },
+                    "SERVICE_W14_PROGRESS: category completion follows roots"
+                );
+                assert_eq!(
+                    root["categories"][1]["state"],
+                    if n < 2 { "waiting" } else { "done" },
+                    "SERVICE_W14_PROGRESS: fallback category follows its main target"
+                );
+            }
+        }
+        assert_eq!(
+            before_return["state"], "running",
+            "SERVICE_W14_PROGRESS: rules state"
+        );
+        assert_eq!(
+            before_return["percent"],
+            if empty {
+                0
+            } else {
+                root_limit.unwrap_or(3) as u64 * end / 3
+            },
+            "SERVICE_W14_PROGRESS: last rule callback weight"
+        );
+        for (p, percent) in spaces.iter().zip([40, 53, 67, 94]) {
+            assert_eq!(
+                p["locations"][1]["state"], "space",
+                "SERVICE_W14_PROGRESS: space state"
+            );
+            assert_eq!(
+                p["percent"], percent,
+                "SERVICE_W14_PROGRESS: used bytes weight including early return"
+            );
+            assert_eq!(
+                p["found_bytes"], "123",
+                "SERVICE_W14_PROGRESS: overview bytes excluded"
+            );
+        }
         assert_eq!(
             finishing["state"], "finishing",
             "SERVICE_W14_PROGRESS: finishing state"
         );
         assert_eq!(
             finishing["percent"], 95,
-            "SERVICE_W14_PROGRESS: finishing percent"
+            "SERVICE_W14_PROGRESS: finishing after early or empty scan"
         );
         if whole_drive {
+            assert_ne!(
+                before_return["locations"][1]["state"], "done",
+                "SERVICE_W14_PROGRESS: drive is not done after rules"
+            );
             assert_eq!(
                 finishing["locations"][1]["state"], "done",
                 "SERVICE_W14_PROGRESS: overview completed"
             );
         }
-        sequence.push(finishing);
-        persist.send(()).unwrap();
-        sequence.push(wait(&s, "scan_progress"));
         assert_eq!(
-            sequence.last().unwrap()["state"],
-            "completed",
+            terminal["state"],
+            if root_limit.is_some() {
+                "partial"
+            } else {
+                "completed"
+            },
             "SERVICE_W14_PROGRESS: terminal"
         );
         assert_eq!(
-            sequence.last().unwrap()["percent"],
-            100,
+            terminal["percent"], 100,
             "SERVICE_W14_PROGRESS: terminal percent"
         );
         assert!(
@@ -1298,28 +1475,28 @@ fn service_scan_views() {
                 .all(|p| p[0]["percent"].as_u64() <= p[1]["percent"].as_u64()),
             "SERVICE_W14_PROGRESS: monotonic"
         );
+        let labels = |p: &Value| {
+            p["locations"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|l| (l["label_zh"].clone(), l["label_en"].clone()))
+                .collect::<Vec<_>>()
+        };
         for p in &sequence {
             assert_eq!(
-                p["found_bytes"], "123",
-                "SERVICE_W14_PROGRESS: final excludes overview"
-            );
-            assert_eq!(
-                p["locations"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .map(|l| (l["label_zh"].clone(), l["label_en"].clone()))
-                    .collect::<Vec<_>>(),
-                labels,
+                labels(p),
+                labels(&initial),
                 "SERVICE_W14_PROGRESS: stable names"
             );
         }
-        *scan::GATE.lock().unwrap() = None;
-        // Assert only after releasing every barrier, so a failure cannot leave a worker behind.
-        assert!(
-            mid_target["percent"].as_u64().unwrap() < if whole_drive { 40 } else { 90 },
-            "SERVICE_W14_PROGRESS: repeated within-target callbacks cannot finish the rule phase"
-        );
+        for p in sequence.iter().skip(1) {
+            assert_eq!(
+                p["found_bytes"],
+                if empty { "0" } else { "123" },
+                "SERVICE_W14_PROGRESS: final excludes overview"
+            );
+        }
     }
 
     m3c_unique_inuse();

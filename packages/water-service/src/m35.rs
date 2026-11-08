@@ -249,7 +249,7 @@ pub(crate) fn scope_roots(scope: &[Location]) -> Vec<water_junk_rules::CustomRoo
         .collect()
 }
 pub(crate) fn progress_locations(scope: &[Location]) -> Vec<Value> {
-    scope.iter().map(|l|json!({"location_id":l.location_id,"label_zh":l.label_zh,"label_en":l.english(),"state":"running","found_bytes":"0"})).collect()
+    scope.iter().map(|l|json!({"location_id":l.location_id,"label_zh":l.label_zh,"label_en":l.english(),"state":"waiting","found_bytes":"0"})).collect()
 }
 
 pub(crate) fn trusted_plan(
