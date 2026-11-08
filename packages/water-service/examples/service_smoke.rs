@@ -27,6 +27,7 @@ fn run() -> Result<(), IpcError> {
         return Err(IpcError {
             code: "invalid".into(),
             message_zh: "需要数据目录".into(),
+            message_en: "A data directory is required".into(),
         });
     }
     let service = Service::new(ServiceConfig {
@@ -42,13 +43,17 @@ fn run() -> Result<(), IpcError> {
     loop {
         std::thread::sleep(Duration::from_millis(250));
         let p = service.call("scan_progress", json!({}))?;
-        if p["state"] != "running" {
+        if matches!(
+            p["state"].as_str(),
+            Some("completed" | "partial" | "cancelled" | "failed")
+        ) {
             break;
         }
         if started.elapsed() > Duration::from_secs(1000) {
             return Err(IpcError {
                 code: "unavailable".into(),
                 message_zh: "体检未结束".into(),
+                message_en: "The checkup did not finish".into(),
             });
         }
     }
