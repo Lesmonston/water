@@ -119,3 +119,5 @@ Flick 今天能做的：
 11-08 下午用户说“可以推送公开仓库了”。CI 第一次没过，用户选“总控直接改”。随后用户把 GitHub 账号改名为 `Lesmonston`，又定了：旧地址都换成 `Lesmonston/flick`（安装包重打），公开仓库重做成一个用新邮箱的提交（强推）。现在公开仓库只有 `c261e4ef` 一个提交，CI 全过；预发布还没发。经过见[发布准备](launch/RELEASE-v0.1.0-beta.md)第 3 节。
 
 用户随后说“发预发布”：[Flick 0.1.0 Beta](https://github.com/Lesmonston/flick/releases/tag/v0.1.0-beta)（标签 `v0.1.0-beta`）11-08 16:38 JST 发布，开源发布 v0.1 到此完成。
+
+11-08 晚上用户删掉了公开仓库（连同预发布），要求这一轮先做英文界面与语言切换，“做完了再提交”。总控已重建空的 `Lesmonston/flick`，私下报告漏洞已打开；第十四波做完后重新推送与发布。

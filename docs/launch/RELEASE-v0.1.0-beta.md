@@ -1,6 +1,8 @@
 # v0.1.0 Beta 发布准备（2026-11-08）
 
-用户 11-08 上午定的（[整体计划](../PLAN-OPEN-SOURCE-20261107.md)第 7 节）：先只准备，不推；版本标 Beta。下午用户说“可以推送公开仓库了”：公开仓库 [Lesmonston/flick](https://github.com/Lesmonston/flick) 已推送，GitHub CI 全过（第 3 节）。用户随后说“发预发布”：[Flick 0.1.0 Beta](https://github.com/Lesmonston/flick/releases/tag/v0.1.0-beta) 已发布（第 5 节）。
+用户 11-08 上午定的（[整体计划](../PLAN-OPEN-SOURCE-20261107.md)第 7 节）：先只准备，不推；版本标 Beta。下午用户说“可以推送公开仓库了”：公开仓库 [Lesmonston/flick](https://github.com/Lesmonston/flick) 已推送，GitHub CI 全过（第 3 节）。用户随后说“发预发布”：Flick 0.1.0 Beta 发布过（第 5 节）。
+
+**11-08 晚上更新**：用户删掉了那个公开仓库（连同预发布与旧提交），并定了“这一轮还需要做英文界面，做语言切换。做完了再提交，你可以先去建新的仓库”。总控新建了同名的空公开仓库 `Lesmonston/flick`，私下报告漏洞已打开，**没有推代码**。英文界面做完后，按第 4 节重新导出、推送，再重新发布（版本与标签到时再定）；第 1 节的文件届时要重打。
 
 ## 1. 已准备好的
 
