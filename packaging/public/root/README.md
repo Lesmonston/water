@@ -19,7 +19,7 @@ Windows 上的磁盘垃圾体检与清理工具。先只读体检，再给你一
 ## 安装
 
 - 系统：Windows 10 或 11（x64）。需要 Microsoft Edge WebView2 运行时，Windows 11 已自带。
-- 在 [Releases](https://github.com/dfan0519-tech/flick/releases) 下载：
+- 在 [Releases](https://github.com/Lesmonston/flick/releases) 下载：
   - `Flick-Setup-<版本>.exe`：装到当前用户，不需要管理员权限，会建开始菜单快捷方式；
   - `flick-<版本>-windows-x64.zip`：便携版，解压后运行 `flick.exe`；
   - `SHA256SUMS.txt`：上面两个文件的校验和。

@@ -1,4 +1,4 @@
-// Export the public Flick tree (dfan0519-tech/flick) from one commit of the private working repository, then scan it.
+// Export the public Flick tree (Lesmonston/flick) from one commit of the private working repository, then scan it.
 // Usage (repo root): node scripts/release/export-public.mjs [--commit <rev>] [--out <new dir>]
 // The output goes to .local/public-export/<sha8>-<stamp>/ unless --out names another new directory: tree/ (the files to
 // publish), report.json and report.md. Nothing is pushed; the first public commit is made by hand after the user agrees.
@@ -104,6 +104,8 @@ const ERRORS = [
   // The maintainer's other project folders; only names distinctive enough not to be ordinary words.
   ['private-project', /denglou|登楼|zbbody|climbmao|grok2|audit-b57a|feishu-bot|wechtmini|podcut|pi-studio|heybox/i],
   ['identity', /Riku Toto|xiluotaka|usr_40dd3b2f/i],
+  // The maintainer's GitHub account was renamed dfan0519-tech -> Lesmonston on 11-08; the old name stays out.
+  ['old-account', /dfan0519/i],
   ['old-local-service', /127\.0\.0\.1:7890/],
   ['secret', /ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----/],
   ['email', /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g],

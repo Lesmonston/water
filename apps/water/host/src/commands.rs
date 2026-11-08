@@ -642,7 +642,7 @@ pub fn cmd_app_info() -> Value {
         "name": "Flick",
         "version": env!("CARGO_PKG_VERSION"),
         "license": "MIT OR Apache-2.0",
-        "homepage": "https://github.com/dfan0519-tech/flick",
+        "homepage": "https://github.com/Lesmonston/flick",
     })
 }
 

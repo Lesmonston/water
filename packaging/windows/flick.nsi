@@ -88,7 +88,7 @@ Section "Flick"
   WriteRegStr HKCU "${UNINSTKEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "${UNINSTKEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKCU "${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
-  WriteRegStr HKCU "${UNINSTKEY}" "URLInfoAbout" "https://github.com/dfan0519-tech/flick"
+  WriteRegStr HKCU "${UNINSTKEY}" "URLInfoAbout" "https://github.com/Lesmonston/flick"
   WriteRegDWORD HKCU "${UNINSTKEY}" "NoModify" 1
   WriteRegDWORD HKCU "${UNINSTKEY}" "NoRepair" 1
 !endif

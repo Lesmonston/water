@@ -1,5 +1,6 @@
 # Flick CI: format, lint and tests on Windows for the crates the desktop app is built from, plus the UI unit tests.
-# Runs only in the public repository (dfan0519-tech/flick); in the private working repository every job is skipped.
+# Runs only in public repositories (Lesmonston/flick and its forks); in the private working repository every job is
+# skipped. The condition reads the repository's visibility, not its owner, so an account rename does not turn CI off.
 # The folder picker tests open real dialogs, so CI only builds them; the browser and real-window checks stay local.
 name: CI
 
@@ -17,7 +18,7 @@ env:
 
 jobs:
   rust:
-    if: github.repository == 'dfan0519-tech/flick'
+    if: ${{ !github.event.repository.private }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -52,7 +53,7 @@ jobs:
         run: cargo test --locked --manifest-path ${{ matrix.crate }}/Cargo.toml
 
   picker:
-    if: github.repository == 'dfan0519-tech/flick'
+    if: ${{ !github.event.repository.private }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -68,7 +69,7 @@ jobs:
         run: cargo test --locked --manifest-path packages/native-picker/Cargo.toml --no-run
 
   ui:
-    if: github.repository == 'dfan0519-tech/flick'
+    if: ${{ !github.event.repository.private }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5

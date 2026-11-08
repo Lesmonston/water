@@ -656,7 +656,7 @@ fn host_command_registry() {
             "name": "Flick",
             "version": env!("CARGO_PKG_VERSION"),
             "license": "MIT OR Apache-2.0",
-            "homepage": "https://github.com/dfan0519-tech/flick",
+            "homepage": "https://github.com/Lesmonston/flick",
         }),
         "HOST_W12_INFO exact host-owned app info including package version"
     );

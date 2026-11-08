@@ -19,7 +19,7 @@ The interface is Chinese only for now.
 ## Install
 
 - Windows 10 or 11 (x64) with the Microsoft Edge WebView2 Runtime (built into Windows 11).
-- From [Releases](https://github.com/dfan0519-tech/flick/releases):
+- From [Releases](https://github.com/Lesmonston/flick/releases):
   - `Flick-Setup-<version>.exe` installs for the current user, needs no administrator rights and adds a Start menu shortcut;
   - `flick-<version>-windows-x64.zip` is portable: unzip and run `flick.exe`;
   - `SHA256SUMS.txt` holds the checksums of both.
