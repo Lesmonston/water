@@ -897,7 +897,20 @@
           "issuedAt": "2026-11-08T11:45:14.326Z",
           "resumeFrom": "1587c1cc780c8680d971817f4c3ce67d5508ec86",
           "part": "A",
-          "why": "everything except the rules-stage count (W14-ADD-01 section 2): bilingual fields, old records, codes instead of Chinese sentences, six failing tests, space stage; interim rules stage (0 until scan_full returns); check and test green, no NCs, finals or archive; the hand-back head becomes the H1 base"
+          "why": "everything except the rules-stage count (W14-ADD-01 section 2): bilingual fields, old records, codes instead of Chinese sentences, six failing tests, space stage; interim rules stage (0 until scan_full returns); check and test green, no NCs, finals or archive; the hand-back head becomes the H1 base",
+          "supplements": [
+            {
+              "at": "2026-11-08T12:52:28.235Z",
+              "section": 5,
+              "resumeFrom": "67dffed7",
+              "blockedHead": "67dffed7",
+              "wipCommit": "a9a87ad108a9250c32826b25412bb0f435a021b3",
+              "why": "check runs clippy --all-targets, which builds examples/service_smoke.rs (two IpcError literals without message_en, and a poll that stops at finishing); the ticket whitelist omitted the example although productionFiles lists it; the 12 service tests were already green",
+              "allowed": [
+                "packages/water-service/examples/service_smoke.rs"
+              ]
+            }
+          ]
         }
       ]
     },

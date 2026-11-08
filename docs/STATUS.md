@@ -622,6 +622,7 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - [J2 扫描](dispatch/tickets/WATER-W14-J2-SCAN-20261108.md)（中门）：工作树 `w14-j2`，底 `a9a17310`，基线通过。
    - [S1 补单 01](dispatch/tickets/WATER-W14-S1-ADDENDUM-01-20261108.md) 是第 A 段：除规则阶段计数以外的全部、`check` 与 `test` 全绿，不跑负控与 final。J2 合入后总控合进 S1 分支，再出补单 02。
    - H1 改以 S1 第 A 段交回的提交为底。
+   - 21:00 S1 第 A 段又交回受阻（`67dffed7`）：服务测试 12/12 已全绿，但检查器的 Clippy 带 `--all-targets` 会编译 `examples/service_smoke.rs`，工单白名单漏了这份文件（清单的 `productionFiles` 里有）。补单 01 加第 5 节放开它，从 `67dffed7` 续做。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。

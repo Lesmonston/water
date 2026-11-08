@@ -75,3 +75,15 @@
 
 - 回执里写：第 A 段的实现提交、最后一次 `check` 与 `test` 的结果、迁移的旧断言、补单 02 要接的事（至少：规则阶段按根目录计数、位置与类别按目标走完、负控、final、archive）。
 - 受阻则写“WATER-W14-S1 补单 01 任务受阻”。
+
+## 5. 补充（11-08 21:00，白名单漏了示例文件）
+
+第 A 段第一次交回受阻（`67dffed7`，现场 `a9a87ad1`）：服务测试 12/12 全绿，但检查器的 Clippy 带 `--all-targets`，会编译 `packages/water-service/examples/service_smoke.rs`，而原单第 5 节的白名单没有列这份文件。总控核实属实：清单本来就把它列在 `productionFiles` 里，是工单漏写。
+
+- **白名单加上** `packages/water-service/examples/service_smoke.rs`，本段与补单 02 都适用。只改回执里说的三处：
+  1. 第 27 行一带的错误补 `message_en: "A data directory is required".into()`；
+  2. 第 49 行一带的错误补 `message_en: "The checkup did not finish".into()`；
+  3. 第 45 行一带的轮询：`running` 与 `finishing` 都继续等，到最终状态才退出。
+- **续做起点**：`67dffed7`（你第二次交回的 HEAD），必须干净。
+- 改完提交后，照第 3 节最后一条在干净提交上再跑一次 `check` 与 `test`，两次都过即交回。仍不跑负控、final、`archive`。
+- 回执在“补单 01（第 A 段）”一节后面接着写这次的提交与两次结果，通知第一行照第 4 节。
