@@ -117,3 +117,5 @@ Flick 今天能做的：
 | 版本标记 | Beta（用户：“beat版本吧”）。程序与安装包内部版本仍是 `0.1.0`（Windows 文件版本只认数字）；GitHub 标签 `v0.1.0-beta`，标成预发布，标题 “Flick 0.1.0 Beta”；安装包与 zip 的文件名带 `-beta` |
 
 11-08 下午用户说“可以推送公开仓库了”。CI 第一次没过，用户选“总控直接改”。随后用户把 GitHub 账号改名为 `Lesmonston`，又定了：旧地址都换成 `Lesmonston/flick`（安装包重打），公开仓库重做成一个用新邮箱的提交（强推）。现在公开仓库只有 `c261e4ef` 一个提交，CI 全过；预发布还没发。经过见[发布准备](launch/RELEASE-v0.1.0-beta.md)第 3 节。
+
+用户随后说“发预发布”：[Flick 0.1.0 Beta](https://github.com/Lesmonston/flick/releases/tag/v0.1.0-beta)（标签 `v0.1.0-beta`）11-08 16:38 JST 发布，开源发布 v0.1 到此完成。

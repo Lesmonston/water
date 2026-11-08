@@ -1,6 +1,6 @@
 # v0.1.0 Beta 发布准备（2026-11-08）
 
-用户 11-08 上午定的（[整体计划](../PLAN-OPEN-SOURCE-20261107.md)第 7 节）：先只准备，不推；版本标 Beta。下午用户说“可以推送公开仓库了”：公开仓库 [Lesmonston/flick](https://github.com/Lesmonston/flick) 已推送，GitHub CI 全过（第 3 节）。**预发布还没发**（标签、安装包与 zip），发之前先问用户（第 5 节）。
+用户 11-08 上午定的（[整体计划](../PLAN-OPEN-SOURCE-20261107.md)第 7 节）：先只准备，不推；版本标 Beta。下午用户说“可以推送公开仓库了”：公开仓库 [Lesmonston/flick](https://github.com/Lesmonston/flick) 已推送，GitHub CI 全过（第 3 节）。用户随后说“发预发布”：[Flick 0.1.0 Beta](https://github.com/Lesmonston/flick/releases/tag/v0.1.0-beta) 已发布（第 5 节）。
 
 ## 1. 已准备好的
 
@@ -61,9 +61,13 @@
 3. 在 `.local/public-repo/flick-v2` 里提交，身份 `Deford <293710681+Lesmonston@users.noreply.github.com>`。核对每个文件都与私有提交里的源文件逐字节一致。
 4. 用户同意后推送，等 GitHub CI 全绿。
 
-## 5. 发布（还没做，先问用户）
+## 5. 发布（11-08 16:38 JST 已发）
 
-建标签 `v0.1.0-beta`（指向 `c261e4ef`），在 GitHub Releases 发预发布 “Flick 0.1.0 Beta”，上传 `.local/release/flick-0.1.0-45294836/dist/` 里的安装包、zip 与 `SHA256SUMS.txt`。如果发布时公开仓库的代码比 `c261e4ef` 新，就重打这三个文件。
+用户：“发预发布”。用 `gh release create` 建标签 `v0.1.0-beta`（指向 `c261e4ef`），发预发布 “Flick 0.1.0 Beta”，说明用第 6 节的草稿；上传 `.local/release/flick-0.1.0-45294836/dist/` 里的安装包、zip 与 `SHA256SUMS.txt`。
+
+- 地址：https://github.com/Lesmonston/flick/releases/tag/v0.1.0-beta，标为预发布，不是草稿。
+- GitHub 给出的三个文件摘要与本地一致：安装包 `b35889bc…`、zip `7d7fb3d0…`、`SHA256SUMS.txt` `2071dd28…`（记录在 `release-v0.1.0-beta.json`）。
+- 以后再发版：公开仓库代码比标签新时重打三样文件，按第 4 节推送、CI 全绿后再发。
 
 ## 6. 发布说明草稿
 
