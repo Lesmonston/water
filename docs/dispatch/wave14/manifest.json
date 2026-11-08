@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "wave": "water-wave14-english-progress-onescreen",
-  "status": "R1_J1_VERIFIED_U1_ADDENDUM_S1_PART_A_J2_READY",
+  "status": "R1_J1_U1_J2_VERIFIED_S1_PART_B_H1_READY",
   "controller": "Claude",
   "controllerRoot": "F:/new/smaltalk/water",
   "controllerBranch": "main",
@@ -503,7 +503,7 @@
       "branch": "worker/water-w14-u1",
       "baseCommit": "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
       "snapshotRef": "refs/tags/water-w14-u1-base-20261108",
-      "status": "ADDENDUM_01_ISSUED",
+      "status": "VERIFIED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "string table with zh and en and a language setting that follows the system first; service *_en fields, message_en and copy_text_en used in English; main pages fit 1240x820 and 1040x720 without page scrolling in both languages; filler captions removed; scan page follows running/space/finishing with a next step and shows category blocks instead of stems; a stale plan after a skip is prepared again when the conclusion is still fresh",
       "report": "docs/dispatch/reports/WATER-W14-U1-REPORT.md",
@@ -625,8 +625,27 @@
           "ticket": "docs/dispatch/tickets/WATER-W14-U1-ADDENDUM-01-20261108.md",
           "issuedAt": "2026-11-08T10:29:38.738Z",
           "resumeFrom": "ded240015a7d0656c893b115333c36a8bc958d10",
-          "why": "controller acceptance and independent review: English plurals (medium), zero-byte categories and clipped legends in the block charts, unknown location state stops polling, replanNotice set without a reopened dialog, first paint language flip, native names in the language picker, format helpers unused by views, clipped text on the results page"
+          "why": "controller acceptance and independent review: English plurals (medium), zero-byte categories and clipped legends in the block charts, unknown location state stops polling, replanNotice set without a reopened dialog, first paint language flip, native names in the language picker, format helpers unused by views, clipped text on the results page",
+          "handBack": {
+            "head": "a7f37a3e",
+            "implementationCommit": "3e20f7ae",
+            "at": "2026-11-08T13:31:35.463Z"
+          }
         }
+      ],
+      "submittedHead": "a7f37a3e",
+      "implementationCommit": "3e20f7ae8c09e7ccb82d07040d8d25635c29b600",
+      "mergeCommit": "c2e07b63",
+      "controllerReview": {
+        "at": "2026-11-08T13:31:35.463Z",
+        "record": "docs/acceptance/wave14/controller/WATER-W14-REVIEW-20261108b.md",
+        "gate": "light",
+        "audit": "w2-receipt-audit 0 problems",
+        "verdict": "VERIFIED: plurals, zero-byte categories out of the block charts, no numbered legends, native language names, one-screen results with ellipsis and full-text titles; 56 screenshots re-taken"
+      },
+      "carryOverLater": [
+        "block chart category labels render in a monospace font on the checkup page (polish, look again in integration 12)",
+        "shared fixture contracts/m35-v1/ui-fixtures-m35.json still has the sample sentence \"Water 不会动\" (fixture text, not product text)"
       ]
     },
     {
@@ -768,9 +787,9 @@
       "slot": "w14-s1",
       "worktree": "F:/new/smaltalk/water/.worktrees/w14-s1",
       "branch": "worker/water-w14-s1",
-      "baseCommit": "5f6ff198f1822c1ae3508588d239f73c12e11533",
-      "snapshotRef": "refs/tags/water-w14-s1-base-20261108",
-      "status": "ADDENDUM_01_ISSUED",
+      "baseCommit": "dd7ac13a975b7dac29a85c95cdb94c004bec8c81",
+      "snapshotRef": "refs/tags/water-w14-s1-b-base-20261108",
+      "status": "ADDENDUM_02_ISSUED",
       "modelAssignment": "user-arranged; report actual engine/model",
       "purpose": "every IPC *_zh has an *_en sibling (copy_text_en, message_en on IpcError), rule texts from the R1 fields, runtime sentences in English, new records store both languages, old records read with _en = _zh; logic no longer keyed on Chinese sentences; scan progress gets finishing and per-location space states, unchanged labels, found_bytes without space bytes, a monotonic percent with the W14 3.3 weights; trends test independent of real scan time",
       "report": "docs/dispatch/reports/WATER-W14-S1-REPORT.md",
@@ -797,7 +816,10 @@
         "packages/water-service/src/conclusion.rs",
         "packages/water-service/src/m35.rs",
         "packages/junk-rules/src/rules.rs",
-        "packages/water-service/tests/service_v1.rs"
+        "packages/water-service/tests/service_v1.rs",
+        "contracts/w14-v1/W14-ADD-01.md",
+        "packages/junk-scan/src/scan.rs",
+        "packages/junk-scan/README.md"
       ],
       "frozenFiles": [
         {
@@ -859,6 +881,10 @@
         {
           "path": "contracts/w11-v1/RENAME-FLICK.md",
           "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        },
+        {
+          "path": "contracts/w14-v1/W14-ADD-01.md",
+          "sha256": "e3cf3fd206783123fca7845fe475a15aedae15a0516bf402625931a2bb6b07a5"
         }
       ],
       "allowedPrefixes": [
@@ -880,7 +906,7 @@
       "dispatchedAt": null,
       "startedAt": null,
       "model": null,
-      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/s1/",
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/s1b/",
       "dispatchReportedAt": "2026-11-08T10:54:21.761Z",
       "dispatchEvidence": "user 2026-11-08: \"派重了，我停了一个，你不用管了。\" (S1 was pasted into two sessions; one stopped after committing a blocked report 414d42bf about the concurrent writer, the other continues in the same worktree)",
       "blocked": {
@@ -910,14 +936,35 @@
                 "packages/water-service/examples/service_smoke.rs"
               ]
             }
-          ]
+          ],
+          "handBack": {
+            "head": "f91a982acbea483df753ce37fe586b53602fcdf1",
+            "implementationCommit": "ce4091b073838e68a90f9646460e6ea2228de622",
+            "at": "2026-11-08T13:31:35.463Z",
+            "checked": "controller: diff 5f6ff198..f91a982a inside the whitelist (service src, tests, README, examples/service_smoke.rs, report), frozen files unchanged, clean-tree check and test receipts passed (12/12) at ce4091b0"
+          }
+        },
+        {
+          "id": "WATER-W14-S1-ADDENDUM-02",
+          "ticket": "docs/dispatch/tickets/WATER-W14-S1-ADDENDUM-02-20261108.md",
+          "issuedAt": "2026-11-08T13:31:35.463Z",
+          "resumeFrom": "dd7ac13a975b7dac29a85c95cdb94c004bec8c81",
+          "part": "B",
+          "why": "J2 merged (on_root_done); controller merged main into the S1 branch; rules stage counted by reported roots, target/location/category completion by walked roots, three NCs, finals and archive"
+        }
+      ],
+      "baseHistory": [
+        {
+          "baseCommit": "5f6ff198f1822c1ae3508588d239f73c12e11533",
+          "snapshotRef": "refs/tags/water-w14-s1-base-20261108",
+          "covers": "original ticket and addendum 01 (part A), audited at hand-back"
         }
       ]
     },
     {
       "id": "WATER-W14-J2",
       "title": "扫描：报“根目录走完”",
-      "status": "READY",
+      "status": "VERIFIED",
       "slot": "w14-j2",
       "kind": "rust",
       "worktree": "F:/new/smaltalk/water/.worktrees/w14-j2",
@@ -1055,7 +1102,540 @@
       "dispatchedAt": null,
       "startedAt": null,
       "model": null,
-      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/j2/"
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/j2/",
+      "submittedHead": "d1bcb94c189d8825b3ade45780df7d6d763fb7df",
+      "implementationCommit": "ef3d61f619a9907985dd52fab00c9cec699ec111",
+      "mergeCommit": "3953de0a",
+      "controllerReview": {
+        "at": "2026-11-08T13:31:35.463Z",
+        "record": "docs/acceptance/wave14/controller/WATER-W14-REVIEW-20261108b.md",
+        "gate": "medium",
+        "audit": "w2-receipt-audit 0 problems",
+        "acceptanceTree": ".worktrees/accept-w14-j2 at d1bcb94c: lock, check/real/test finals passed; nc1-3 replayed and killed; controller c1 (lowercased root), c2 (no cancel/budget guard), c3 (roots skipped when reached never reported) killed; probe c4 (skipped-up-front roots in key order) survived",
+        "independentReview": "no high; one medium (test does not pin plan order of skipped-up-front roots, same as probe c4); lows below"
+      },
+      "carryOverLater": [
+        "MEDIUM test gap: scan_overlap_and_guards does not pin plan order of skipped-up-front roots (quarantine before git coincides with key and depth order); put the git spec before quarantine in the next scan ticket. Code verified by reading: skipped.sort_by_key(ids[0])",
+        "fallback exclusion is not tested independently (the fallback shares the inner root); give it a distinct root",
+        "README on_root_done paragraph: \"roots inside quarantine or .git folders\", list the skipped-when-reached cases, single-line paragraph like its neighbours"
+      ]
+    },
+    {
+      "kind": "host",
+      "outputRoot": "apps/water/host",
+      "packageName": "water-desktop",
+      "binName": "flick",
+      "windowTitle": "Flick",
+      "testTarget": "host_v1",
+      "testFiles": [
+        "apps/water/host/tests/host_v1.rs"
+      ],
+      "productionFiles": [
+        "apps/water/host/Cargo.toml",
+        "apps/water/host/Cargo.lock",
+        "apps/water/host/build.rs",
+        "apps/water/host/tauri.conf.json",
+        "apps/water/host/capabilities/main.json",
+        "apps/water/host/README.md",
+        "packaging/windows/flick.nsi"
+      ],
+      "allowedEnv": [
+        "\"WATER_DATA_DIR\"",
+        "\"SystemRoot\""
+      ],
+      "expectedConfig": {
+        "productName": "Flick",
+        "version": "0.1.0",
+        "identifier": "app.water.desktop",
+        "build": {
+          "frontendDist": "../ui"
+        },
+        "app": {
+          "windows": [],
+          "withGlobalTauri": true,
+          "security": {
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            "assetProtocol": {
+              "enable": false
+            },
+            "capabilities": [
+              "main"
+            ]
+          }
+        },
+        "bundle": {
+          "active": false,
+          "publisher": "Flick",
+          "copyright": "Copyright (c) 2026 Flick contributors"
+        },
+        "plugins": {}
+      },
+      "expectedCapability": {
+        "identifier": "main",
+        "windows": [
+          "main"
+        ],
+        "permissions": [
+          "core:window:allow-start-dragging"
+        ]
+      },
+      "cargoCacheSource": "F:/new/smaltalk/water/.offline-cache/desktop/registry",
+      "referenceLock": "apps/desktop-preview/Cargo.lock",
+      "macOS": "unverified",
+      "outputRootExists": true,
+      "forbidSetup": true,
+      "expectedTests": [
+        "host_config_boundary",
+        "host_navigation_boundary",
+        "host_command_registry",
+        "host_data_directory",
+        "host_service_wiring"
+      ],
+      "expectedDependencies": [
+        {
+          "name": "serde",
+          "req": "=1.0.229",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": [
+            "derive"
+          ]
+        },
+        {
+          "name": "serde_json",
+          "req": "=1.0.151",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "tauri",
+          "req": "=2.12.5",
+          "kind": null,
+          "optional": false,
+          "path": null,
+          "defaults": false,
+          "features": [
+            "common-controls-v6",
+            "wry"
+          ]
+        },
+        {
+          "name": "tauri-build",
+          "req": "=2.7.4",
+          "kind": "build",
+          "optional": false,
+          "path": null,
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-native-picker",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/native-picker",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-contracts",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "crates/water-contracts",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-scope-registry",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/scope-registry",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-service",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/water-service",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-junk-rules",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/junk-rules",
+          "defaults": true,
+          "features": []
+        },
+        {
+          "name": "water-process-scan",
+          "req": "*",
+          "kind": null,
+          "optional": false,
+          "path": "packages/process-scan",
+          "defaults": true,
+          "features": []
+        }
+      ],
+      "allowedModes": [
+        "baseline",
+        "lock",
+        "check",
+        "test",
+        "native",
+        "archive",
+        "red-nc1",
+        "red-nc2"
+      ],
+      "expectedFinalModes": [
+        "check",
+        "test",
+        "native"
+      ],
+      "realMode": null,
+      "nativeModule": null,
+      "nativeWindowBudget": 1,
+      "nativeDirectoryDialogBudget": 0,
+      "browserBudget": 0,
+      "realDataPermission": "native --final only: fixture clean loop (quarantine one item, then purge); categories off, only the synthetic fixture is selectable; WATER_DATA_DIR under .local; protected locations are measured read-only; process list read for in-use",
+      "nativeObserver": "scripts/acceptance/w3-wired-native-observe.ps1",
+      "nativeMaximumSeconds": 480,
+      "nativeRealData": true,
+      "nativeSteps": [
+        {
+          "wait": "Flick 怎么用",
+          "absent": "无法连接 Flick 服务",
+          "seconds": 45,
+          "shot": "intro"
+        },
+        {
+          "invoke": "开始",
+          "type": "Button"
+        },
+        {
+          "wait": "这次检查哪里？",
+          "absent": "无法连接 Flick 服务",
+          "seconds": 45,
+          "shot": "home"
+        },
+        {
+          "invoke": "常用位置",
+          "type": "Button",
+          "match": "contains"
+        },
+        {
+          "invoke": "-fixture",
+          "type": "Button",
+          "match": "contains"
+        },
+        {
+          "invoke": "开始体检",
+          "type": "Button"
+        },
+        {
+          "wait": "可以放心清理",
+          "fail": "体检未能完成，请重新体检。",
+          "seconds": 120,
+          "shot": "results"
+        },
+        {
+          "wait": "程序留下的旧备份 · <1 MB菜单",
+          "seconds": 15
+        },
+        {
+          "invoke": "程序留下的旧备份 · <1 MB菜单",
+          "then": "以后都跳过"
+        },
+        {
+          "gone": "程序留下的旧备份 · <1 MB菜单",
+          "seconds": 20,
+          "shot": "skipped"
+        },
+        {
+          "wait": "可以放心清理",
+          "absent": "结果已过期 · 重新体检",
+          "seconds": 15,
+          "shot": "fresh-after-skip"
+        },
+        {
+          "invoke": "设置",
+          "until": "跳过名单"
+        },
+        {
+          "invoke": "跳过名单",
+          "type": "Button",
+          "until": "以后都跳过"
+        },
+        {
+          "wait": "以后都跳过",
+          "seconds": 15,
+          "shot": "skip-page"
+        },
+        {
+          "wait": "程序留下的旧备份",
+          "match": "contains",
+          "seconds": 15,
+          "shot": "skip-list"
+        },
+        {
+          "invoke": "移除",
+          "type": "Button",
+          "until": "跳过名单为空"
+        },
+        {
+          "wait": "跳过名单为空",
+          "seconds": 15
+        },
+        {
+          "invoke": "体检",
+          "until": "程序留下的旧备份 · <1 MB菜单"
+        },
+        {
+          "wait": "程序留下的旧备份 · <1 MB菜单",
+          "absent": "结果已过期 · 重新体检",
+          "seconds": 15,
+          "shot": "restored"
+        },
+        {
+          "invoke": "清理",
+          "type": "Button"
+        },
+        {
+          "wait": "已加入清理",
+          "match": "prefix",
+          "seconds": 20
+        },
+        {
+          "invoke": "清理 ",
+          "type": "Button",
+          "match": "prefix"
+        },
+        {
+          "wait": "先放进隔离区",
+          "seconds": 30,
+          "shot": "confirm"
+        },
+        {
+          "invoke": "开始清理",
+          "type": "Button"
+        },
+        {
+          "wait": "清理完成",
+          "seconds": 90,
+          "shot": "done"
+        },
+        {
+          "invoke": "去隔离区",
+          "type": "Button"
+        },
+        {
+          "wait": "隔离区里有 1 批",
+          "seconds": 30,
+          "shot": "quarantine"
+        },
+        {
+          "invoke": "永久删除",
+          "type": "Button"
+        },
+        {
+          "wait": "不进入回收站，无法恢复。",
+          "seconds": 15
+        },
+        {
+          "invoke": "永久删除",
+          "type": "Button",
+          "pick": "last"
+        },
+        {
+          "wait": "隔离区是空的",
+          "seconds": 90,
+          "shot": "purged"
+        }
+      ],
+      "nativeStore": {
+        "allowedTop": [
+          "cleans",
+          "dedupes",
+          "events",
+          "journal",
+          "plans",
+          "quarantine",
+          "scans",
+          "settings.json",
+          "snapshots",
+          "water.lock",
+          "webview"
+        ],
+        "counts": {
+          "scans": 1,
+          "plans": 1,
+          "cleans": 1,
+          "quarantine": 0,
+          "dedupes": 0
+        }
+      },
+      "nativeFixture": {
+        "flow": "quarantine-purge",
+        "ageHours": 240,
+        "categoriesOff": [
+          "agent_tool",
+          "browser",
+          "system_temp",
+          "app_leftover",
+          "dev_cache",
+          "crash_log",
+          "gpu_system"
+        ],
+        "files": [
+          {
+            "path": "projA/build-cache/CACHEDIR.TAG",
+            "text": "Signature: 8a477f597d28d172789f06886806bc55\n# Water M2 native fixture: safe to delete.\n"
+          },
+          {
+            "path": "projA/build-cache/blob-1.bin",
+            "bytes": 2097152
+          },
+          {
+            "path": "projA/build-cache/sub/blob-2.bin",
+            "bytes": 1048576
+          },
+          {
+            "path": "projA/src/main.rs",
+            "text": "fn main() {}\n"
+          },
+          {
+            "path": "setups/tool-1.2.msi",
+            "bytes": 1048576
+          },
+          {
+            "path": "lab/profile-a/Local State",
+            "text": "{}\n"
+          },
+          {
+            "path": "lab/profile-a/Default/Preferences",
+            "text": "{}\n"
+          },
+          {
+            "path": "old/tool.bak-20250101/data.bin",
+            "bytes": 524288
+          }
+        ],
+        "gone": [
+          "projA/build-cache",
+          "setups/tool-1.2.msi"
+        ],
+        "kept": [
+          "projA/src/main.rs",
+          "lab/profile-a/Local State",
+          "lab/profile-a/Default/Preferences",
+          "old/tool.bak-20250101/data.bin"
+        ],
+        "directFreedBytes": 3145815,
+        "quarantinedBytes": 1048576,
+        "purgedBytes": 1048576
+      },
+      "id": "WATER-W14-H1",
+      "title": "宿主与安装包：英文错误、中英安装包",
+      "slot": "w14-h1",
+      "worktree": "F:/new/smaltalk/water/.worktrees/w14-h1",
+      "branch": "worker/water-w14-h1",
+      "baseCommit": "f91a982acbea483df753ce37fe586b53602fcdf1",
+      "snapshotRef": "refs/tags/water-w14-h1-base-20261108",
+      "status": "READY",
+      "modelAssignment": "user-arranged; report actual engine/model",
+      "purpose": "IpcFailure gets message_en; the host's own errors have English; service errors pass message_en through; HostPicker::pick builds IpcError with message_en; app_info unchanged (W14-ADD-02: no system_language); flick.nsi in English and Simplified Chinese, picked from the system language without a language dialog",
+      "report": "docs/dispatch/reports/WATER-W14-H1-REPORT.md",
+      "evidenceDir": "docs/acceptance/wave14/h1/",
+      "allowedFiles": [
+        "docs/dispatch/reports/WATER-W14-H1-REPORT.md"
+      ],
+      "gate": "light",
+      "ticket": "docs/dispatch/tickets/WATER-W14-H1-HOST-20261108.md",
+      "spec": "contracts/w14-v1/W14.md",
+      "nativeDataPrefix": ".local/w14-h1-native/",
+      "proofTargets": {
+        "nc1": "HOST_W14_EN",
+        "nc2": "HOST_W14_EN"
+      },
+      "modelHint": "Host: W14 4.2 and 4.3 as amended by W14-ADD-02; the base (S1 part A) does not compile the host until IpcError literals get message_en; tests in existing functions with HOST_W14_EN; two NCs (service message_en dropped, a host error without English); installer compiled once as a -Test build into .local, never run.",
+      "mustRead": [
+        "docs/dispatch/WORKER-RULES.md",
+        "docs/dispatch/W14-WORKER-RULES.md",
+        "contracts/w14-v1/W14.md",
+        "contracts/m35-v1/HOST-M35.md",
+        "apps/water/host/src/lib.rs",
+        "apps/water/host/src/commands.rs",
+        "apps/water/host/src/picker.rs",
+        "apps/water/host/src/service.rs",
+        "apps/water/host/tests/host_v1.rs",
+        "packaging/windows/flick.nsi",
+        "packaging/windows/build.ps1"
+      ],
+      "frozenFiles": [
+        {
+          "path": "contracts/w14-v1/W14.md",
+          "sha256": "45e9d4954244c2838dc6b15cf340a8b56c9deac6b5034a06a7b3ee776e8b342f"
+        },
+        {
+          "path": "contracts/w12-v1/W12.md",
+          "sha256": "8b60498922953eed047e29608efc36cc36aa4cb50c5dbbea502c6236ebdcb570"
+        },
+        {
+          "path": "contracts/m35-v1/HOST-M35.md",
+          "sha256": "fc5b36a879b6d68363145cfa3e7c8a575f25c283de699bbf279a06f2f8e61d2a"
+        },
+        {
+          "path": "contracts/m35-v1/IPC-M35.md",
+          "sha256": "17aa1aba62ce5ca22b3207f82d4ba4d67db722035ff542e0a632fd6ad12c44fb"
+        },
+        {
+          "path": "contracts/m3c-v1/HOST-M3C.md",
+          "sha256": "e6c9a195404807ba206b22325d8a098642cd960df0c60b8eaa211df646a4cd29"
+        },
+        {
+          "path": "contracts/m3c-v1/IPC-M3C.md",
+          "sha256": "dcaba0f4ab3083f549ce888bd3cd6140099c77c3a77a38ae6230cfb196b5da1b"
+        },
+        {
+          "path": "contracts/desktop-v1/HOST.md",
+          "sha256": "3d1f3cbb2f98415f73721ef111cfc13b6d0fed78a2b09641008495c2d8f304fc"
+        },
+        {
+          "path": "contracts/checkup-v1/IPC.md",
+          "sha256": "4ab99732dd264f1cacc27301d7c5edddf1f207d8eaa6f16de512d39b8ef1f291"
+        },
+        {
+          "path": "contracts/w11-v1/RENAME-FLICK.md",
+          "sha256": "97e5c969bae70e9dd92fcbf09810ea29af6167bbc8626a023e9d191a6b4479d8"
+        }
+      ],
+      "allowedPrefixes": [
+        "apps/water/host/",
+        "packaging/windows/",
+        "docs/acceptance/wave14/h1/"
+      ],
+      "spawnFile": "src/opener.rs",
+      "readyOn": "2026-11-08",
+      "defaultExecutor": "sol",
+      "nativeQuarantineName": ".flick-quarantine",
+      "issuedAt": "2026-11-08T13:31:35.374Z",
+      "baselineStatus": "PASSED",
+      "source": "docs/dispatch/wave14/PLAN.md",
+      "dispatchedAt": null,
+      "startedAt": null,
+      "model": null,
+      "baselineEvidence": "docs/acceptance/wave14/controller/preflight-20261108/h1/"
     }
   ],
   "mergeOrder": [

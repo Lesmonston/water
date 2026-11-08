@@ -1,0 +1,39 @@
+=== j2 2026-11-08T13:21:15Z
+j2 lock rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"lock","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-21-15.327Z-2376-lock-result.json"}
+j2 check:final rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"check","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-21-19.732Z-24460-check-result.json"}
+j2 real:final rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"real","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-21-44.723Z-37376-real-result.json"}
+j2 nc1 mutated packages/junk-scan/src/scan/streaming.rs: ticket control replayed from worker receipt 2026-11-08T12-24-09.764Z-30856-red-nc1-result.json (mutated sha 8041b808684297e7499401a06dde4ab06556e61dcc8b470e6de32f1013b13dcb)
+j2 red-nc1 rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"red-nc1","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-23-53.217Z-29312-red-nc1-result.json"}
+j2 nc1 KILLED (expected SCAN_W14_ROOTS)
+j2 nc1 restored exact bytes=true sha 15880f66af38c2763cbf7d20e8ca7a1d2ec0606fe495b016680dbb6542b85421
+j2 test rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-24-08.979Z-40552-test-result.json"}
+j2 nc2 mutated packages/junk-scan/src/scan/streaming.rs: ticket control replayed from worker receipt 2026-11-08T12-25-26.333Z-41696-red-nc2-result.json (mutated sha 41137e02e2884400decfb23afcf18475c4a6105e51e589bd79ab646c1d07267c)
+j2 red-nc2 rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"red-nc2","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-24-22.283Z-7756-red-nc2-result.json"}
+j2 nc2 KILLED (expected SCAN_W14_ROOTS)
+j2 nc2 restored exact bytes=true sha 15880f66af38c2763cbf7d20e8ca7a1d2ec0606fe495b016680dbb6542b85421
+j2 test rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-24-36.400Z-38600-test-result.json"}
+j2 nc3 mutated packages/junk-scan/src/scan/streaming.rs: ticket control replayed from worker receipt 2026-11-08T12-26-29.113Z-39276-red-nc3-result.json (mutated sha 633b59bc5a1eeb3437a919e6c4a7f6dc5b0d2080724484cca378e1ef592658c3)
+j2 red-nc3 rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"red-nc3","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-24-47.630Z-31336-red-nc3-result.json"}
+j2 nc3 KILLED (expected SCAN_W14_ROOTS)
+j2 nc3 restored exact bytes=true sha 15880f66af38c2763cbf7d20e8ca7a1d2ec0606fe495b016680dbb6542b85421
+j2 test rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-24-59.744Z-10320-test-result.json"}
+j2 c1 mutated packages/junk-scan/src/scan.rs: root is reported lowercased instead of as the first target wrote it (mutated sha 327f78d4d9031a5d4598eb856e3dc31de6d546ac82bbf6efe3552cdfd885b673)
+j2 test rc=1 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-08T13-25-14.275Z-30216-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-25-14.275Z-30216-test-result.json"}
+j2 c1 KILLED (expected SCAN_W14_ROOTS)
+j2 c1 restored exact bytes=true sha 336cc67b6cfa36048097433107e8bc4cc23324ab3894743a4fe6be8ee7ba966a
+j2 c2 mutated packages/junk-scan/src/scan.rs: roots are still reported after cancel or an exhausted budget (mutated sha f017f98307ed748c523305d468fca4e84d4b57ff39ca85912ccc752b8f376f79)
+j2 test rc=1 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-08T13-25-23.089Z-19972-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-25-23.089Z-19972-test-result.json"}
+j2 c2 KILLED (expected SCAN_W14_ROOTS)
+j2 c2 restored exact bytes=true sha 336cc67b6cfa36048097433107e8bc4cc23324ab3894743a4fe6be8ee7ba966a
+j2 c3 mutated packages/junk-scan/src/scan/streaming.rs: roots skipped when reached (missing, not a directory, reparse point) are never reported (mutated sha 0e046bc3ec7d5808d91fcf8769f34ed31ebe2e113259720522cff8de21b24bde)
+j2 test rc=1 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"failed","error":"AssertionError [ERR_ASSERTION]: Unexpected exit, see 2026-11-08T13-25-33.421Z-34400-test-5.log","receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-25-33.421Z-34400-test-result.json"}
+j2 c3 KILLED (expected SCAN_W14_ROOTS)
+j2 c3 restored exact bytes=true sha 15880f66af38c2763cbf7d20e8ca7a1d2ec0606fe495b016680dbb6542b85421
+j2 c4 mutated packages/junk-scan/src/scan/streaming.rs: skipped-up-front roots are reported in key order instead of plan order (probe: may coincide in the fixture) (mutated sha fc3d5188fbb1fbe4fe854e955a4716a757c8a003f94af9dc7b5b17a5d01f822d)
+j2 test rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":false,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-25-47.505Z-17092-test-result.json"}
+j2 c4 SURVIVED (expected SCAN_W14_ROOTS)
+j2 c4 restored exact bytes=true sha 15880f66af38c2763cbf7d20e8ca7a1d2ec0606fe495b016680dbb6542b85421
+j2 survived: c4
+j2 test --final rc=0 {"task":"WATER-W14-ACCEPT-J2","mode":"test","finalGate":true,"status":"passed","error":null,"receipt":"F:\\new\\smaltalk\\water\\.worktrees\\accept-w14-j2\\.local\\checks\\WATER-W14-ACCEPT-J2\\2026-11-08T13-26-00.269Z-39020-test-result.json"}
+=== j2 done rc=0 2026-11-08T13:26:14Z
+SEQ-DONE
