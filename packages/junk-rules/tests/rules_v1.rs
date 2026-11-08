@@ -7,7 +7,7 @@ use water_junk_rules::{
 
 const CANARY: &str = "CANARY_ECHO_VALUE_9f3c2a";
 const EXPECTED_RULE_COUNT: usize = 118;
-const EXPECTED_DATA_VERSION: &str = "2026-11-08.1";
+const EXPECTED_DATA_VERSION: &str = "2026-11-08.2";
 const CREATED_AT: &str = "2026-10-26T04:00:00Z";
 
 fn m35_reject(rule: Value, label: &str) {
@@ -37,7 +37,9 @@ fn m35_schema() {
     legal["keep_newest"] = json!(1);
     legal["in_use"] = json!({"mode":"runs_from_or_references_item","processes":[],"root_levels":3});
     legal["in_use_zh"] = json!("关掉程序后可清");
+    legal["in_use_en"] = json!("Can be cleaned after closing the app");
     legal["retention_zh"] = json!("工具自己的会话保留规则");
+    legal["retention_en"] = json!("The tool's own session retention policy");
     let set = RuleSet::from_json(&wrap(vec![legal.clone()])).expect("RULES_M35_FIELDS: all fields");
     let rule = &set.rules()[0];
     assert!(rule.git_is_copy, "RULES_M35_FIELDS: git copy");
@@ -83,6 +85,7 @@ fn m35_schema() {
     let mut advisory = sample_rule();
     advisory["level"] = json!("advisory");
     advisory["advice_zh"] = json!("请在系统设置里面核对后调整。");
+    advisory["advice_en"] = json!("Review this in system settings before changing it.");
     RuleSet::from_json(&wrap(vec![advisory.clone()])).expect("RULES_M35_FIELDS: advice");
     for value in [json!("短"), json!("字".repeat(161)), Value::Null] {
         let mut invalid = advisory.clone();
@@ -860,7 +863,104 @@ fn m35_resolve() {
 }
 
 fn m35_seeds() {
+    let raw: Value = serde_json::from_str(include_str!("../rules/windows.json"))
+        .expect("RULES_W14_EN: embedded JSON");
+    let rows = raw["rules"].as_array().expect("RULES_W14_EN: rules array");
+    assert_eq!(rows.len(), 118, "RULES_W14_EN: all rules covered");
+    for row in rows {
+        for (key, min, max) in [
+            ("title_en", 2, 48),
+            ("owner_en", 1, 64),
+            ("what_en", 4, 320),
+            ("why_en", 4, 320),
+            ("after_en", 4, 320),
+            ("fix_hint_en", 4, 320),
+            ("advice_en", 4, 320),
+            ("in_use_en", 4, 320),
+            ("retention_en", 4, 320),
+        ] {
+            let zh = key.replace("_en", "_zh");
+            let optional = matches!(
+                key,
+                "fix_hint_en" | "advice_en" | "in_use_en" | "retention_en"
+            );
+            if optional {
+                assert_eq!(
+                    row.get(key).and_then(Value::as_str).is_some(),
+                    row.get(&zh).and_then(Value::as_str).is_some(),
+                    "RULES_W14_EN: {} {key} paired",
+                    row["rule_id"]
+                );
+                if row.get(&zh).is_none() {
+                    assert!(
+                        row.get(key).is_none(),
+                        "RULES_W14_EN: {key} absent with Chinese"
+                    );
+                }
+                if row.get(&zh).is_none_or(Value::is_null) {
+                    continue;
+                }
+            }
+            let text = row[key]
+                .as_str()
+                .expect("RULES_W14_EN: English string present");
+            assert!(
+                (min..=max).contains(&text.chars().count()),
+                "RULES_W14_EN: {} {key} length",
+                row["rule_id"]
+            );
+            assert!(
+                text.chars().all(|c| c.is_ascii_graphic() || c == ' '),
+                "RULES_W14_EN: {} {key} printable English without Chinese",
+                row["rule_id"]
+            );
+        }
+        let owner = row["owner_zh"].as_str().unwrap();
+        if owner.is_ascii() {
+            assert_eq!(
+                row["owner_en"], row["owner_zh"],
+                "RULES_W14_EN: English owner retained"
+            );
+        }
+    }
     let rules = RuleSet::embedded();
+    for (rule, row) in rules.rules().iter().zip(rows) {
+        for (actual, key) in [
+            (&rule.title_en, "title_en"),
+            (&rule.owner_en, "owner_en"),
+            (&rule.what_en, "what_en"),
+            (&rule.why_en, "why_en"),
+            (&rule.after_en, "after_en"),
+        ] {
+            assert_eq!(
+                actual,
+                row[key].as_str().unwrap(),
+                "RULES_W14_EN: Rule {key} preserved"
+            );
+        }
+        for (actual, key) in [
+            (&rule.fix_hint_en, "fix_hint_en"),
+            (&rule.advice_en, "advice_en"),
+            (&rule.in_use_en, "in_use_en"),
+            (&rule.retention_en, "retention_en"),
+        ] {
+            assert_eq!(
+                actual.as_deref(),
+                row.get(key).and_then(Value::as_str),
+                "RULES_W14_EN: optional Rule {key} preserved"
+            );
+        }
+        let text = rule.text();
+        assert_eq!(text.title_en, rule.title_en, "RULES_W14_EN: RuleText title");
+        assert_eq!(text.owner_en, rule.owner_en, "RULES_W14_EN: RuleText owner");
+        assert_eq!(text.what_en, rule.what_en, "RULES_W14_EN: RuleText what");
+        assert_eq!(text.why_en, rule.why_en, "RULES_W14_EN: RuleText why");
+        assert_eq!(text.after_en, rule.after_en, "RULES_W14_EN: RuleText after");
+        assert_eq!(
+            text.fix_hint_en, rule.fix_hint_en,
+            "RULES_W14_EN: RuleText fix hint"
+        );
+    }
     for rule in rules.rules() {
         for source in &rule.sources {
             if source.kind != water_junk_rules::SourceKind::LocalObservation {
@@ -1511,7 +1611,9 @@ fn sample_rule() -> Value {
     json!({
         "rule_id": "sample-cache",
         "title_zh": "示例缓存目录",
+        "title_en": "Sample cache folder",
         "owner_zh": "示例",
+        "owner_en": "Example",
         "category": "dev_cache",
         "level": "recommended",
         "locate": [{"kind":"pattern","base":"local_app_data","segments":["SampleCache"]}],
@@ -1521,9 +1623,13 @@ fn sample_rule() -> Value {
         "in_use": {"mode":"none","processes":[]},
         "growth": "slow",
         "what_zh": "这是一段示例说明文字。",
+        "what_en": "This is an example cache description.",
         "why_zh": "这是可以清理的原因说明。",
+        "why_en": "This explains why the cache can be cleaned.",
         "after_zh": "清掉之后会重新下载缓存。",
+        "after_en": "The cache will be downloaded again after cleaning.",
         "fix_hint_zh": null,
+        "fix_hint_en": null,
         "sources": [{
             "kind":"local_observation",
             "ref":"2026-10-26 维护者本机只读检查",
@@ -1536,7 +1642,9 @@ fn git_worktree_json() -> Value {
     json!({
         "rule_id": "git-worktrees",
         "title_zh": "Git 工作树或子模块",
+        "title_en": "Git worktrees or submodules",
         "owner_zh": "Git",
+        "owner_en": "Git",
         "category": "custom",
         "level": "advisory",
         "locate": [{
@@ -1550,9 +1658,13 @@ fn git_worktree_json() -> Value {
         "in_use": {"mode":"none","processes":[]},
         "growth": "slow",
         "what_zh": "目录里的 .git 是一个小文件而不是文件夹，通常是 git worktree 建出的工作树，也可能是子模块。",
+        "what_en": "A .git file rather than a folder usually indicates a Git worktree, but may also indicate a submodule.",
         "why_zh": "里面可能有还没提交的改动，Flick 不读文件内容，无法确认，所以只列出、不提供清理。",
+        "why_en": "There may be uncommitted changes. Flick does not read file contents to check, so it lists these without offering cleanup.",
         "after_zh": "确认不再需要后，在主仓库里用 git worktree remove 删除，主仓库的登记会一并清掉。",
+        "after_en": "Once you are sure it is no longer needed, run git worktree remove from the main repository to remove it and its registration.",
         "fix_hint_zh": null,
+        "fix_hint_en": null,
         "sources": [
             {"kind":"local_observation","ref":"2026-10-29 维护者本机清理时确认：130 棵已合并的旧工作树共 56 GB。","checked_on":"2026-10-29"},
             {"kind":"official_doc","ref":"https://git-scm.com/docs/git-worktree","checked_on":"2026-10-31"}
@@ -1669,11 +1781,29 @@ fn m3d_fallback_json(id: &str) -> Value {
         ),
         _ => panic!("RULES_M3D_FALLBACK: unexpected rule"),
     };
+    let (title_en, owner_en, what_en, why_en, after_en) = match id {
+        "bundled-node-modules" => (
+            "Dependencies bundled with apps or tools",
+            "Node.js",
+            "A node_modules folder without nearby project files is likely a global CLI installation, unpacked desktop app content or dependencies bundled with an app.",
+            "Deleting it may stop the tool or app from opening. Flick cannot confirm its owner, so it only shows this for reference and offers no cleanup.",
+            "If you no longer need the tool, uninstall it the way it was installed, such as with npm uninstall -g.",
+        ),
+        "browser-data-dirs" => (
+            "Browser data folders",
+            "Embedded browsers",
+            "Folders resembling complete browser profiles without automation tool names in their paths. They are likely data for browsers embedded in desktop apps, such as Chromium, WebView2 or CEF.",
+            "These may hold sign-in state and app data. Deleting them may require signing in again or cause app errors, so Flick only shows them for reference and offers no cleanup.",
+            "To clean these, sign out in the relevant app or uninstall it.",
+        ),
+        _ => unreachable!(),
+    };
     json!({
         "rule_id":id,"title_zh":title,"owner_zh":owner,"category":"custom","level":"advisory",
+        "title_en":title_en,"owner_en":owner_en,"what_en":what_en,"why_en":why_en,"after_en":after_en,
         "locate":[{"kind":"marker","marker":marker,"max_depth":depth,"fallback_for":main}],
         "item_type":"dir","min_age_hours":0,"keep_newest":0,"in_use":{"mode":"none","processes":[]},
-        "growth":"slow","what_zh":what,"why_zh":why,"after_zh":after,"fix_hint_zh":null,
+        "growth":"slow","what_zh":what,"why_zh":why,"after_zh":after,"fix_hint_zh":null,"fix_hint_en":null,
         "sources":[{"kind":"local_observation","ref":reference,"checked_on":"2026-11-01"}]
     })
 }
@@ -1754,6 +1884,157 @@ fn m3d_plan_targets(plan: &ScanPlan, roots: &[CustomRoot]) {
 
 #[test]
 fn rules_schema_strict() {
+    for (key, min, max) in [
+        ("title_en", 2, 48),
+        ("owner_en", 1, 64),
+        ("what_en", 4, 320),
+        ("why_en", 4, 320),
+        ("after_en", 4, 320),
+        ("fix_hint_en", 4, 320),
+        ("advice_en", 4, 320),
+        ("in_use_en", 4, 320),
+        ("retention_en", 4, 320),
+    ] {
+        let mut valid = sample_rule();
+        let zh = key.replace("_en", "_zh");
+        let optional = matches!(
+            key,
+            "fix_hint_en" | "advice_en" | "in_use_en" | "retention_en"
+        );
+        match key {
+            "fix_hint_en" => {
+                valid["growth"] = json!("leak_prone");
+                valid["fix_hint_zh"] = json!("请让程序回收本次创建的临时目录。");
+                valid[key] = json!("Ask the app to remove temporary folders created by this run.");
+            }
+            "advice_en" => {
+                valid["level"] = json!("advisory");
+                valid["advice_zh"] = json!("请在系统设置里面核对后调整。");
+                valid[key] = json!("Review this in system settings before changing it.");
+            }
+            "in_use_en" => {
+                valid["in_use"] = json!({"mode":"process_running","processes":["example.exe"]});
+                valid["in_use_zh"] = json!("关掉程序后可清");
+                valid[key] = json!("Can be cleaned after closing the app");
+            }
+            "retention_en" => {
+                valid["category"] = json!("agent_tool");
+                valid["retention_zh"] = json!("工具自己的会话保留规则");
+                valid[key] = json!("The tool's own session retention policy");
+            }
+            _ => {}
+        }
+        RuleSet::from_json(&wrap(vec![valid.clone()])).expect("RULES_W14_EN: valid paired text");
+        for size in [min, max] {
+            let mut boundary = valid.clone();
+            boundary[key] = json!("a".repeat(size));
+            RuleSet::from_json(&wrap(vec![boundary]))
+                .expect("RULES_W14_EN: inclusive length bounds");
+        }
+        let mut missing = valid.clone();
+        missing.as_object_mut().unwrap().remove(key);
+        let error = RuleSet::from_json(&wrap(vec![missing]))
+            .expect_err("RULES_W14_EN: missing English rejected");
+        assert_eq!(
+            error.code,
+            if optional {
+                "RULES_INVALID_TEXT"
+            } else {
+                "RULES_MISSING_FIELD"
+            },
+            "RULES_W14_EN: missing field code {key}"
+        );
+        assert_eq!(
+            error.path,
+            format!("/rules/0/{key}"),
+            "RULES_W14_EN: missing field pointer"
+        );
+        for value in [
+            json!("a".repeat(min - 1)),
+            json!("a".repeat(max + 1)),
+            Value::Null,
+            json!(42),
+        ] {
+            let mut invalid = valid.clone();
+            invalid[key] = value;
+            let error = RuleSet::from_json(&wrap(vec![invalid]))
+                .expect_err("RULES_W14_EN: length and type rejected");
+            assert_eq!(
+                error.code, "RULES_INVALID_TEXT",
+                "RULES_W14_EN: invalid text code"
+            );
+            assert_eq!(
+                error.path,
+                format!("/rules/0/{key}"),
+                "RULES_W14_EN: invalid text pointer"
+            );
+        }
+        for forbidden in [
+            '中',
+            '\u{3400}',
+            '\u{20000}',
+            '\u{30000}',
+            '\u{f900}',
+            '\u{2f800}',
+            '，',
+            '。',
+            '、',
+            '（',
+            '）',
+            '\u{fe10}',
+            '\u{fe30}',
+            '\n',
+            '\r',
+            '\t',
+            '\0',
+            '\u{7f}',
+            '\u{200b}',
+            '\u{202e}',
+            '\u{feff}',
+        ] {
+            let mut invalid = valid.clone();
+            invalid[key] = json!(format!("abc{forbidden}"));
+            let error = RuleSet::from_json(&wrap(vec![invalid]))
+                .expect_err("RULES_W14_EN: Chinese and nonprinting characters rejected");
+            assert_eq!(
+                error.code, "RULES_INVALID_TEXT",
+                "RULES_W14_EN: character error code"
+            );
+            assert_eq!(
+                error.path,
+                format!("/rules/0/{key}"),
+                "RULES_W14_EN: character pointer"
+            );
+        }
+        if optional {
+            let mut orphan = valid.clone();
+            if key == "fix_hint_en" {
+                orphan[&zh] = Value::Null;
+                orphan["growth"] = json!("slow");
+            } else {
+                orphan.as_object_mut().unwrap().remove(&zh);
+            }
+            let error = RuleSet::from_json(&wrap(vec![orphan.clone()]))
+                .expect_err("RULES_W14_EN: English without Chinese rejected");
+            assert_eq!(
+                error.code, "RULES_INVALID_TEXT",
+                "RULES_W14_EN: orphan code"
+            );
+            assert_eq!(
+                error.path,
+                format!("/rules/0/{key}"),
+                "RULES_W14_EN: orphan pointer"
+            );
+            if key != "fix_hint_en" {
+                orphan.as_object_mut().unwrap().remove(key);
+                RuleSet::from_json(&wrap(vec![orphan.clone()]))
+                    .expect("RULES_W14_EN: both absent accepted");
+                orphan[key] = Value::Null;
+                RuleSet::from_json(&wrap(vec![orphan]))
+                    .expect_err("RULES_W14_EN: orphan null rejected");
+            }
+        }
+    }
     m35_schema();
     // Each rule in RULES-M3D sections 1 and 3 has an isolated rejection case.
     let pair = m3d_pair();
@@ -3279,6 +3560,7 @@ fn rules_resolve_plan() {
 
 #[test]
 fn rules_seed_coverage() {
+    m35_seeds();
     fn check_rename(value: &Value) -> usize {
         match value {
             Value::Object(fields) => fields
@@ -3341,7 +3623,6 @@ fn rules_seed_coverage() {
         "RULES_M35_SEEDS: installer DLL guard"
     );
     assert!(fallback_for.is_none(), "RULES_M35_SEEDS: no fallback");
-    m35_seeds();
     let rules = RuleSet::embedded();
     assert_eq!(
         rules.data_version, EXPECTED_DATA_VERSION,

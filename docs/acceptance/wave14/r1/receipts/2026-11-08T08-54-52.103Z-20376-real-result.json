@@ -1,0 +1,325 @@
+{
+  "task": "WATER-W14-R1",
+  "mode": "real",
+  "finalGate": true,
+  "manifest": "docs/dispatch/wave14/manifest.json",
+  "startedAt": "2026-11-08T08:54:52.105Z",
+  "realDataRead": true,
+  "productTestsRun": false,
+  "commands": [
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "cargo",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T08-54-52.103Z-20376-real-1.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.cargo\\bin\\rustup.exe",
+      "argv": [
+        "which",
+        "rustc",
+        "--toolchain",
+        "1.95.0"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T08-54-52.103Z-20376-real-2.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+      "argv": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T08-54-52.103Z-20376-real-3.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "metadata",
+        "--offline",
+        "--locked",
+        "--format-version",
+        "1",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T08-54-52.103Z-20376-real-4.log"
+    },
+    {
+      "binary": "C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "argv": [
+        "run",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "packages/junk-rules/Cargo.toml",
+        "--example",
+        "real_smoke",
+        "--"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "log": "2026-11-08T08-54-52.103Z-20376-real-5.log"
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "branch",
+        "--show-current"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "merge-base",
+        "--is-ancestor",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "d692bd60cd8ab3fe4d0201afacd8a29fcfc8265a",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "diff",
+        "--no-renames",
+        "--name-only",
+        "-z",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0
+    },
+    {
+      "binary": "git",
+      "argv": [
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "changedPaths": [
+    "packages/junk-rules/README.md",
+    "packages/junk-rules/rules/windows.json",
+    "packages/junk-rules/src/rules.rs",
+    "packages/junk-rules/tests/rules_v1.rs"
+  ],
+  "before": {
+    "head": "ead1defd3b4f2a0439d5d59f16a649e521032021",
+    "status": ""
+  },
+  "sourceState": {
+    "files": [
+      {
+        "path": "packages/junk-rules/Cargo.toml",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-0.txt",
+        "sha256": "b208419139ad9e00094796070ed94c874e68051718dbccae9e977ab5b2a2891f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/Cargo.lock",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-1.txt",
+        "sha256": "8fa9f0654764a3478f9620856784816467bea29ee9a091a2df50af3707143d0c",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/README.md",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-2.txt",
+        "sha256": "f06ce8bb70c68ee439282d409434bcce3e1d37749f40e1c9f7161d94da4b009a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/rules/windows.json",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-3.txt",
+        "sha256": "0a2e79645f578b847a84d0578dcd00bd8de0a6c2fba32cd0424fa89a58ecbfee",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/error.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-4.txt",
+        "sha256": "3b2dda7c38f28398577e76b76b44ea6b0343709f68c5d0fd5134607656655800",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/folders.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-5.txt",
+        "sha256": "ba28d8ddd2ef9ff2e993f3cfb7fdcb907bd27558dd23c637ccbc31ef4d9e5ce0",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/lib.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-6.txt",
+        "sha256": "ab64a92e86ed90b63fe9c159dcf26a68465792e35cc024b72c312c87bcd4f335",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/m35.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-7.txt",
+        "sha256": "23193f1fec4aa27107d369a3e5696c48996153b4128167eede05fcbac9f122de",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/plan.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-8.txt",
+        "sha256": "66e2ea0ed0c0b0429d1081ee85d129edbe1c429a17035b7451d8e0b46aa17d1f",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/rules.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-9.txt",
+        "sha256": "654f6c52da60241216b54d099d3171449c921a79d56e06507c2fa306f83c1072",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/src/types.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-10.txt",
+        "sha256": "3777b57303133ce94e0ca81f36fcf23ee0baec56d8666d3784f778e5f397782a",
+        "test": false
+      },
+      {
+        "path": "packages/junk-rules/tests/rules_v1.rs",
+        "snapshot": "2026-11-08T08-54-52.103Z-20376-real-source-11.txt",
+        "sha256": "a8bef9ec08c6c37a9a4517fb8ebe87e327dd1e66ff70a453930805cabcfce7ff",
+        "test": true
+      }
+    ],
+    "productionHash": "d97830c049ccc3e5b489d5f0767bd9d3f59b8e653fd7a9c6144046fd61a2e9ce",
+    "testHash": "158fd43dd38619770dfeff3820c123fb2773cb7760982a62efd3367ae0161bab"
+  },
+  "dependencyInventory": [
+    "itoa@1.0.18",
+    "memchr@2.8.3",
+    "proc-macro2@1.0.107",
+    "quote@1.0.47",
+    "serde@1.0.229",
+    "serde_core@1.0.229",
+    "serde_derive@1.0.229",
+    "serde_json@1.0.151",
+    "syn@3.0.9",
+    "unicode-ident@1.0.27",
+    "zmij@1.0.23"
+  ],
+  "realSummary": {
+    "base_present_count": 95,
+    "literal_prefix_present_count": 78,
+    "rule_count": 118,
+    "system_drive_exists": true
+  },
+  "after": {
+    "head": "ead1defd3b4f2a0439d5d59f16a649e521032021",
+    "status": ""
+  },
+  "status": "passed",
+  "error": null,
+  "endedAt": "2026-11-08T08:54:58.281Z"
+}
