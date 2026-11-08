@@ -50,6 +50,7 @@ struct FullOut {
     advisory_cluster_count: usize,
     junction_count: usize,
     hidden_system_junction_count: usize,
+    unavailable_indexed_junction_count: usize,
     junctions_truncated: bool,
     declaration_count: usize,
 }
@@ -109,15 +110,16 @@ fn main() {
         SystemTime::now(),
     )
     .expect("full scan");
+    let mut unavailable_indexed_junction_count = 0;
     let hidden_system_junction_count = extras
         .junctions
         .iter()
-        .filter(|junction| {
-            fs::symlink_metadata(&junction.path)
-                .expect("read indexed junction attributes")
-                .file_attributes()
-                & 0x6
-                == 0x6
+        .filter(|junction| match fs::symlink_metadata(&junction.path) {
+            Ok(metadata) => metadata.file_attributes() & 0x6 == 0x6,
+            Err(_) => {
+                unavailable_indexed_junction_count += 1;
+                false
+            }
         })
         .count();
     assert_eq!(
@@ -139,6 +141,7 @@ fn main() {
             .count(),
         junction_count: extras.junctions.len(),
         hidden_system_junction_count,
+        unavailable_indexed_junction_count,
         junctions_truncated: extras.junctions_truncated,
         declaration_count: extras.declarations.len(),
     };
