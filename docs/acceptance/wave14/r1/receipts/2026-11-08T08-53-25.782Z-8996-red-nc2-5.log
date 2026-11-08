@@ -1,0 +1,29 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... ok
+test rules_resolve_plan ... ok
+test rules_schema_strict ... FAILED
+test rules_seed_coverage ... ok
+
+failures:
+
+---- rules_schema_strict stdout ----
+
+thread 'rules_schema_strict' (26532) panicked at tests\rules_v1.rs:1998:18:
+RULES_W14_EN: Chinese and nonprinting characters rejected: RuleSet { rules_version: "water.junk-rules.v1", data_version: "2026-10-26.1", rules: [Rule { rule_id: "sample-cache", title_zh: "示例缓存目录", title_en: "abc中", owner_zh: "示例", owner_en: "Example", category: DevCache, level: Recommended, locate: [Pattern { base: LocalAppData, segments: ["SampleCache"] }], item_type: Dir, min_age_hours: 1, keep_newest: 0, in_use: InUse { mode: None, processes: [], root_levels: None }, growth: Slow, what_zh: "这是一段示例说明文字。", what_en: "This is an example cache description.", why_zh: "这是可以清理的原因说明。", why_en: "This explains why the cache can be cleaned.", after_zh: "清掉之后会重新下载缓存。", after_en: "The cache will be downloaded again after cleaning.", fix_hint_zh: None, fix_hint_en: None, sources: [Source { kind: LocalObservation, ref_text: "2026-10-26 维护者本机只读检查", checked_on: "2026-10-26" }], git_is_copy: false, age_basis: Modified, keep_by: Activity, advice_zh: None, advice_en: None, in_use_zh: None, in_use_en: None, retention_zh: None, retention_en: None, unlocks: None, session_tool: None, installed_names: None }] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rules_schema_strict
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-r1\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.19s
+     Running tests\rules_v1.rs (.local\w2-target\junk-rules\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`

@@ -1,0 +1,41 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/junk-rules/Cargo.toml","--test","rules_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 4 tests
+test rules_protection_precedence ... FAILED
+test rules_resolve_plan ... FAILED
+test rules_schema_strict ... ok
+test rules_seed_coverage ... FAILED
+
+failures:
+
+---- rules_protection_precedence stdout ----
+
+thread 'rules_protection_precedence' (24516) panicked at src\rules.rs:105:43:
+embedded windows rules must be valid: RulesError { code: "RULES_MISSING_FIELD", path: "/rules/0/title_en" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rules_resolve_plan stdout ----
+
+thread 'rules_resolve_plan' (40632) panicked at src\rules.rs:105:43:
+embedded windows rules must be valid: RulesError { code: "RULES_MISSING_FIELD", path: "/rules/0/title_en" }
+
+---- rules_seed_coverage stdout ----
+
+thread 'rules_seed_coverage' (26108) panicked at tests\rules_v1.rs:906:18:
+RULES_W14_EN: English string present
+
+
+failures:
+    rules_protection_precedence
+    rules_resolve_plan
+    rules_seed_coverage
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+
+--- stderr ---
+   Compiling water-junk-rules v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-r1\packages\junk-rules)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.14s
+     Running tests\rules_v1.rs (.local\w2-target\junk-rules\debug\deps\rules_v1-55c9fa24f5632a0e.exe)
+error: test failed, to rerun pass `--test rules_v1`
