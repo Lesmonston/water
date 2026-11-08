@@ -23,18 +23,26 @@ pub struct Source {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuleText {
     pub title_zh: String,
+    pub title_en: String,
     pub owner_zh: String,
+    pub owner_en: String,
     pub what_zh: String,
+    pub what_en: String,
     pub why_zh: String,
+    pub why_en: String,
     pub after_zh: String,
+    pub after_en: String,
     pub fix_hint_zh: Option<String>,
+    pub fix_hint_en: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rule {
     pub rule_id: String,
     pub title_zh: String,
+    pub title_en: String,
     pub owner_zh: String,
+    pub owner_en: String,
     pub category: Category,
     pub level: Level,
     pub locate: Vec<Locator>,
@@ -44,16 +52,23 @@ pub struct Rule {
     pub in_use: InUse,
     pub growth: Growth,
     pub what_zh: String,
+    pub what_en: String,
     pub why_zh: String,
+    pub why_en: String,
     pub after_zh: String,
+    pub after_en: String,
     pub fix_hint_zh: Option<String>,
+    pub fix_hint_en: Option<String>,
     pub sources: Vec<Source>,
     pub git_is_copy: bool,
     pub age_basis: AgeBasis,
     pub keep_by: KeepBy,
     pub advice_zh: Option<String>,
+    pub advice_en: Option<String>,
     pub in_use_zh: Option<String>,
+    pub in_use_en: Option<String>,
     pub retention_zh: Option<String>,
+    pub retention_en: Option<String>,
     pub unlocks: Option<String>,
     pub session_tool: Option<String>,
     pub installed_names: Option<Vec<String>>,
@@ -63,11 +78,17 @@ impl Rule {
     pub fn text(&self) -> RuleText {
         RuleText {
             title_zh: self.title_zh.clone(),
+            title_en: self.title_en.clone(),
             owner_zh: self.owner_zh.clone(),
+            owner_en: self.owner_en.clone(),
             what_zh: self.what_zh.clone(),
+            what_en: self.what_en.clone(),
             why_zh: self.why_zh.clone(),
+            why_en: self.why_en.clone(),
             after_zh: self.after_zh.clone(),
+            after_en: self.after_en.clone(),
             fix_hint_zh: self.fix_hint_zh.clone(),
+            fix_hint_en: self.fix_hint_en.clone(),
         }
     }
 }
@@ -159,7 +180,9 @@ fn parse_rule(value: &Value, path: &str) -> Result<Rule, RulesError> {
         &[
             "rule_id",
             "title_zh",
+            "title_en",
             "owner_zh",
+            "owner_en",
             "category",
             "level",
             "locate",
@@ -169,16 +192,23 @@ fn parse_rule(value: &Value, path: &str) -> Result<Rule, RulesError> {
             "in_use",
             "growth",
             "what_zh",
+            "what_en",
             "why_zh",
+            "why_en",
             "after_zh",
+            "after_en",
             "fix_hint_zh",
+            "fix_hint_en",
             "sources",
             "git_is_copy",
             "age_basis",
             "keep_by",
             "advice_zh",
+            "advice_en",
             "in_use_zh",
+            "in_use_en",
             "retention_zh",
+            "retention_en",
             "unlocks",
             "session_tool",
             "installed_names",
@@ -259,7 +289,9 @@ fn parse_rule(value: &Value, path: &str) -> Result<Rule, RulesError> {
     let rule = Rule {
         rule_id: rule_id.to_string(),
         title_zh,
+        title_en: read_english(map, "title_en", path, 2, 48)?,
         owner_zh,
+        owner_en: read_english(map, "owner_en", path, 1, 64)?,
         category,
         level,
         locate,
@@ -269,16 +301,23 @@ fn parse_rule(value: &Value, path: &str) -> Result<Rule, RulesError> {
         in_use,
         growth,
         what_zh,
+        what_en: read_english(map, "what_en", path, 4, 320)?,
         why_zh,
+        why_en: read_english(map, "why_en", path, 4, 320)?,
         after_zh,
+        after_en: read_english(map, "after_en", path, 4, 320)?,
         fix_hint_zh,
+        fix_hint_en: read_paired_english(map, "fix_hint_zh", "fix_hint_en", path)?,
         sources,
         git_is_copy: m35::git_is_copy(map, path)?,
         age_basis: m35::age_basis(map, path)?,
         keep_by: m35::keep_by(map, path)?,
         advice_zh: m35::optional_text(map, "advice_zh", path, 8, 160)?,
+        advice_en: read_paired_english(map, "advice_zh", "advice_en", path)?,
         in_use_zh: m35::optional_text(map, "in_use_zh", path, 4, 40)?,
+        in_use_en: read_paired_english(map, "in_use_zh", "in_use_en", path)?,
         retention_zh: m35::optional_text(map, "retention_zh", path, 4, 80)?,
+        retention_en: read_paired_english(map, "retention_zh", "retention_en", path)?,
         unlocks: m35::optional_text(map, "unlocks", path, 3, 48)?,
         session_tool: m35::optional_text(map, "session_tool", path, 1, 48)?,
         installed_names: map
@@ -317,6 +356,60 @@ fn read_text(
     let text = as_str(field(map, key, parent)?, &path)?;
     require_chars(text, min, max, &path)?;
     Ok(text.to_string())
+}
+
+fn read_english(
+    map: &Map<String, Value>,
+    key: &str,
+    parent: &str,
+    min: usize,
+    max: usize,
+) -> Result<String, RulesError> {
+    let text = read_text(map, key, parent, min, max)?;
+    if text.chars().any(|c| {
+        c.is_control()
+            || matches!(c, '\u{00ad}' | '\u{061c}' | '\u{200b}'..='\u{200f}'
+                | '\u{2028}'..='\u{202e}' | '\u{2060}'..='\u{206f}' | '\u{feff}')
+    }) {
+        return Err(RulesError::new(
+            "RULES_INVALID_TEXT",
+            format!("{parent}/{key}"),
+        ));
+    }
+    // Unified ideographs (including supplementary planes), compatibility
+    // ideographs, and Chinese punctuation in their fullwidth/vertical forms.
+    if text.chars().any(|c| {
+        matches!(c, '\u{2e80}'..='\u{303f}' | '\u{3400}'..='\u{4dbf}'
+            | '\u{4e00}'..='\u{9fff}' | '\u{f900}'..='\u{faff}'
+            | '\u{fe10}'..='\u{fe1f}' | '\u{fe30}'..='\u{fe4f}'
+            | '\u{ff01}'..='\u{ff60}' | '\u{ffe0}'..='\u{ffe6}'
+            | '\u{20000}'..='\u{2ee5f}' | '\u{2f800}'..='\u{2fa1f}'
+            | '\u{30000}'..='\u{3347f}')
+    }) {
+        return Err(RulesError::new(
+            "RULES_INVALID_TEXT",
+            format!("{parent}/{key}"),
+        ));
+    }
+    Ok(text)
+}
+
+fn read_paired_english(
+    map: &Map<String, Value>,
+    zh: &str,
+    en: &str,
+    parent: &str,
+) -> Result<Option<String>, RulesError> {
+    match (map.get(zh), map.get(en)) {
+        (Some(Value::String(_)), Some(Value::String(_))) => {
+            read_english(map, en, parent, 4, 320).map(Some)
+        }
+        (None, None) | (Some(Value::Null), None | Some(Value::Null)) => Ok(None),
+        _ => Err(RulesError::new(
+            "RULES_INVALID_TEXT",
+            format!("{parent}/{en}"),
+        )),
+    }
 }
 
 fn parse_fix_hint(value: &Value, path: &str, growth: Growth) -> Result<Option<String>, RulesError> {
