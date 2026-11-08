@@ -97,8 +97,8 @@ fn host_config_boundary() {
     let capability: Value = serde_json::from_str(cap_raw).expect("HOST_CONFIG capability JSON");
     assert_eq!(
         config["bundle"],
-        json!({"active": false, "publisher": "Flick"}),
-        "HOST_W12_INFO exact bundle publisher and disabled bundling"
+        json!({"active": false, "publisher": "Flick", "copyright": "Copyright (c) 2026 Flick contributors"}),
+        "HOST_W12_INFO exact bundle publisher, copyright and disabled bundling"
     );
     assert_eq!(
         config,
@@ -107,7 +107,7 @@ fn host_config_boundary() {
             "build": {"frontendDist": "../ui"},
             "app": {"windows": [], "withGlobalTauri": true, "security": {
                 "csp": expected_csp, "assetProtocol": {"enable": false}, "capabilities": ["main"]
-            }}, "bundle": {"active": false, "publisher": "Flick"}, "plugins": {}
+            }}, "bundle": {"active": false, "publisher": "Flick", "copyright": "Copyright (c) 2026 Flick contributors"}, "plugins": {}
         }),
         "HOST_CONFIG exact config"
     );
@@ -138,6 +138,7 @@ fn host_config_boundary() {
         ("/app/security/capabilities", json!(["main", "extra"])),
         ("/bundle/active", json!(true)),
         ("/bundle/publisher", json!("Other")),
+        ("/bundle/copyright", json!("Other")),
         ("/plugins", json!({"shell": {}})),
     ] {
         let mut bad = config.clone();
@@ -201,6 +202,15 @@ fn host_config_boundary() {
         "HOST_CONFIG duplicate key"
     );
     assert!(validate_config("{}").is_err(), "HOST_CONFIG missing fields");
+    let mut missing_copyright = config.clone();
+    missing_copyright["bundle"]
+        .as_object_mut()
+        .unwrap()
+        .remove("copyright");
+    assert!(
+        validate_config(&missing_copyright.to_string()).is_err(),
+        "HOST_W12_INFO missing copyright rejected"
+    );
     let mut missing_publisher = config.clone();
     missing_publisher["bundle"]
         .as_object_mut()

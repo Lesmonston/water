@@ -1,3 +1,6 @@
+// Superseded 11-08 by cargo-about (packaging/windows/about.toml), which resolves features the way the build does:
+// this walk over `cargo metadata` also counts crates that only dev-dependency features pull in (238 here against
+// the 217 the release build compiles). Kept for the quick list only.
 // Writes the third-party licence list for flick.exe from `cargo metadata` (offline; nothing is downloaded).
 // Only crates that go into the program on x86_64 Windows: normal and build dependencies reachable from the desktop
 // host, not dev-only ones; the project's own path crates are left out.

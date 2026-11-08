@@ -63,6 +63,7 @@ struct AssetProtocol {
 struct Bundle {
     active: bool,
     publisher: String,
+    copyright: String,
 }
 
 #[derive(Deserialize)]
@@ -91,6 +92,7 @@ pub fn validate_config(raw: &str) -> Result<(), ConfigError> {
         || config.app.security.capabilities != ["main"]
         || config.bundle.active
         || config.bundle.publisher != "Flick"
+        || config.bundle.copyright != "Copyright (c) 2026 Flick contributors"
         || !config.plugins.is_empty()
     {
         return Err(ConfigError);

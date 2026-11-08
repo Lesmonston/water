@@ -1,6 +1,7 @@
 ; Flick installer for Windows (per-user, no administrator rights).
 ; Build with packaging/windows/build.ps1, which passes:
 ;   /DVERSION=<x.y.z>  /DEXE=<path to flick.exe>  /DICON=<path to .ico>  /DOUTFILE=<installer path>
+;   /DLICENCEDIR=<folder with LICENSE-MIT, LICENSE-APACHE and THIRD-PARTY-LICENSES.md>
 ; and /DFLICK_TEST for a test build that installs files only (no Start menu shortcut, no uninstall entry),
 ; so it can be installed and removed inside a scratch folder.
 ; The installer and uninstaller never touch Flick's data folder (%LOCALAPPDATA%\Flick) or any quarantine folder.
@@ -14,6 +15,9 @@ Unicode true
 !endif
 !ifndef ICON
   !error "ICON is required: the path of flick-app-icon.ico"
+!endif
+!ifndef LICENCEDIR
+  !error "LICENCEDIR is required: the folder with the licence files"
 !endif
 !ifndef OUTFILE
   !define OUTFILE "Flick-Setup-${VERSION}.exe"
@@ -49,7 +53,7 @@ VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "CompanyName" "Flick"
 VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "FileDescription" "Flick 安装程序"
 VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "FileVersion" "${VERSION}"
 VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "ProductVersion" "${VERSION}"
-VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "LegalCopyright" "Flick contributors"
+VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "LegalCopyright" "Copyright (c) 2026 Flick contributors"
 
 Function .onInit
   ; Flick runs on WebView2. Windows 11 ships it; on older systems point the user to Microsoft's installer.
@@ -71,6 +75,9 @@ Section "Flick"
     Abort
   copy:
   File "/oname=flick.exe" "${EXE}"
+  File "${LICENCEDIR}\LICENSE-MIT"
+  File "${LICENCEDIR}\LICENSE-APACHE"
+  File "${LICENCEDIR}\THIRD-PARTY-LICENSES.md"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 !ifndef FLICK_TEST
   CreateShortCut "$SMPROGRAMS\Flick.lnk" "$INSTDIR\flick.exe"
@@ -94,6 +101,9 @@ Section "Uninstall"
     MessageBox MB_OK|MB_ICONEXCLAMATION "Flick 正在运行。请先关闭它，再卸载。" /SD IDOK
     Abort
   removed:
+  Delete "$INSTDIR\LICENSE-MIT"
+  Delete "$INSTDIR\LICENSE-APACHE"
+  Delete "$INSTDIR\THIRD-PARTY-LICENSES.md"
   Delete "$INSTDIR\Uninstall.exe"
   ; Only removes the folder when it is empty; files the user put there stay.
   RMDir "$INSTDIR"

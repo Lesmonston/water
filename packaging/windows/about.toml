@@ -1,0 +1,11 @@
+# cargo-about configuration for THIRD-PARTY-LICENSES.md, the licence texts of every crate built into flick.exe.
+# Regenerate (repo root, cargo-about 0.9 with the cli feature, crates already fetched; --offline also keeps it from
+# asking clearlydefined.io, so licence texts come from each crate's own files):
+#   cargo about generate --offline --locked -m apps/water/host/Cargo.toml -c packaging/windows/about.toml packaging/windows/about.hbs -o THIRD-PARTY-LICENSES.md
+# Where a crate offers a choice, the first licence in this list that it allows is the one used.
+accepted = ["MIT", "Apache-2.0", "Unicode-3.0", "Zlib", "MIT-0", "0BSD", "Unlicense", "CC0-1.0", "MPL-2.0"]
+targets = ["x86_64-pc-windows-msvc"]
+ignore-dev-dependencies = true
+ignore-build-dependencies = false
+# Flick's own crates are not published; their licence is the repository's.
+private = { ignore = true }
