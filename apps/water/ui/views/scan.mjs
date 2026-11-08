@@ -13,7 +13,7 @@ export function scan(s, a) {
   const locations = el('div', 'scan-locations');
   const list = el('div', 'scan-location-list');
   for (const [index, loc] of p.locations.entries()) {
-    const state = phase.locations[index];
+    const state = ['waiting', 'running', 'space', 'done'].includes(phase.locations[index]) ? phase.locations[index] : 'running';
     const c = card(serviceText(loc, 'label'), 'scan-location', [tag(t({waiting:'waiting', running:'scanning', space:'measuringLocation', done:'complete'}[state] ?? 'scanning'), state === 'done' ? 'lime' : '')]);
     c.dataset.location = loc.location_id;
     add(c, metric(loc.found_bytes, t('found')), add(el('div', 'bottom'), blocks(loc.found_bytes, p.found_bytes, state === 'done' ? 'lime' : 'sky'))); add(list, c);

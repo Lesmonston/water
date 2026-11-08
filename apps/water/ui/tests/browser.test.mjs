@@ -359,6 +359,11 @@ test('ui_v2_home_scan', async () => {
   await wait('document.querySelector(".dial-value")?.textContent==="38%"', 'UI_W14_PROGRESS');
   assert.equal(await evalJs('document.querySelector("[data-location=drive-f] .tag").textContent'), '扫描中', 'UI_W14_PROGRESS: unknown state stays in progress');
   assert.deepEqual(await control('return c.errors'), [], 'UI_W14_PROGRESS: unknown state does not throw');
+  for (const [state, percent] of [['toString', 39], ['__proto__', 40]]) {
+    await control(`c.scanOverride.locations[1].state=${JSON.stringify(state)};c.scanOverride.percent=${percent}`);
+    await wait(`document.querySelector('.dial-value')?.textContent==='${percent}%'`, 'UI_W14_PROGRESS');
+    assert.equal(await evalJs('document.querySelector("[data-location=drive-f] .tag").textContent'), '扫描中', 'UI_W14_PROGRESS: inherited object names are unknown states too');
+  }
   const polls = await callCount('scan_progress');
   await wait(`window.__waterTest.calls.filter(x=>x.command==='scan_progress').length>${polls}`, 'UI_W14_PROGRESS');
   // Throw once from the DOM call used by the real renderer, then account for that exact injected error.
