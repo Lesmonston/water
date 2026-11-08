@@ -1,3 +1,4 @@
+import {t, currentLanguage, listText} from './views/strings.mjs';
 const MB = 1024n ** 2n;
 const GB = 1024n ** 3n;
 export function bytes(value) {
@@ -18,18 +19,30 @@ export function count(value) { return BigInt(value).toLocaleString('en-US'); }
 export function byteDelta(value) { return `${bytes(value) > 0n ? '+' : ''}${formatBytes(value)}`; }
 export function countDelta(value) { const n = BigInt(value); return `${n < 0n ? '−' : n > 0n ? '+' : ''}${count(n < 0n ? -n : n)}`; }
 export function relativeTime(value, now = Date.now()) {
-  if (!value) return '尚无记录';
+  if (!value) return t('noRecords');
   const date = new Date(value), delta = Math.max(0, now - date.getTime());
-  if (!Number.isFinite(date.getTime())) return '时间未知';
-  if (delta < 60000) return '刚刚';
-  if (delta < 3600000) return `${Math.floor(delta / 60000)} 分钟前`;
-  if (delta < 86400000) return `${Math.floor(delta / 3600000)} 小时前`;
-  return `${delta >= 365 * 86400000 ? `${date.getUTCFullYear()} 年 ` : ''}${date.getUTCMonth() + 1} 月 ${date.getUTCDate()} 日`;
+  if (!Number.isFinite(date.getTime())) return t('unknownTime');
+  if (delta < 60000) return t('justNow');
+  if (delta < 3600000) return t('minutesAgo', {n:count(Math.floor(delta / 60000))});
+  if (delta < 86400000) return t('hoursAgo', {n:count(Math.floor(delta / 3600000))});
+  return dateOnly(value, now);
 }
-export function dateTime(value) {
+export function dateOnly(value, now = Date.now()) {
   const date = new Date(value);
-  return `${date.getMonth() + 1} 月 ${date.getDate()} 日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  if (!value || !Number.isFinite(date.getTime())) return t('unknownTime');
+  const month = currentLanguage() === 'en' ? new Intl.DateTimeFormat('en-US', {month:'short'}).format(date) : date.getMonth() + 1;
+  const text = t('monthDay', {month, day:date.getDate()});
+  return date.getFullYear() !== new Date(now).getFullYear() ? t('yearDate', {date:text, year:date.getFullYear()}) : text;
 }
+export function dateTime(value, now = Date.now()) {
+  const date = new Date(value);
+  if (!value || !Number.isFinite(date.getTime())) return t('unknownTime');
+  return t('timeDate', {date:dateOnly(value, now), time:`${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`});
+}
+export const driveName = root => t('drive', {letter:root?.slice(0, 1).toUpperCase() ?? ''});
+export const approximate = value => t('about', {value});
+export const formatDays = value => t('days', {n:count(value)});
+export const formatList = values => listText(values);
 export function localDateKey(value) {
   const date = new Date(value), pad = n => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;

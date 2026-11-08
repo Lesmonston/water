@@ -8,6 +8,7 @@ import {openPrivateBrowser} from '../../../../scripts/acceptance/native-vw-priva
 import {formatBytes} from '../format.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..'), ui = join(root, 'apps/water/ui');
 const f = Object.assign({}, ...['checkup-v1/ui-fixtures.json', 'm3c-v1/ui-fixtures-m3c.json', 'm35-v1/ui-fixtures-m35.json'].map(p => JSON.parse(readFileSync(join(root, 'contracts', p), 'utf8'))));
+const english = JSON.parse(readFileSync(new URL('./fixtures-en.json', import.meta.url), 'utf8'));
 // Extend the shared samples with skip descriptors, diagnostics and app information.
 const rowSkip = {'i-000304':null, 'r:cfa406d79748c3e3':null, 'r:65e5f165ea872216':null};
 const withSkip = (d, skip) => ({...structuredClone(d), rows:d.rows.map(r => ({...structuredClone(r), skip:Object.hasOwn(rowSkip, r.row_id) ? rowSkip[r.row_id] : skip}))});
@@ -19,23 +20,43 @@ Object.assign(f, {
     {skip_id:'s-000004', kind:'template', display_zh:'verify-****** · 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T03:05:00Z'},
     {skip_id:'s-000005', kind:'folder', display_zh:'.tmp-checks 里的 系统临时目录里的旧文件', display_path:null, added_at:'2026-11-02T06:40:00Z'}]},
   w12_clean_result:{...structuredClone(f.v2_clean_result), journal_note_zh:null},
-  w12_app_info:{name:'Flick', version:'0.3.0', license:'MIT OR Apache-2.0', homepage:'https://example.com/flick'},
+  w12_app_info:{name:'Flick', version:'0.3.0', license:'MIT OR Apache-2.0', homepage:'https://example.com/flick', system_language:'zh-CN'},
   w12_diagnostics:{diagnostics_version:'flick.diagnostics.v1', service_version:'0.3.0',
     settings:{settings_version:'water.settings.v4', categories_on:6, categories_off:1, custom_roots:2, skipped:{path:2, group:1, template:1, folder:1}, session_cleanup_on:1, trusted_declarations:1},
     last_scan:{status:'completed', duration_ms:48210, scope:{drives:1, folders:1, common:1}, groups:96, items:69947, eligible_items:12040, levels:{recommended:31, confirm:9, advisory:40, protected:16}, issues:{access_denied:3}},
     last_clean:{status:'completed', freed_bytes:'16116143335', items:{done:1290, skipped:8, quarantined:84}, skip_reasons:{in_use:8}, quarantine_batches:2, journal_error:false},
     quarantine:{batches:2, bytes:'5153960755'}, store:{scans:12, snapshots:12, plans:30, cleans:6, quarantine:2, events:240, dedupes:3}}
 });
+const stage = (state, percent, location, multiplier = 1n) => {
+  const p = structuredClone(f.v2_scan_progress_sequence[1]); p.state = state; p.percent = percent;
+  p.locations[1].state = location; p.categories[0].found_bytes = String(BigInt(p.categories[0].found_bytes) * multiplier);
+  p.found_bytes = String(p.categories.reduce((sum, c) => sum + BigInt(c.found_bytes), 0n)); return p;
+};
+f.w14_scan = [stage('running', 37, 'running'), stage('running', 82, 'space', 2n), stage('finishing', 95, 'done', 2n), stage('completed', 100, 'done', 2n), stage('cancelled', 100, 'done', 2n)];
 const shots = resolve(process.env.WATER_W2_SHOTS_DIR);
 assert(relative(join(root, '.local'), shots) && !relative(join(root, '.local'), shots).startsWith('..') && !isAbsolute(relative(join(root, '.local'), shots)));
 mkdirSync(shots, {recursive:true}); assert(!relative(realpathSync(join(root, '.local')), realpathSync(shots)).startsWith('..'));
 let server, browser, base, injection, sequence = 0;
 const pause = ms => new Promise(ok => setTimeout(ok, ms));
-function fakeHost(f, options) {
-  const copy = value => structuredClone(value);
+function fakeHost(f, options, english) {
+  function bilingual(value) {
+    if (Array.isArray(value)) return value.map(bilingual);
+    if (!value || typeof value !== 'object') return value;
+    const result = Object.fromEntries(Object.entries(value).map(([key, item]) => [key, bilingual(item)]));
+    const translate = text => typeof text === 'string' ? english[text] ?? text : Array.isArray(text) ? text.map(translate) : text;
+    for (const [key, item] of Object.entries(value)) if (key.endsWith('_zh') || key === 'copy_text') {
+      const sibling = key === 'copy_text' ? 'copy_text_en' : key.slice(0, -3) + '_en';
+      if (!Object.hasOwn(value, sibling)) result[sibling] = translate(item);
+    }
+    // English scenarios use synthetic ASCII file names; paths remain display-only.
+    if (options.language === 'en') for (const key of ['display_path', 'display_name']) if (typeof result[key] === 'string') for (const [original, translated] of Object.entries(english)) if (/\p{Script=Han}/u.test(original) && /\.(mp4|zip|exe)$/.test(original)) result[key] = result[key].replaceAll(original, translated);
+    return result;
+  }
+  const copy = value => bilingual(structuredClone(value));
   // Skip onboarding unless the case explicitly exercises it.
   if (options.intro === 'blocked') Object.defineProperty(window, 'localStorage', {configurable:true, get() { throw new DOMException('storage blocked', 'SecurityError'); }});
   else if (!options.intro) localStorage.setItem('flick.intro.v1', '1');
+  if (options.intro !== 'blocked' && !options.preserveLanguage) localStorage.setItem('flick.language.v1', options.language ?? 'zh');
   const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(typeof options.conclusion === 'object' ? options.conclusion : f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f[options.locations ?? 'w12_locations']), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false, cleanResult:copy(options.cleanResult ?? f.w12_clean_result)};
   function refreshSkippedConclusion() {
     const version = c.conclusion.version;
@@ -74,8 +95,8 @@ function fakeHost(f, options) {
       case 'locations_get': return copy(c.locations);
       case 'trends': return copy(c.trends ?? f.v2_trends);
       case 'scan_start': c.busy = 'scanning'; c.scan = 0; return copy(f.v2_scan_start);
-      case 'scan_cancel': c.scan = f.v2_scan_progress_sequence.length - 1; return {};
-      case 'scan_progress': { const p = copy(f.v2_scan_progress_sequence[c.scan]); if (p.state !== 'running') { c.busy = 'idle'; c.scanned = true; } return p; }
+      case 'scan_cancel': c.scan = options.progress ? f.w14_scan.length - 1 : f.v2_scan_progress_sequence.length - 1; return {};
+      case 'scan_progress': { const p = copy((options.progress ? f.w14_scan : f.v2_scan_progress_sequence)[c.scan]); if (['completed','partial','cancelled','failed'].includes(p.state)) { c.busy = 'idle'; c.scanned = true; } return p; }
       case 'conclusion_get': return copy(c.conclusion);
       case 'conclusion_decide': {
         if (args.version !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale);
@@ -95,7 +116,7 @@ function fakeHost(f, options) {
         refreshSkippedConclusion(); c.conclusion.cards = c.conclusion.cards.filter(card => card.card_id !== args.unitId);
         return copy(c.locations);
       case 'diagnostics_get': return copy(f.w12_diagnostics);
-      case 'app_info': return copy(f.w12_app_info);
+      case 'app_info': return {...copy(f.w12_app_info), system_language:options.systemLanguage ?? f.w12_app_info.system_language};
       case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); refreshSkippedConclusion(); return copy(c.locations);
       case 'clean_prepare': {
         let p = copy(args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : BigInt(c.conclusion.plan.chosen_bytes) === 0n ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
@@ -106,9 +127,9 @@ function fakeHost(f, options) {
           p.groups = chosen.map(g => ({group_id:g.group_id, title_zh:g.name_zh, level:'confirm', item_count:g.copies - 1, total_bytes:String(BigInt(g.size) * BigInt(g.copies - 1)), in_use_note_zh:null}));
           p.item_count = chosen.reduce((n, g) => n + g.copies - 1, 0);
         }
-        p.plan_id += '-' + c.calls.length; p.confirm_token += '-' + c.calls.length; c.plan = p; return p;
+        p.plan_id += '-' + c.calls.length; p.confirm_token += '-' + c.calls.length; c.plan = p; c.planVersion = args.conclusionVersion; return p;
       }
-      case 'clean_start': if (!c.plan || c.plan.confirm_token !== args.confirmToken) throw copy(f.errors.invalid); c.plan = null; c.busy = 'cleaning'; c.clean = 0; return copy(f.v2_clean_start);
+      case 'clean_start': if (!c.plan || c.plan.confirm_token !== args.confirmToken) throw copy(f.errors.invalid); if (c.planVersion && (c.conclusion.stale || c.planVersion !== c.conclusion.version)) throw copy(f.v2_errors.conclusion_stale); c.plan = null; c.busy = 'cleaning'; c.clean = 0; return copy(f.v2_clean_start);
       case 'clean_stop': c.clean = f.v2_clean_progress_sequence.length - 1; return {};
       case 'clean_progress': { const p = copy(f.v2_clean_progress_sequence[c.clean]); if (p.state !== 'running') c.busy = 'idle'; return p; }
       case 'clean_result': return copy(c.cleanResult);
@@ -147,9 +168,9 @@ async function idle() { await wait('!document.querySelector("dialog button:disab
 async function reset(options = {}, route = 'home') {
   if (sequence) { await safeCalls(); await control('c.resetting=true'); }
   if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
-  injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(f)},${JSON.stringify(options)})`})).identifier;
+  injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(f)},${JSON.stringify(options)},${JSON.stringify(english)})`})).identifier;
   await browser.goto(`${base}/index.html?case=${++sequence}#${route}`);
-  await wait(options.unavailable ? 'document.body.textContent.includes("无法连接 Flick 服务")' : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
+  await wait(options.unavailable ? `document.body.textContent.includes(${JSON.stringify(options.language === 'en' ? 'Cannot connect to Flick' : '无法连接 Flick 服务')})` : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
   await pause(100);
 }
 async function key(value, shift = false) {
@@ -158,6 +179,7 @@ async function key(value, shift = false) {
   await browser.send('Input.dispatchKeyEvent', {type:'keyUp', key:value, code:value, windowsVirtualKeyCode:vk, modifiers:shift ? 8 : 0});
 }
 async function menuItem(text) {
+  if (await evalJs('document.documentElement.lang === "en"')) text = {'查重复文件':'Find duplicates','查看明细':'View details','复制线索给 agent':'Copy lead for an agent','以后都跳过':'Always skip'}[text] ?? text;
   const selector = await evalJs(`(()=>{const b=[...document.querySelectorAll('.menu:not([hidden]) button')].find(b=>b.textContent===${JSON.stringify(text)});if(!b)return null;b.dataset.testAction='chosen';return '[data-test-action="chosen"]'})()`);
   assert(selector, `UI_V2_DRAWER: missing menu ${text}`); await browser.click(selector); await pause(60);
 }
@@ -176,10 +198,25 @@ async function safeCalls() {
   assert.deepEqual(await control('return c.errors'), [], 'UI_V2_PAGES: no runtime errors');
 }
 async function noOverflow() { assert(await evalJs('document.documentElement.scrollWidth<=innerWidth && document.querySelector("#main").scrollWidth<=document.querySelector("#main").clientWidth'), 'UI_V2_PAGES: no horizontal overflow'); }
+async function oneScreen(label) {
+  await noOverflow();
+  const dimensions = await evalJs('(()=>{const m=document.querySelector("#main"),p=document.querySelector("#page");return {document:document.scrollingElement.scrollHeight,window:innerHeight,main:m.scrollHeight,available:m.clientHeight,page:p.dataset.page}})()');
+  assert(dimensions.document <= dimensions.window && dimensions.main <= dimensions.available, `UI_W14_ONESCREEN: ${label} ${JSON.stringify(dimensions)}`);
+}
+async function englishPage(label, exceptions = []) {
+  const text = await evalJs('document.body.textContent + [...document.querySelectorAll("[aria-label],[title],[placeholder]")].map(n=>[n.getAttribute("aria-label"),n.getAttribute("title"),n.getAttribute("placeholder")]).flat().join(" ")');
+  let remaining = text; for (const exception of exceptions) remaining = remaining.replaceAll(exception, '');
+  assert(!/\p{Script=Han}/u.test(remaining), `UI_W14_EN: ${label}: ${remaining.match(/[^\n]{0,30}[\p{Script=Han}][^\n]{0,50}/u)?.[0] ?? ''}`);
+}
+async function switchLanguage(language) {
+  await evalJs(`(()=>{const s=document.querySelector('[data-key=language]');s.value=${JSON.stringify(language)};s.dispatchEvent(new Event('change',{bubbles:true}))})()`);
+  await wait(`document.documentElement.lang===${JSON.stringify(language === 'zh' ? 'zh-CN' : 'en')}`, 'UI_W14_EN');
+}
 async function shot(id, narrow = false) {
   if (id !== 'results-folds') await evalJs('document.querySelector("#main").scrollTop=0');
   await pause(120); await noOverflow();
-  writeFileSync(join(shots, `v3-${id}-${narrow ? '1040x720' : '1240x820'}.png`), await browser.screenshot(), {flag:'wx'});
+  const lang = await evalJs('document.documentElement.lang.startsWith("zh") ? "zh" : "en"');
+  writeFileSync(join(shots, `v4-${lang}-${id === 'home-narrow' ? 'home' : id}-${narrow ? '1040x720' : '1240x820'}.png`), await browser.screenshot(), {flag:'wx'});
 }
 async function results(options = {}) { await reset(options); await click('view-results'); await pageIs('results'); await pause(100); }
 async function detail(group) { await click(`card-menu-${group}`); await menuItem('查看明细'); await wait('document.querySelector("dialog.drawer[open]")', 'UI_V2_DRAWER'); }
@@ -276,6 +313,27 @@ test('ui_v2_home_scan', async () => {
   await reset({intro:'blocked'}); await pause(100);
   assert.equal(await pageName(), 'home', 'UI_W12_INTRO: storage that throws never blocks the way to the home page');
   assert(await evalJs('!!document.querySelector("[data-key=scan-start]")'), 'UI_W12_INTRO: blocked storage still reaches a usable home page');
+  await reset({progress:true}); await click('scan-start'); await pageIs('scan');
+  await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS');
+  const areas = await evalJs('[...document.querySelectorAll(".scan-chart .tile rect")].map(r=>Number(r.getAttribute("width"))*Number(r.getAttribute("height")))');
+  assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在体检', 'UI_W14_PROGRESS: running heading');
+  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .tile").length'), f.w14_scan[0].categories.length, 'UI_W14_PROGRESS: every category has a block');
+  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .stem").length'), 0, 'UI_W14_PROGRESS: no stems');
+  await browser.size(1040, 720); await shot('scan', true); await browser.size(1240, 820);
+  await control('c.scan=1'); await wait('document.querySelector(".dial-value")?.textContent==="82%"', 'UI_W14_PROGRESS');
+  assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在统计整盘空间', 'UI_W14_PROGRESS: space heading');
+  assert.equal(await evalJs('document.querySelector("[data-location=drive-f] .tag").textContent'), '统计整盘空间', 'UI_W14_PROGRESS: space location stays in progress');
+  assert(await evalJs(`Number(document.querySelector('.scan-chart .tile rect').getAttribute('width'))*Number(document.querySelector('.scan-chart .tile rect').getAttribute('height'))>${areas[0]}`), 'UI_W14_PROGRESS: the growing category gets more area');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile title")].map(n=>n.textContent)'), f.w14_scan[1].categories.map(c => `${c.title_zh} · ${formatBytes(c.found_bytes)}`), 'UI_W14_PROGRESS: category amounts come from service');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile rect")].slice(0,4).map(n=>getComputedStyle(n).fill)'), ['rgb(124, 203, 241)','rgb(166, 220, 247)','rgb(200, 234, 251)','rgb(226, 243, 253)'], 'UI_W14_PROGRESS: four existing sky colors');
+  await shot('scan-space'); await control('c.scan=2'); await wait('document.querySelector(".dial-value")?.textContent==="95%"', 'UI_W14_PROGRESS');
+  assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在整理结论', 'UI_W14_PROGRESS: finishing heading');
+  assert(!(await evalJs('document.body.textContent')).match(/每秒一根|按已检查的文件估算/), 'UI_W14_PROGRESS: filler removed');
+  await shot('scan-finishing'); await control('c.scan=3'); await pageIs('results');
+  assert(await evalJs('!!document.querySelector("[data-key=clean-prepare]")'), 'UI_W14_PROGRESS: completed has a next step');
+  await reset({progress:true}); await click('scan-start'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS'); await click('scan-stop'); await pageIs('results');
+  assert.equal(await evalJs('document.querySelector(".cancelled-note").textContent'), '已停止，下面是停之前查到的', 'UI_W14_PROGRESS: cancelled results explain scope');
+  assert(await evalJs('!!document.querySelector("[data-key=rescan]")'), 'UI_W14_PROGRESS: stopped has a next step');
 });
 
 test('ui_v2_conclusion', async () => {
@@ -389,6 +447,7 @@ test('ui_v2_confirm_done', async () => {
   await click('confirm-cancel'); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")');
   assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_V2_CONFIRM: reopening resets mode');
   await click('confirm-start'); await pageIs('cleaning');
+  await wait('document.querySelector("[data-key=clean-stop]")'); await shot('cleaning');
   assert(await evalJs('(()=>{const e=new Event("beforeunload",{cancelable:true});window.dispatchEvent(e);return e.defaultPrevented})()'), 'UI_V2_CONFIRM: cleanup guards window close');
   await control('c.clean=2'); await pageIs('done');
   assert(await evalJs(`document.body.textContent.includes(${JSON.stringify('另有 ' + formatBytes(f.v2_clean_result.quarantined.bytes) + ' 在隔离区')})`), 'UI_V2_CONFIRM: quarantined bytes are not freed bytes'); await checkPrimary(); await shot('done');
@@ -439,6 +498,30 @@ test('ui_v2_confirm_done', async () => {
   await wait('!window.__waterTest.held && document.querySelector("dialog[open] [data-key=confirm-start]")', 'UI_W12_FIXES'); await pause(150);
   assert(await evalJs('document.querySelector("#page").dataset.page==="dedupe" && !!document.querySelector("dialog[open] [data-key=confirm-start]")'), 'UI_W12_FIXES: a queued 体检 click is not replayed over an open dialog');
   await key('Escape');
+  // An external skip changes the service conclusion after the preview was prepared.
+  for (const expired of [false, true]) {
+    await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('document.querySelector("[data-key=confirm-start]")');
+    const previous = await lastCall('clean_prepare'), starts = await callCount('clean_start');
+    await evalJs(`import('/ipc.mjs').then(m=>m.skip_unit_add(window.__waterTest.conclusion.version, ${JSON.stringify(f.v2_conclusion_after_decide.cards[0].card_id)}))`);
+    if (expired) await control('c.conclusion.stale=true');
+    const reads = await callCount('conclusion_get'), prepares = await callCount('clean_prepare');
+    await click('confirm-start'); await wait(`window.__waterTest.calls.filter(x=>x.command==='conclusion_get').length>${reads}`, 'UI_W14_REPLAN');
+    if (expired) {
+      await wait('!!document.querySelector(".stale")', 'UI_W14_REPLAN');
+      assert.equal(await callCount('clean_prepare'), prepares, 'UI_W14_REPLAN: truly expired result is not prepared');
+      assert(await evalJs('document.querySelector("[data-key=clean-prepare]").disabled && !document.querySelector("dialog[open]")'), 'UI_W14_REPLAN: truly stale disables cleanup');
+    } else {
+      await wait('!!document.querySelector("dialog[open] .replan-note")', 'UI_W14_REPLAN');
+      assert.equal(await evalJs('document.querySelector(".replan-note").textContent'), '跳过名单变了，已按新的结论重新准备', 'UI_W14_REPLAN: precise recovery notice');
+      assert.equal(await callCount('clean_prepare'), prepares + 1, 'UI_W14_REPLAN: prepared exactly once');
+      assert.notEqual((await lastCall('clean_prepare')).args.conclusionVersion, previous.args.conclusionVersion, 'UI_W14_REPLAN: new conclusion version');
+      assert.equal((await lastCall('clean_prepare')).args.conclusionVersion, await control('return c.conclusion.version'), 'UI_W14_REPLAN: exact refreshed version');
+      assert.deepEqual((await control('return c.calls.slice(-3)')).map(c => c.command), ['clean_start','conclusion_get','clean_prepare'], 'UI_W14_REPLAN: recovery order');
+      assert.equal(await callCount('clean_start'), starts + 1, 'UI_W14_REPLAN: never starts the new plan automatically');
+      assert.equal(await evalJs('document.querySelectorAll(".stale").length'), 0, 'UI_W14_REPLAN: fresh result is not marked stale');
+      await shot('results-replanned'); await key('Escape');
+    }
+  }
 });
 
 test('ui_v2_quarantine_dedupe', async () => {
@@ -567,7 +650,7 @@ test('ui_v2_pages_layout_a11y', async () => {
   await click('cluster-' + f.v2_trends.clusters[0].group_id); await menuItem('标记为已修'); assert.equal((await lastCall('cluster_mark_fixed')).args.fixed, true, 'UI_V2_PAGES: mark fixed');
   await click('nav-history'); await pageIs('history'); await wait('document.querySelector(".heatmap")'); await shot('history'); await checkPrimary();
   assert(await evalJs('document.querySelector(".eyebrow").textContent.includes("每一次体检与清理，都有迹可循。")'), 'UI_V2_PAGES: frozen history text');
-  const dayTip = await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title');
+  const dayTip = await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.dataset.date==="2026-11-02").title');
   for (const e of f.v2_history.filter(e=>e.at.startsWith('2026-11-02'))) assert(dayTip.includes(e.summary_zh), 'UI_V2_PAGES: heatmap retains each same-day entry');
   // The history list arrives while the test holds it, so the redraw with an unreadable time runs under a bounded probe.
   const unreadable = [{...f.v2_history[0], id:'unreadable-time', at:'not-a-time', summary_zh:'时间读不出的记录'}, ...f.v2_history];
@@ -577,14 +660,14 @@ test('ui_v2_pages_layout_a11y', async () => {
   for (let i = 0; drawn === true && i < 40; i++) { const seen = await bounded('!!document.querySelector("[data-key=history-unreadable-time]") && document.querySelectorAll(".heat").length>0'); if (seen !== false) drawn = seen === true ? 'drawn' : seen; else await pause(25); }
   assert.equal(drawn, 'drawn', 'UI_W12_FIXES: the heatmap finishes drawing when one history time cannot be read');
   assert(await evalJs('[...document.querySelectorAll(".heat")].every(x=>!x.title.includes("NaN") && !x.title.includes("时间读不出的记录")) && document.querySelectorAll(".heat.latest").length===1'), 'UI_W12_FIXES: the unreadable entry is skipped and the newest readable day stays latest');
-  assert.equal(await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.title.startsWith("2026-11-02")).title'), dayTip, 'UI_W12_FIXES: readable days draw as before');
+  assert.equal(await evalJs('[...document.querySelectorAll(".heat")].find(x=>x.dataset.date==="2026-11-02").title'), dayTip, 'UI_W12_FIXES: readable days draw as before');
   const newTrends = structuredClone(f.v2_trends); newTrends.clusters.push({group_id:'leak:0f3e5a77c1d2b9e4', title_zh:'haste-map-*', rate_zh:'最近 14 天新增 5 个', state:'new', fixed_at:null, clue_id:null, copy_text:null});
   await control(`c.trends=${JSON.stringify(newTrends)}`); await click('nav-trends'); await wait('document.body.textContent.includes("haste-map-*")', 'UI_W12_FIXES');
   assert.deepEqual(await evalJs('(()=>{const t=[...document.querySelectorAll(".row")].find(r=>r.textContent.includes("haste-map-*")).querySelector(".tag");return [t.textContent,t.classList.contains("hot")]})()'), ['新发现', false], 'UI_W12_FIXES: a never-compared cluster is tagged 新发现 without the hot colour');
   await click('nav-settings'); await wait('document.querySelector("[data-key=session-claude-code]")'); await shot('settings'); await checkPrimary();
   await click('session-claude-code'); assert.equal((await lastCall('locations_set_session_cleanup')).args.enabled, true, 'UI_V2_PAGES: session toggle');
   await click('settings-skip'); await wait('document.querySelector("[data-key^=skip-remove-]")');
-  assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row")].map(r=>[r.querySelector("strong").textContent,r.querySelector(".sub").textContent])'), (await evalJs(`import('/format.mjs').then(m=>${JSON.stringify(f.w12_locations.skipped.map(x => x.added_at))}.map(m.localDateKey))`)).map((day, i) => [f.w12_locations.skipped[i].display_zh, `加入于 ${day}`]), 'UI_W12_SKIP: the skip list shows display_zh and the date it was added');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".settings-content .row")].map(r=>[r.querySelector("strong").textContent,r.querySelector(".sub").textContent])'), (await evalJs(`import('/format.mjs').then(m=>${JSON.stringify(f.w12_locations.skipped.map(x => x.added_at))}.map(value=>m.dateOnly(value)))`)).map((day, i) => [f.w12_locations.skipped[i].display_zh, `加入于 ${day}`]), 'UI_W12_SKIP: the skip list shows display_zh and the localized date it was added');
   await shot('settings-skip');
   const emptyReads = await callCount('conclusion_get');
   await click('skip-remove-s-000001'); assert.equal((await lastCall('skip_remove')).args.skipId, 's-000001', 'UI_V2_PAGES: remove skip ID');
@@ -657,7 +740,7 @@ test('ui_v2_pages_layout_a11y', async () => {
     await reset({history:[entry]}, 'history'); await wait('document.querySelector(".heatmap")');
     const expected = await evalJs(`import('/format.mjs').then(m=>m.localDateKey(${JSON.stringify(entry.at)}))`);
     assert.notEqual(expected, entry.at.slice(0, 10), 'UI_V2_PAGES: controlled timezone covers the date boundary');
-    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.title.startsWith(${JSON.stringify(expected)}) && x.title.includes(${JSON.stringify(entry.summary_zh)}))`), 'UI_V2_PAGES: heat cell uses the same local date as list formatting');
+    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.dataset.date===${JSON.stringify(expected)} && x.title.includes(${JSON.stringify(entry.summary_zh)}))`), 'UI_V2_PAGES: heat cell uses the same local date as list formatting');
   } finally { await browser.send('Emulation.setTimezoneOverride', {timezoneId:''}); }
   await finishedDedupe();
   const missingName = f.v2_dedupe_result.groups[3].name_zh;
@@ -670,8 +753,75 @@ test('ui_v2_pages_layout_a11y', async () => {
     const dst = [{...f.v2_history[0], id:'dst-after', at:'2026-09-08T15:00:00Z', summary_zh:'夏令时之后的清理'}, {...f.v2_history[0], id:'dst-before', at:'2026-09-03T15:00:00Z', summary_zh:'夏令时之前的清理'}];
     await reset({history:dst}, 'history'); await wait('document.querySelector(".heatmap")');
     const latest = await evalJs(`import('/format.mjs').then(m=>m.localDateKey(${JSON.stringify(dst[0].at)}))`);
-    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.title.startsWith(${JSON.stringify(latest)}) && x.classList.contains('latest') && x.title.includes(${JSON.stringify(dst[0].summary_zh)}))`), 'UI_V2_PAGES: a midnight skipped by DST still leaves a latest cell for the newest day');
-    const keys = await evalJs('[...document.querySelectorAll(".heat")].map(x=>x.title.slice(0,10))'), day = key => Date.parse(key + 'T00:00:00Z');
+    assert(await evalJs(`[...document.querySelectorAll('.heat')].some(x=>x.dataset.date===${JSON.stringify(latest)} && x.classList.contains('latest') && x.title.includes(${JSON.stringify(dst[0].summary_zh)}))`), 'UI_V2_PAGES: a midnight skipped by DST still leaves a latest cell for the newest day');
+    const keys = await evalJs('[...document.querySelectorAll(".heat")].map(x=>x.dataset.date)'), day = key => Date.parse(key + 'T00:00:00Z');
     assert(new Date(day(keys[0])).getUTCDay() === 1 && keys.at(-1) === latest && keys.every((key, i) => !i || day(key) - day(keys[i - 1]) === 86400000), 'UI_V2_PAGES: heat cells cover every local day from Monday to the newest, none missing or repeated');
   } finally { await browser.send('Emulation.setTimezoneOverride', {timezoneId:''}); }
+  for (const language of ['zh', 'en']) for (const [width, height] of [[1240, 820], [1040, 720]]) {
+    const wide = width === 1240, options = {language, progress:true};
+    await browser.size(width, height);
+    const inspect = async name => { await oneScreen(`${language} ${width} ${name}`); if (language === 'en') await englishPage(name); };
+    await reset(options); await inspect('home');
+    if (language === 'en') await shot('home', !wide);
+    await click('scan-start'); await pageIs('scan'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS'); await inspect('scan');
+    if (language === 'en') await shot('scan', !wide);
+    for (const [index, label, percent] of [[1,'Measuring the whole drive',82],[2,'Putting the results together',95]]) {
+      await control(`c.scan=${index}`); await wait(`document.querySelector('.dial-value')?.textContent==='${percent}%'`, 'UI_W14_PROGRESS');
+      if (language === 'en') assert.equal(await evalJs('document.querySelector("h1").textContent'), label, 'UI_W14_PROGRESS: English phase');
+      await inspect('scan phase'); if (language === 'en' && wide) await shot(index === 1 ? 'scan-space' : 'scan-finishing');
+    }
+    await control('c.scan=3'); await pageIs('results'); await inspect('results');
+    if (language === 'en' || !wide) await shot('results', !wide);
+    if (language === 'en' && wide) {
+      await click('copy-' + f.v2_conclusion_typical.clues[0].clue_id);
+      assert.equal(await control('return c.clipboard.at(-1)'), english[f.v2_conclusion_typical.clues[0].copy_text], 'UI_W14_EN: copy the exact English lead');
+      await detail('codex-runtimes'); await englishPage('drawer'); await shot('drawer'); await key('Escape');
+      await click('details-open'); await pageIs('details'); await click('section-dev_cache'); await englishPage('details'); await shot('details'); await click('details-back'); await pageIs('results');
+    }
+    await click('clean-codex-runtimes'); await wait('!!document.querySelector(".decided-text")');
+    await click('clean-prepare'); await wait('!!document.querySelector("dialog[open] [data-key=confirm-start]")'); await inspect('confirm');
+    if (language === 'en' && wide) await shot('confirm');
+    await click('confirm-start'); await pageIs('cleaning'); await wait('!!document.querySelector("[data-key=clean-stop]")'); await inspect('cleaning');
+    if (language === 'en' && wide) await shot('cleaning');
+    await control('c.clean=2'); await pageIs('done'); await inspect('done'); if (language === 'en' && wide) await shot('done');
+    for (const [route, ready, name] of [['quarantine','[data-quarantine]','quarantine'],['trends','[data-key=trend-scan]','trends'],['history','.heatmap','history'],['settings/content','[data-key=setting-browser]','settings'],['settings/language','[data-key=language]','settings-language'],['settings/about','[data-key=about-copy-homepage]','settings-about']]) {
+      await evalJs(`location.hash=${JSON.stringify(route)}`); await wait(`!!document.querySelector(${JSON.stringify(ready)})`); await inspect(name);
+      if (wide && (language === 'en' || name === 'settings-language')) await shot(name);
+    }
+    if (language === 'en' && wide) {
+      await finishedDedupe({language:'en'}); await englishPage('dedupe'); await shot('dedupe');
+      await evalJs('localStorage.removeItem("flick.intro.v1")'); await reset({language:'en',intro:'fresh'}); await pageIs('intro'); await englishPage('intro'); await shot('intro'); await click('intro-start');
+      await evalJs('location.hash="settings/language"'); await wait('!!document.querySelector("[data-key=language]")');
+      const scans = await callCount('scan_start'); await switchLanguage('zh');
+      assert.equal(await evalJs('document.title'), 'Flick · 磁盘体检', 'UI_W14_EN: title switches immediately');
+      assert.equal(await evalJs('document.querySelector("[data-key=nav-home] span").textContent'), '体检', 'UI_W14_EN: navigation switches immediately');
+      await switchLanguage('en'); await englishPage('switched back');
+      assert.equal(await callCount('scan_start'), scans, 'UI_W14_EN: switching does not start another checkup');
+      assert.equal(await evalJs('localStorage.getItem("flick.language.v1")'), 'en', 'UI_W14_EN: choice persists');
+      await reset({preserveLanguage:true}); assert.equal(await evalJs('document.title'), 'Flick · Disk checkup', 'UI_W14_EN: saved choice survives a new launch');
+      await reset({language:'system', systemLanguage:'en-GB'}); await englishPage('system English');
+      await reset({language:'system', systemLanguage:'zh-TW'}); assert.equal(await evalJs('document.documentElement.lang'), 'zh-CN', 'UI_W14_EN: host language takes priority');
+      // Explicit legacy exception: a stored history entry with no English sibling.
+      const legacy = {...f.v2_history[0], summary_zh:'旧记录只有中文', summary_en:'旧记录只有中文'};
+      await reset({language:'en',history:[legacy]}, 'history'); await wait('!!document.querySelector(".heatmap")'); await englishPage('legacy record', ['旧记录只有中文']);
+      await reset({language:'en',progress:true}); await click('scan-start'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS');
+      const scanId = (await lastCall('scan_start')).args;
+      await evalJs('location.hash="settings/language"'); await wait('!!document.querySelector("[data-key=language]")'); await switchLanguage('zh');
+      await click('nav-home'); await pageIs('scan');
+      assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在体检', 'UI_W14_EN: active scan redraws in Chinese');
+      assert.equal(await callCount('scan_start'), 1, 'UI_W14_EN: active scan is never restarted');
+      assert.deepEqual((await lastCall('scan_start')).args, scanId, 'UI_W14_EN: scan scope is unchanged');
+      await evalJs('location.hash="settings/language"'); await wait('!!document.querySelector("[data-key=language]")'); await switchLanguage('en'); await click('nav-home'); await pageIs('scan'); await click('scan-stop'); await pageIs('results');
+      assert.equal(await evalJs('document.querySelector(".cancelled-note").textContent'), 'Stopped. Here is what was found before that.', 'UI_W14_PROGRESS: English cancellation');
+      await results({language:'en',conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('!!document.querySelector("[data-key=confirm-start]")');
+      await evalJs(`import('/ipc.mjs').then(m=>m.skip_unit_add(window.__waterTest.conclusion.version, ${JSON.stringify(f.v2_conclusion_after_decide.cards[0].card_id)}))`);
+      await click('confirm-start'); await wait('!!document.querySelector(".replan-note")', 'UI_W14_REPLAN');
+      assert.equal(await evalJs('document.querySelector(".replan-note").textContent'), 'The skip list changed, so the plan was prepared again', 'UI_W14_REPLAN: English recovery'); await englishPage('replanned'); await key('Escape');
+      await control('c.nextError={command:"clean_prepare",error:{code:"invalid",message_zh:"这次没有要清理的东西。",message_en:"There is nothing to clean."}}'); await click('clean-prepare');
+      assert.equal(await evalJs('document.querySelector("#notice span").textContent'), 'There is nothing to clean.', 'UI_W14_EN: service error uses English');
+      await reset({language:'en',unavailable:true}); await englishPage('unavailable');
+      await reset({intro:'blocked'}, 'settings/language'); await wait('!!document.querySelector("[data-key=language]")'); await switchLanguage('en'); await englishPage('storage blocked');
+    }
+  }
+  await browser.size(1240, 820);
 });

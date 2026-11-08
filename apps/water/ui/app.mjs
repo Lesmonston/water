@@ -1,6 +1,7 @@
+import {t, serviceText, errorText, readLanguage, saveLanguage, setLanguage, currentLanguage} from './views/strings.mjs';
 import * as ipc from './ipc.mjs';
 import {canonicalRoute, validQuery} from './model.mjs';
-import {formatBytes, elapsed} from './format.mjs';
+import {formatBytes} from './format.mjs';
 import {el, add, button, icon, iconButton, row} from './views/common.mjs';
 import {home} from './views/home.mjs';
 import {scan} from './views/scan.mjs';
@@ -16,14 +17,14 @@ import {history as records} from './views/history.mjs';
 import {locations} from './views/locations.mjs';
 import {intro} from './views/intro.mjs';
 
-const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), scanSamples:[], detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false, intro:false, appInfo:null};
+const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false, intro:false, appInfo:null, language:readLanguage(), scanCancelled:false, replanNotice:false};
 const page = document.getElementById('page'), main = document.getElementById('main');
-let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, sampleSecond = -1, checkupQueued = false;
+let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, checkupQueued = false;
 const busy = () => s.pending || s.busy !== 'idle' || !s.app;
 const checkupIsReturn = () => s.route === 'home' && s.busy === 'idle' && ['dedupe', 'done'].includes(s.mode);
 function fail(error, scope) {
   if (error?.code === 'stale' && scope === 'conclusion') { markStale(); s.modal = null; s.preview = null; }
-  s.error = error?.message_zh || (error?.code === 'unavailable' ? '无法连接 Flick 服务' : 'Flick 服务暂时不可用');
+  s.error = error?.message_zh || error?.message_en ? error : {key:error?.code === 'unavailable' ? 'unavailable' : 'serviceUnavailable'};
 }
 async function run(task, scope) {
   if (s.pending) return; s.pending = true; s.error = ''; render();
@@ -64,7 +65,7 @@ async function recoverDedupe() {
   } catch {
     s.dedupe = null; s.dedupeId = null; s.mode = 'home';
     if (s.busy === 'deduping') s.busy = 'idle';
-    s.pollPaused = false; navigate('home'); s.error = '查重结果已失效，请重新查重';
+    s.pollPaused = false; navigate('home'); s.error = {key:'dedupeExpired'};
   }
 }
 function installQuarantine(view) { quarantineRevision++; s.quarantine = view; }
@@ -86,6 +87,7 @@ async function connect() {
   await run(async () => {
     s.connecting = true;
     try {
+      try { s.appInfo = await ipc.app_info(); } catch {}
       s.app = await ipc.app_state(); s.busy = s.app.busy;
       s.locations = await ipc.locations_get();
       s.selectedLocations = new Set(s.locations.home.filter(l => l.default_selected).map(l => l.location_id));
@@ -105,17 +107,15 @@ async function poll() {
   try {
     if (kind === 'scanning') {
       const p = await ipc.scan_progress(); s.scanProgress = p; s.scanId = p.scan_id ?? s.scanId;
-      const second = Math.floor(p.elapsed_ms / 1000);
-      if (second !== sampleSecond) { s.scanSamples.push({bytes:p.found_bytes, label:elapsed(p.elapsed_ms)}); sampleSecond = second; }
-      if (['completed', 'partial', 'cancelled'].includes(p.state)) { await readConclusion(); s.busy = 'idle'; s.mode = 'results'; s.app = await ipc.app_state(); }
-      else if (p.state === 'failed') { s.busy = 'idle'; s.error = '体检未能完成，请重新体检。'; s.mode = 'home'; }
+      if (['completed', 'partial', 'cancelled'].includes(p.state)) { await readConclusion(); s.scanCancelled = p.state === 'cancelled'; s.busy = 'idle'; s.mode = 'results'; s.app = await ipc.app_state(); }
+      else if (p.state === 'failed') { s.busy = 'idle'; s.error = {key:'scanFailed'}; s.mode = 'home'; }
     } else if (kind === 'cleaning') {
       const p = await ipc.clean_progress(); s.cleanProgress = p; s.cleanId = p.clean_id ?? s.cleanId;
       if (['completed', 'stopped', 'failed'].includes(p.state)) { s.cleaned = await ipc.clean_result(s.cleanId); s.busy = 'idle'; s.mode = 'done'; markStale(); s.app = await ipc.app_state(); }
     } else if (kind === 'deduping') {
       const p = await ipc.dedupe_progress(); s.dedupeProgress = p; s.dedupeId = p.dedupe_id ?? s.dedupeId;
       if (['completed', 'cancelled'].includes(p.state)) { s.dedupe = await ipc.dedupe_result(s.dedupeId, false); s.busy = 'idle'; s.mode = 'dedupe'; }
-      else if (p.state === 'failed') { s.busy = 'idle'; s.error = '查重未能完成，请重试。'; s.mode = 'home'; }
+      else if (p.state === 'failed') { s.busy = 'idle'; s.error = {key:'dedupeFailed'}; s.mode = 'home'; }
     } else if (kind === 'purging') {
       const p = await ipc.quarantine_progress(); s.quarantineProgress = p;
       if (['completed', 'stopped', 'failed'].includes(p.state)) { installQuarantine(await ipc.quarantine_list()); s.app = await ipc.app_state(); s.busy = 'idle'; }
@@ -129,7 +129,7 @@ async function poll() {
 async function beginScan() {
   if (s.busy !== 'idle') return;
   const value = await ipc.scan_start([...s.selectedLocations]);
-  markStale(); s.scanId = value.scan_id; s.scanProgress = null; s.scanSamples = []; sampleSecond = -1; s.busy = 'scanning'; s.pollPaused = false; s.mode = 'scan'; s.modal = null; navigate('home'); schedule();
+  markStale(); s.scanId = value.scan_id; s.scanProgress = null; s.scanCancelled = false; s.replanNotice = false; s.busy = 'scanning'; s.pollPaused = false; s.mode = 'scan'; s.modal = null; navigate('home'); schedule();
 }
 async function refreshDrawer() {
   const d = s.drawer; if (!d) return;
@@ -144,9 +144,10 @@ async function prepare(chosenMode = 'quarantine') {
   s.preview = value; show('confirm');
 }
 function show(kind) { if (!s.modal) opener = document.activeElement?.dataset.key; s.modal = kind; }
-function close() { if (s.pending) return; s.modal = null; s.preview = null; render(); }
+function close() { if (s.pending) return; s.modal = null; s.preview = null; s.replanNotice = false; render(); }
 const a = {
   busy, connect, navigate, close,
+  language:value => { if (!['system', 'zh', 'en'].includes(value)) return; s.language = value; saveLanguage(value); render(); },
   returnToCheckup:() => run(() => returnToCheckup(s.mode === 'done')),
   chooseLocations:() => { s.mode = 'home'; s.modal = null; main.scrollTop = 0; render(); },
   selectLocation:id => { if (busy()) return; s.selectedLocations.has(id) ? s.selectedLocations.delete(id) : s.selectedLocations.add(id); render(); },
@@ -164,7 +165,7 @@ const a = {
   }, 'conclusion'),
   detail:id => run(async () => { const epoch = routeEpoch, value = await ipc.group_detail(id); if (epoch !== routeEpoch) return; if (!s.conclusion) await readConclusion(); s.drawer = {data:value, query:null, rowId:null, items:null, error:''}; show('drawer'); }, 'conclusion'),
   searchItems:query => {
-    if (!validQuery(query)) { s.drawer.error = '搜索词不能含有 \\、/ 或 :。'; render(); return; }
+    if (!validQuery(query)) { s.drawer.error = {key:'invalidSearch'}; render(); return; }
     return run(async () => { s.drawer.query = query || null; s.drawer.rowId = null; s.drawer.error = ''; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, null, s.drawer.query); }, 'conclusion');
   },
   expandRow:rowId => run(async () => { s.drawer.rowId = rowId; s.drawer.query = null; s.drawer.items = await ipc.group_items(s.drawer.data.group.group_id, rowId, null); }, 'conclusion'),
@@ -180,12 +181,23 @@ const a = {
   changeMode:mode => run(() => prepare(mode), s.prepareSource),
   startClean:() => run(async () => {
     const p = s.preview; if (!p || s.busy !== 'idle') return;
+    const epoch = routeEpoch;
     s.preview = null; s.modal = null;
-    const v = await ipc.clean_start(p.plan_id, p.confirm_token); s.cleanId = v.clean_id; s.cleanProgress = null; s.busy = 'cleaning'; s.pollPaused = false; navigate('home'); schedule();
+    let v;
+    try { v = await ipc.clean_start(p.plan_id, p.confirm_token); }
+    catch (error) {
+      if (error?.code !== 'stale' || s.prepareSource !== 'conclusion') throw error;
+      await readConclusion(); if (epoch !== routeEpoch) return; s.mode = 'results';
+      if (s.conclusion.stale) return;
+      // A changed skip list invalidates the plan, not necessarily the checkup.
+      // Prepare conservatively and require a new explicit confirmation.
+      await prepare(); s.replanNotice = true; return;
+    }
+    s.replanNotice = false; s.cleanId = v.clean_id; s.cleanProgress = null; s.busy = 'cleaning'; s.pollPaused = false; navigate('home'); schedule();
   }, s.prepareSource),
   finish:() => run(() => returnToCheckup(true)),
   copy:async text => { try { await navigator.clipboard.writeText(text); } catch { s.copyText = text; show('copy'); render(); } },
-  copyDiagnostics:() => run(async () => { const app = await ipc.app_info(), service = await ipc.diagnostics_get(); s.appInfo = app; await a.copy(`Flick 诊断信息\n${JSON.stringify({app, platform:navigator.userAgent, service}, null, 2)}`); }),
+  copyDiagnostics:() => run(async () => { const app = await ipc.app_info(), service = await ipc.diagnostics_get(); s.appInfo = app; await a.copy(`${t('diagnostics')}\n${JSON.stringify({app, platform:navigator.userAgent, service}, null, 2)}`); }),
   startIntro:() => { try { localStorage.setItem('flick.intro.v1', '1'); } catch {} s.intro = false; navigate('home'); },
   reveal:id => run(() => ipc.quarantine_reveal(id)),
   revealRoots:() => run(async () => { const revision = quarantineRevision, view = await ipc.quarantine_list(); if (revision === quarantineRevision) s.quarantine = view; const roots = s.quarantine.roots; if (roots.length === 1) await ipc.quarantine_reveal(roots[0].target_id); else if (roots.length) show('roots'); }),
@@ -221,10 +233,11 @@ const a = {
 };
 function top() {
   const header = document.getElementById('top');
+  if (header.dataset.language !== currentLanguage()) { header.replaceChildren(); header.dataset.language = currentLanguage(); }
   if (!header.children.length) {
     add(header, add(el('div', 'brand'), icon('flick'), el('span', '', 'Flick')));
-    const nav = el('nav', 'nav', undefined, {'aria-label':'主导航'});
-    for (const [id, label, glyph] of [['home', '体检', 'pulse'], ['quarantine', '隔离区', 'box'], ['trends', '趋势', 'trend'], ['history', '记录', 'history']]) {
+    const nav = el('nav', 'nav', undefined, {'aria-label':t('mainNav')});
+    for (const [id, label, glyph] of [['home', t('checkup'), 'pulse'], ['quarantine', t('quarantine'), 'box'], ['trends', t('trends'), 'trend'], ['history', t('history'), 'history']]) {
       const link = add(el('a', '', undefined, {href:`#${id}`, 'data-route':id, 'data-key':`nav-${id}`}), icon(glyph), el('span', '', label));
       if (id === 'home') link.addEventListener('click', event => {
         if (!checkupIsReturn()) return;
@@ -232,8 +245,8 @@ function top() {
       });
       if (id === 'quarantine') add(link, el('span', 'quarantine-size')); add(nav, link);
     }
-    const gear = add(el('a', 'icon-btn', undefined, {href:'#settings', 'aria-label':'设置', title:'设置', 'data-key':'nav-settings'}), icon('settings'));
-    add(header, nav, add(el('div', 'top-actions'), iconButton('本地只读扫描', 'eye', () => navigate('settings/about'), 'privacy'), gear));
+    const gear = add(el('a', 'icon-btn', undefined, {href:'#settings', 'aria-label':t('settings'), title:t('settings'), 'data-key':'nav-settings'}), icon('settings'));
+    add(header, nav, add(el('div', 'top-actions'), iconButton(t('privacyShortcut'), 'eye', () => navigate('settings/about'), 'privacy'), gear));
   }
   header.querySelectorAll('[data-route]').forEach(link => { const selected = link.dataset.route === s.route; link.classList.toggle('on', selected); selected ? link.setAttribute('aria-current', 'page') : link.removeAttribute('aria-current'); });
   const q = s.app?.quarantine; header.querySelector('.quarantine-size').textContent = q ? formatBytes(q.bytes) : '';
@@ -248,11 +261,11 @@ function paintOverlay(activeKey) {
   if (!s.modal) { if (prior && opener) document.querySelector(`[data-key="${CSS.escape(opener)}"]`)?.focus({preventScroll:true}); return; }
   if (s.modal === 'confirm') overlay = confirm(s, a);
   else if (s.modal === 'drawer') overlay = detail(s, a);
-  else if (s.modal === 'copy') { const field = el('textarea', 'copy-text', s.copyText, {readonly:'', 'aria-label':'线索全文', 'data-key':'copy-text'}); overlay = simpleModal('选中文字复制线索', field, [button('关闭', close, 'btn soft', 'modal-close')]); }
-  else if (s.modal === 'roots') overlay = simpleModal('打开隔离区文件夹', s.quarantine.roots.map(r => row(r.display_path, formatBytes(r.bytes), button('打开文件夹', () => a.reveal(r.target_id), 'btn soft', `root-open-${r.target_id}`))), [button('取消', close, 'btn soft', 'modal-close')]);
-  else if (s.modal === 'conflict') overlay = simpleModal('原位置已有内容', s.conflict.result.conflicts.map(c => row(c.label_zh, c.reason_zh)), [button('放弃', close, 'btn soft', 'restore-cancel', s.pending), button('还原到旁边', () => a.restore(s.conflict.id, true), 'btn ink', 'restore-beside', s.pending)]);
-  else if (s.modal === 'purge') overlay = simpleModal(`永久删除 ${formatBytes(s.purgeCard.bytes)}？`, el('p', '', '不进入回收站，无法恢复。'), [button('取消', close, 'btn soft', 'purge-cancel', s.pending), button('永久删除', a.purge, 'btn danger-solid', 'purge-confirm', s.pending)]);
-  else if (s.modal === 'dedupe-intro') overlay = simpleModal('查重复文件', el('p', '', '查重要读文件内容来比对，只在这台电脑上算，不保存内容、不上传。只比大小相同的文件，可能要几分钟。'), [button('取消', close, 'btn soft', 'dedupe-cancel', s.pending), button('开始查重', a.startDedupe, 'btn ink', 'dedupe-start', s.pending)]);
+  else if (s.modal === 'copy') { const field = el('textarea', 'copy-text', s.copyText, {readonly:'', 'aria-label':t('leadText'), 'data-key':'copy-text'}); overlay = simpleModal(t('copyLeadManual'), field, [button(t('close'), close, 'btn soft', 'modal-close')]); }
+  else if (s.modal === 'roots') overlay = simpleModal(t('openQuarantine'), s.quarantine.roots.map(r => row(r.display_path, formatBytes(r.bytes), button(t('openFolder'), () => a.reveal(r.target_id), 'btn soft', `root-open-${r.target_id}`))), [button(t('cancel'), close, 'btn soft', 'modal-close')]);
+  else if (s.modal === 'conflict') overlay = simpleModal(t('restoreConflict'), s.conflict.result.conflicts.map(c => row(serviceText(c, 'label'), serviceText(c, 'reason'))), [button(t('abandon'), close, 'btn soft', 'restore-cancel', s.pending), button(t('restoreBeside'), () => a.restore(s.conflict.id, true), 'btn ink', 'restore-beside', s.pending)]);
+  else if (s.modal === 'purge') overlay = simpleModal(t('purgeQuestion', {size:formatBytes(s.purgeCard.bytes)}), el('p', '', t('noRecovery')), [button(t('cancel'), close, 'btn soft', 'purge-cancel', s.pending), button(t('purge'), a.purge, 'btn danger-solid', 'purge-confirm', s.pending)]);
+  else if (s.modal === 'dedupe-intro') overlay = simpleModal(t('findDuplicates'), el('p', '', t('dedupeConsent')), [button(t('cancel'), close, 'btn soft', 'dedupe-cancel', s.pending), button(t('startDedupe'), a.startDedupe, 'btn ink', 'dedupe-start', s.pending)]);
   if (!overlay) return;
   document.getElementById('overlays').append(overlay);
   overlay.addEventListener('cancel', e => { e.preventDefault(); close(); });
@@ -269,8 +282,12 @@ function paintOverlay(activeKey) {
 }
 function render() {
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop, drawerScroll = overlay?.querySelector('.drawer-list')?.scrollTop ?? 0;
+  const scrollSelector = '.scroll-card,.plan-categories,.settings-content,.location-list,.scan-location-list,.scan-chart,.result-lower>.card,.with-hero .card,.quarantine-grid,.quarantine-grid>.card';
+  const cardScroll = [...page.querySelectorAll(scrollSelector)].map(n => n.scrollTop), previousPage = page.dataset.page;
+  setLanguage(s.language, s.appInfo?.system_language);
+  document.documentElement.lang = currentLanguage() === 'zh' ? 'zh-CN' : 'en'; document.title = t('appTitle');
   top(); const notice = document.getElementById('notice'); notice.hidden = !s.error && !s.pollPaused; notice.replaceChildren();
-  if (!notice.hidden) add(notice, el('span', '', s.error || s.pollReason || '进度读取已暂停，请重新连接。'), s.pollPaused ? button('重新连接', () => { resumePolling(); render(); }, 'btn soft', 'poll-retry', s.pending) : null);
+  if (!notice.hidden) add(notice, el('span', '', s.error || s.pollReason ? errorText(s.error || s.pollReason) : t('paused')), s.pollPaused ? button(t('reconnect'), () => { resumePolling(); render(); }, 'btn soft', 'poll-retry', s.pending) : null);
   let view, name = s.route;
   if (s.intro) { view = intro; name = 'intro'; }
   else if (s.route === 'home') {
@@ -279,6 +296,7 @@ function render() {
     view = {home, scan, cleaning, results, details, done, dedupe}[name] ?? home;
   } else view = s.route.startsWith('settings/') ? locations : {quarantine, trends, history:records}[s.route];
   page.replaceChildren(view(s, a)); page.dataset.page = name; main.scrollTop = scroll;
+  if (previousPage === name) page.querySelectorAll(scrollSelector).forEach((node, i) => { node.scrollTop = cardScroll[i] ?? 0; });
   if (s.revealLocation) {
     const list = page.querySelector('.location-list'), item = page.querySelector(`[data-key="${CSS.escape('location-' + s.revealLocation)}"]`);
     if (list && item) { list.scrollTop += Math.max(0, item.getBoundingClientRect().bottom - list.getBoundingClientRect().bottom); s.revealLocation = null; }
@@ -293,6 +311,7 @@ function routeChanged() {
   render(); void loadRoute();
 }
 window.addEventListener('hashchange', routeChanged);
+window.addEventListener('languagechange', () => { if (s.language === 'system') render(); });
 window.addEventListener('beforeunload', event => { if (['cleaning', 'purging'].includes(s.busy)) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('pagehide', () => { stopped = true; clearTimeout(timer); });
 if (!location.hash) { let saved; try { saved = localStorage.getItem('water-last-page'); } catch {} history.replaceState(null, '', `#${canonicalRoute(saved ?? 'home')}`); }

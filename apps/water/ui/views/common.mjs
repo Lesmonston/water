@@ -1,4 +1,5 @@
-import {formatBytes} from '../format.mjs';
+import {t, serviceText, notesText} from './strings.mjs';
+import {formatBytes, count} from '../format.mjs';
 export function el(tag, cls = '', text, attrs = {}) {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
@@ -23,7 +24,7 @@ export function iconButton(label, glyph, action, key) {
   b.setAttribute('aria-label', label); b.title = label; return add(b, icon(glyph));
 }
 export function metric(value, label, raw = false) {
-  const text = raw ? String(value) : formatBytes(value), n = el('div', 'number');
+  const text = raw ? typeof value === 'number' || typeof value === 'bigint' ? count(value) : String(value) : formatBytes(value), n = el('div', 'number');
   const match = /^(.*) (GB|MB)$/.exec(text);
   if (match) add(n, el('span', '', match[1]), el('small', '', match[2])); else n.textContent = text;
   return add(el('div', 'metric'), n, label ? el('div', 'sub', label) : null);
@@ -73,7 +74,7 @@ export function menu(label, entries, key) {
 }
 export function search(label, submit, key, value = '') {
   const form = el('form', 'search'), input = el('input', '', undefined, {type:'search', placeholder:label, 'aria-label':label, maxlength:64, 'data-key':key}); input.value = value;
-  add(form, icon('search'), input, button('搜索', () => submit(input.value), 'btn soft', `${key}-go`));
+  add(form, icon('search'), input, button(t('search'), () => submit(input.value), 'btn soft', `${key}-go`));
   form.addEventListener('submit', event => { event.preventDefault(); submit(input.value); }); return form;
 }
-export function skipNotice(value) { return value ? el('p', 'warning', value.notes_zh.join('；')) : null; }
+export function skipNotice(value) { return value ? el('p', 'warning', notesText(serviceText(value, 'notes'))) : null; }

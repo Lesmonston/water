@@ -1,27 +1,28 @@
+import {t, serviceText} from './strings.mjs';
 import {add, el, heading, metric, card, button, row, menu, tag} from './common.mjs';
 import {daysBlocks, proportions} from './charts.mjs';
 import {formatBytes, dateTime} from '../format.mjs';
 export function quarantine(s, a) {
-  const v = s.quarantine, page = add(el('section', 'screen'), heading(v ? `隔离区里有 ${v.cards.length} 批` : '隔离区', '仍在原来的盘上，永久删除后才腾出空间', v ? [metric(v.bytes, '一共')] : []));
-  if (!v) return add(page, el('p', 'sub', '正在读取隔离区…'));
-  if (!v.cards.length) return add(page, add(card('隔离区是空的'), el('p', 'sub', '没有等待处理的内容。')));
-  add(page, proportions(v.cards.map(c => ({title:dateTime(c.created_at), bytes:c.bytes, kind:c.reminder_zh ? 'look' : 'sky'}))));
+  const v = s.quarantine, page = add(el('section', 'screen'), heading(v ? t('quarantineBatches', {n:v.cards.length}) : t('quarantine'), t('quarantineSubtitle'), v ? [metric(v.bytes, t('total'))] : []));
+  if (!v) return add(page, el('p', 'sub', t('loadingQuarantine')));
+  if (!v.cards.length) return add(page, add(card(t('quarantineEmpty')), el('p', 'sub', t('nothingPending'))));
+  add(page, proportions(v.cards.map(c => ({title:dateTime(c.created_at), bytes:c.bytes, kind:serviceText(c, 'reminder') ? 'look' : 'sky'}))));
   const roots = el('div', 'root-actions');
-  for (const root of v.roots) add(roots, button(`打开 ${root.display_path[0].toUpperCase()} 盘隔离区`, () => a.reveal(root.target_id), 'btn soft', `root-${root.target_id}`)); add(page, roots);
+  for (const root of v.roots) add(roots, button(t('openDriveQuarantine', {drive:t('drive', {letter:root.display_path[0].toUpperCase()})}), () => a.reveal(root.target_id), 'btn soft', `root-${root.target_id}`)); add(page, roots);
   const grid = el('div', 'quarantine-grid');
   for (const [index, c] of v.cards.entries()) {
-    const node = card(dateTime(c.created_at), index === 0 ? 'dark main-card' : '', [menu('隔离区菜单', [['打开文件夹', () => a.reveal(c.quarantine_id)]], `quarantine-menu-${c.quarantine_id}`)]);
+    const node = card(dateTime(c.created_at), index === 0 ? 'dark main-card' : '', [menu(t('quarantineMenu'), [[t('openFolder'), () => a.reveal(c.quarantine_id)]], `quarantine-menu-${c.quarantine_id}`)]);
     node.dataset.quarantine = c.quarantine_id;
-    if (c.reminder_zh) add(node, tag(c.reminder_zh, 'hot'));
-    add(node, metric(c.days, '放了几天', true), daysBlocks(c.days, index === 0 && c.state !== 'leftover'), metric(c.bytes, `${c.item_count} 项`));
-    for (const r of c.rows) add(node, row(r.label_zh, `${r.count} 项`, el('span', '', formatBytes(r.bytes))));
-    if (c.state === 'leftover') add(node, el('p', 'warning', `还剩 ${c.item_count} 个删不掉`));
-    for (const r of c.leftovers) add(node, row(r.display_name, r.reason_zh, el('span', '', formatBytes(r.bytes))));
-    if (c.more_leftovers) add(node, el('p', 'sub', `另有 ${c.more_leftovers} 项`));
-    if (s.quarantineProgress?.quarantine_id === c.quarantine_id && s.busy === 'purging') add(node, el('p', 'warning', `正在永久删除 · 已腾出 ${formatBytes(s.quarantineProgress.freed_bytes)}`));
+    if (serviceText(c, 'reminder')) add(node, tag(serviceText(c, 'reminder'), 'hot'));
+    add(node, metric(c.days, t('daysStored'), true), daysBlocks(c.days, index === 0 && c.state !== 'leftover'), metric(c.bytes, t('items', {n:c.item_count})));
+    for (const r of c.rows) add(node, row(serviceText(r, 'label'), t('items', {n:r.count}), el('span', '', formatBytes(r.bytes))));
+    if (c.state === 'leftover') add(node, el('p', 'warning', t('cannotDeleteCount', {n:c.item_count})));
+    for (const r of c.leftovers) add(node, row(r.display_name, serviceText(r, 'reason'), el('span', '', formatBytes(r.bytes))));
+    if (c.more_leftovers) add(node, el('p', 'sub', t('otherItems', {n:c.more_leftovers})));
+    if (s.quarantineProgress?.quarantine_id === c.quarantine_id && s.busy === 'purging') add(node, el('p', 'warning', t('purgingProgress', {size:formatBytes(s.quarantineProgress.freed_bytes)})));
     const actions = el('div', 'bottom pair');
-    if (c.restorable) add(actions, button('还原', () => a.restore(c.quarantine_id, false), index === 0 ? 'btn ghost' : 'btn soft', `restore-${c.quarantine_id}`, a.busy()));
-    add(actions, button(c.state === 'leftover' ? '再试一次' : '永久删除', () => a.confirmPurge(c), c.state === 'leftover' ? 'btn lime' : 'btn danger', `purge-${c.quarantine_id}`, a.busy())); add(node, actions); add(grid, node);
+    if (c.restorable) add(actions, button(t('restore'), () => a.restore(c.quarantine_id, false), index === 0 ? 'btn ghost' : 'btn soft', `restore-${c.quarantine_id}`, a.busy()));
+    add(actions, button(c.state === 'leftover' ? t('retry') : t('purge'), () => a.confirmPurge(c), c.state === 'leftover' ? 'btn lime' : 'btn danger', `purge-${c.quarantine_id}`, a.busy())); add(node, actions); add(grid, node);
   }
   return add(page, grid);
 }

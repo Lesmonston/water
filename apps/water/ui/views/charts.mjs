@@ -1,5 +1,6 @@
+import {t, serviceText} from './strings.mjs';
 import {add, el, svg} from './common.mjs';
-import {bytes, formatBytes, percent, localDateKey} from '../format.mjs';
+import {bytes, formatBytes, percent, localDateKey, dateOnly} from '../format.mjs';
 // Geometry only: charts never derive new displayed byte quantities.
 export function dial(value, text, caption = '', size = '', gain = null) {
   const box = el('div', `dial ${size}`), drawing = svg('svg', {viewBox:'0 0 220 220', 'aria-hidden':'true'});
@@ -28,21 +29,21 @@ export function proportions(parts) {
 }
 export function spaceBar(drive) {
   const free = percent(drive.free_bytes, drive.total_bytes), node = el('div', 'proportions');
-  for (const [title, value, kind] of [['已用', 100 - free, 'ink'], ['可用', free, 'sky']]) {
+  for (const [title, value, kind] of [[t('used'), 100 - free, 'ink'], [t('available'), free, 'sky']]) {
     const part = el('div', 'proportion'); part.style.setProperty('--weight', String(Math.max(.1, value)));
-    add(node, add(part, el('span', 'sub', `${drive.root.slice(0, 1)} 盘 · ${title}`), el('div', `segment-fill ${kind}`, `${value.toFixed(0)}%`)));
+    add(node, add(part, el('span', 'sub', `${t('drive', {letter:drive.root.slice(0, 1)})} · ${title}`), el('div', `segment-fill ${kind}`, `${value.toFixed(0)}%`)));
   }
   return node;
 }
 export function progressBar(value) {
   const node = el('div', 'proportions');
-  for (const [label, p, cls] of [['已检查', value, 'ink'], ['剩余', 100 - value, 'neutral']]) {
+  for (const [label, p, cls] of [[t('checked'), value, 'ink'], [t('remaining'), 100 - value, 'neutral']]) {
     const part = el('div', 'proportion'); part.style.setProperty('--weight', String(Math.max(.1, p)));
     add(node, add(part, el('span', 'sub', label), el('div', `segment-fill ${cls}`, `${p}%`)));
   }
   return node;
 }
-export function stems(points, label = '空间记录', projectedDays = 0) {
+export function stems(points, label = t('spaceHistory'), projectedDays = 0) {
   const wrap = el('div', 'chart'), graph = svg('svg', {viewBox:'0 0 720 180', role:'img', 'aria-label':label});
   const max = points.reduce((m, p) => bytes(p.bytes) > m ? bytes(p.bytes) : m, 1n), total = points.length + projectedDays;
   for (const [i, p] of points.entries()) {
@@ -54,10 +55,10 @@ export function stems(points, label = '空间记录', projectedDays = 0) {
     const x = 12 + (points.length + i - .5) / total * 696, y = 154 - (last ? percent(last.bytes, max) : 0) * 1.3 * (1 - i / projectedDays);
     add(graph, svg('line', {x1:x, y1:154, x2:x, y2:y, class:'stem projected'}), svg('circle', {cx:x, cy:y, r:2.5, class:'dot projected'}));
   }
-  return add(wrap, graph, add(el('div', 'axis'), el('span', '', points[0]?.label ?? '尚无记录'), el('span', '', projectedDays ? `预测 · ${projectedDays} 天后满` : last?.label ?? '')));
+  return add(wrap, graph, add(el('div', 'axis'), el('span', '', points[0]?.label ?? t('noRecords')), el('span', '', projectedDays ? t('predictedFull', {n:projectedDays}) : last?.label ?? '')));
 }
 export function treemap(items) {
-  const root = el('div', 'treemap'), graph = svg('svg', {viewBox:'0 0 720 220', role:'img', 'aria-label':'面积表示体量，按服务返回顺序排列'});
+  const root = el('div', 'treemap'), graph = svg('svg', {viewBox:'0 0 720 220', role:'img', 'aria-label':t('treeLabel')});
   const labels = el('div', 'tile-labels');
   const total = items.reduce((n, i) => n + bytes(i.bytes), 0n);
   let x = 0, y = 0, w = 720, h = 220, remaining = 100;
@@ -94,7 +95,7 @@ export function heatmap(entries) {
     const key = localDateKey(day);
     const records = days.get(key) ?? [], grade = e => ['clean', 'purge'].includes(e.kind) ? bytes(e.bytes) >= 8n * 1024n ** 3n ? 4 : bytes(e.bytes) >= 2n * 1024n ** 3n ? 3 : 2 : 1;
     const depth = records.reduce((m, e) => Math.max(m, grade(e)), 0);
-    const cell = el('button', `heat depth-${depth}`, '', {type:'button', title:`${key}${records.map(e => `\n${e.summary_zh} · ${formatBytes(e.bytes)}`).join('')}`});
+    const cell = el('button', `heat depth-${depth}`, '', {type:'button', 'data-date':key, title:`${dateOnly(day)}${records.map(e => `\n${serviceText(e, 'summary')} · ${formatBytes(e.bytes)}`).join('')}`});
     if (records.includes(latest)) cell.classList.add('latest');
     cell.setAttribute('aria-label', cell.title); add(root, cell);
   }
