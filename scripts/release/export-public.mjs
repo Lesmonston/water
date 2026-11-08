@@ -101,6 +101,9 @@ const ERRORS = [
 ];
 // Placeholder hosts in tests and docs are not addresses of anyone.
 const EMAIL_OK = /@(?:[\w-]+\.)*(?:localhost|example\.(?:com|org|net)|invalid|test)$/i;
+// THIRD-PARTY-LICENSES.md is cargo-about output: the licences' own copyright notices (some with their authors' emails)
+// must be kept as written. Every other rule still applies to it.
+const EMAIL_OK_FILES = new Set(['THIRD-PARTY-LICENSES.md']);
 const WARNINGS = [
   ['private-process', /docs\/(?:acceptance|dispatch|maintenance|STATUS|CONTROLLER)|CONTROLLER-HANDOFF|总控|派单|工单|收单|交接/],
   ['ticket-id', /WATER-(?:W|M|N|P)\d+[-A-Z0-9]*/],
@@ -113,7 +116,7 @@ const scanText = (path, text, binary) => {
   const lines = text.split(/\r?\n/);
   const check = (level, kind, re) => lines.forEach((line, i) => {
     for (const m of line.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'))) {
-      if (kind === 'email' && EMAIL_OK.test(m[0])) continue;
+      if (kind === 'email' && (EMAIL_OK.test(m[0]) || EMAIL_OK_FILES.has(path))) continue;
       hits.push({level, kind, path, line: binary ? null : i + 1, text: binary ? '(binary)' : line.trim().slice(0, 200)}); break;
     }
   });
