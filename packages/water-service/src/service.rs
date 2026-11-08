@@ -5,6 +5,7 @@ use crate::{
     storage::{Store, plain_directory},
     util, views,
 };
+use crate::{language, scan};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{
@@ -14,7 +15,6 @@ use std::{
     time::{Duration, Instant, SystemTime},
 };
 use water_junk_rules::{KnownFolders, RuleSet};
-use water_junk_scan as scan;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -40,6 +40,8 @@ pub(crate) struct Skipped {
     pub folder: Option<String>,
     #[serde(default)]
     pub title_zh: String,
+    #[serde(default)]
+    pub title_en: Option<String>,
     pub added_at: String,
 }
 
@@ -154,7 +156,7 @@ const RECORD_KEYS: [&str; 11] = [
 ];
 
 impl Record {
-    fn load(saved: Value) -> Option<Self> {
+    fn load(mut saved: Value) -> Option<Self> {
         // `in_use` / `item_in_use` / `orphans` / `growth_base_scan_id` are independently optional.
         let optional = [
             "in_use",
@@ -169,6 +171,11 @@ impl Record {
             "installed_apps_at",
             "unfinished",
             "item_created",
+            "item_notes_en",
+            "item_note_codes",
+            "item_reason_zh",
+            "item_reason_en",
+            "unfinished_en",
         ];
         let keys_ok = saved.as_object().is_some_and(|m| {
             RECORD_KEYS.iter().all(|k| m.contains_key(*k))
@@ -212,17 +219,20 @@ impl Record {
                 !m.as_object().is_some_and(|m| {
                     m.iter().all(|(id, v)| {
                         result.groups.iter().any(|g| &g.group_id == id)
-                            && (util::exact_keys(v, &["process_label_zh"])
-                                || (util::exact_keys(v, &["process_label_zh", "item_count"])
-                                    && (v["item_count"].is_null()
-                                        || v["item_count"].as_u64().is_some_and(|n| {
-                                            n <= result
-                                                .groups
-                                                .iter()
-                                                .find(|g| &g.group_id == id)
-                                                .map(|g| g.item_count)
-                                                .unwrap_or(0)
-                                        }))))
+                            && (m35::keys_with(v, &["process_label_zh"], &["process_label_en"])
+                                || (m35::keys_with(
+                                    v,
+                                    &["process_label_zh", "item_count"],
+                                    &["process_label_en"],
+                                ) && (v["item_count"].is_null()
+                                    || v["item_count"].as_u64().is_some_and(|n| {
+                                        n <= result
+                                            .groups
+                                            .iter()
+                                            .find(|g| &g.group_id == id)
+                                            .map(|g| g.item_count)
+                                            .unwrap_or(0)
+                                    }))))
                             && v["process_label_zh"].is_string()
                     })
                 })
@@ -234,7 +244,7 @@ impl Record {
             !m.as_object().is_some_and(|m| {
                 m.iter().all(|(id, v)| {
                     result.items.iter().any(|i| &i.item_id == id)
-                        && util::exact_keys(v, &["process_label_zh"])
+                        && m35::keys_with(v, &["process_label_zh"], &["process_label_en"])
                         && v["process_label_zh"].is_string()
                 })
             })
@@ -251,6 +261,13 @@ impl Record {
             .iter()
             .try_fold(0u64, |sum, i| sum.checked_add(util::number(&i.total_bytes)))?;
         let growth = serde_json::from_value(saved["growth"].clone()).ok()?;
+        language::legacy(&mut saved);
+        if saved.get("item_notes_en").is_none() {
+            saved["item_notes_en"] = saved["item_notes"].clone();
+        }
+        if saved.get("unfinished_en").is_none() {
+            saved["unfinished_en"] = saved["unfinished"].clone();
+        }
         Some(Self {
             saved,
             result,
@@ -519,7 +536,7 @@ impl Service {
             "diagnostics_get" => diagnostics(core),
             "skip_remove" => self.remove_skip(args["skipId"].as_str().expect("validated")),
             "app_state" => {
-                let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
+                let drives=core.platform.drives().into_iter().map(|d|json!({"root":d.root,"label_zh":if d.is_system{"系统盘"}else{"本地磁盘"},"label_en":if d.is_system{"System drive"}else{"Local disk"},"is_system":d.is_system,"total_bytes":d.total_bytes.to_string(),"free_bytes":d.free_bytes.to_string()})).collect::<Vec<_>>();
                 let s = lock(core)?;
                 let last = s.last_record();
                 let summary=last.as_ref().map(|r|{let p=r.projection(); json!({"scan_id":r.result.scan_id,"finished_at":r.saved["finished_at"],"recommended_bytes":p.view["totals"]["recommended_bytes"],"recommended_by_drive":p.view["recommended_by_drive"],"added_7d_bytes":added_7d(&s,r)})});
@@ -596,6 +613,7 @@ impl Service {
                         if view.get("journal_note_zh").is_none() {
                             view["journal_note_zh"] = Value::Null;
                         }
+                        language::legacy(&mut view);
                         view
                     })
                     .ok_or_else(|| IpcError::new("not_found"))
@@ -643,6 +661,7 @@ impl Service {
         }
         let settings = s.settings.clone();
         let scope = m35::scope(&core, &s, args)?;
+        let drives = core.platform.drives();
         // A new scan consumes the previous scan's authority to prepare/execute plans,
         // even when the new scan is subsequently cancelled. Persist before scanning.
         let previous = s.last_record();
@@ -673,6 +692,7 @@ impl Service {
             at,
             scope,
             unfinished,
+            drives,
         };
         let previous_last = s_last;
         let spawned = std::thread::Builder::new()
@@ -700,6 +720,7 @@ impl Service {
                         s.local_scans.remove(&worker_id);
                         s.records.retain(|r| r.result.scan_id != worker_id);
                         s.scan_progress["state"] = json!("failed");
+                        s.scan_progress["percent"] = json!(100);
                     }
                     s.busy = "idle";
                     s.cancel = None;
@@ -710,6 +731,7 @@ impl Service {
             s.busy = "idle";
             s.cancel = None;
             s.scan_progress["state"] = json!("failed");
+            s.scan_progress["percent"] = json!(100);
             return Err(IpcError::new("unavailable"));
         }
         Ok(json!({"scan_id":id}))
@@ -741,12 +763,14 @@ impl Service {
             return Err(IpcError {
                 code: "invalid".into(),
                 message_zh: "这个位置太大或包含系统目录，请选择具体的项目文件夹。".into(),
+                message_en: "This location is too broad or contains system folders. Choose a specific project folder.".into(),
             });
         }
         if is_drive_root(&path) && !supported_volume(self.core.platform.as_ref(), &path) {
             return Err(IpcError {
                 code: "invalid".into(),
                 message_zh: "只支持 NTFS 或 ReFS 格式的盘".into(),
+                message_en: "Only drives formatted as NTFS or ReFS are supported".into(),
             });
         }
         let path = if is_drive_root(&path) {
@@ -842,6 +866,7 @@ impl Service {
             template: None,
             folder: None,
             title_zh: item.path.clone(),
+            title_en: Some(item.path.clone()),
             added_at: util::timestamp(core.platform.now()),
         });
         core.store.write("", "settings.json", &json!(settings))?;
@@ -909,6 +934,7 @@ impl Service {
                 template: spec.template,
                 folder: spec.folder,
                 title_zh: spec.title_zh,
+                title_en: spec.title_en,
                 added_at: util::timestamp(core.platform.now()),
             });
         }
@@ -977,6 +1003,7 @@ struct ScanJob {
     at: SystemTime,
     scope: Vec<m35::Location>,
     unfinished: BTreeMap<String, String>,
+    drives: Vec<crate::DriveInfo>,
 }
 
 impl ScanJob {
@@ -992,6 +1019,7 @@ impl ScanJob {
             at,
             scope,
             unfinished,
+            drives,
         } = self;
         let started = Instant::now();
         // Plan construction and bounded declaration reads run on the worker, so
@@ -1035,6 +1063,23 @@ impl ScanJob {
             reported: Mutex::new(BTreeMap::new()),
             last_found: Mutex::new(0),
             started,
+            category_roots: progress_category_roots(&plan),
+            drive_ids: scope
+                .iter()
+                .filter(|l| l.kind == "drive")
+                .map(|l| l.location_id.clone())
+                .collect(),
+            space_used: scope
+                .iter()
+                .filter(|l| l.kind == "drive")
+                .filter_map(|l| {
+                    drives
+                        .iter()
+                        .find(|d| Some(d.root.as_str()) == l.path.as_deref())
+                })
+                .map(|d| u128::from(d.total_bytes.saturating_sub(d.free_bytes)))
+                .sum(),
+            space: Mutex::new((0, 0)),
         };
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if let Some(previous) = &previous {
@@ -1084,7 +1129,6 @@ impl ScanJob {
                 issues: vec![],
             },
         };
-        let supplemented = m35::supplement(&worker_core, &mut result, &declarations, &unfinished);
         // A shadowed legacy declaration loses its old consent as well as its
         // targets. Removing the new file later must not revive that consent.
         {
@@ -1120,9 +1164,10 @@ impl ScanJob {
                         .flatten()
                         .filter(|row| row["location_id"] == l.location_id)
                     {
-                        row["state"] = json!("running");
-                        row["label_zh"] = json!(format!("{} · 空间分布", l.label_zh));
+                        row["state"] = json!("space");
                     }
+                    s.scan_progress["percent"] =
+                        json!(s.scan_progress["percent"].as_u64().unwrap_or(0).max(40));
                 }
                 let root = l.path.as_deref().unwrap();
                 spaces.push(
@@ -1138,8 +1183,24 @@ impl ScanJob {
                         Err(_) => json!({"root":root,"status":"failed","top":[],"disk_bytes":"0"}),
                     },
                 );
+                observer.end_space();
+                if let Ok(mut s) = lock(&worker_core) {
+                    for row in s.scan_progress["locations"]
+                        .as_array_mut()
+                        .into_iter()
+                        .flatten()
+                        .filter(|row| row["location_id"] == l.location_id)
+                    {
+                        row["state"] = json!("done");
+                    }
+                }
             }
         }
+        if let Ok(mut s) = lock(&worker_core) {
+            s.scan_progress["state"] = json!("finishing");
+            s.scan_progress["percent"] = json!(95);
+        }
+        let supplemented = m35::supplement(&worker_core, &mut result, &declarations, &unfinished);
         let snapshot = views::display_snapshot(&result);
         let growth = if matches!(result.status.as_str(), "completed" | "partial") {
             growth_base
@@ -1177,34 +1238,11 @@ impl ScanJob {
         let completed = record.completed();
         let status = record.result.status.clone();
         let visited = record.result.visited_entries;
-        let found = record
-            .result
-            .groups
-            .iter()
-            .map(|g| util::number(&g.unique_bytes))
-            .sum::<u64>()
-            .to_string();
-        let category_totals: Vec<_> = record.projection().view["categories"]
-            .as_array()
-            .map(|cats| {
-                cats.iter()
-                    .map(|c| {
-                        (
-                            c["category"].clone(),
-                            c["title_zh"].clone(),
-                            util::bytes(&c["total_bytes"]),
-                        )
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
         let saved = record.saved.clone();
         let snapshot_value = json!(snapshot);
         if let Ok(mut s) = lock(&worker_core) {
-            s.scan_progress["percent"] = json!(100);
             s.scan_progress["elapsed_ms"] = json!(started.elapsed().as_millis() as u64);
             s.scan_progress["visited_entries"] = json!(visited);
-            s.scan_progress["found_bytes"] = json!(found);
             if completed {
                 for row in s.scan_progress["locations"]
                     .as_array_mut()
@@ -1212,16 +1250,6 @@ impl ScanJob {
                     .flatten()
                 {
                     row["state"] = json!("done");
-                }
-            }
-            if let Some(rows) = s.scan_progress["categories"].as_array_mut() {
-                for row in rows {
-                    let total = category_totals
-                        .iter()
-                        .filter(|(c, t, _)| *c == row["category"] && *t == row["title_zh"])
-                        .map(|(_, _, n)| *n)
-                        .sum::<u64>();
-                    row["found_bytes"] = json!(total.to_string());
                 }
             }
             // last is published in memory first; disk write happens without this lock so
@@ -1253,6 +1281,7 @@ impl ScanJob {
             }
             if let Ok(mut s) = lock(&worker_core) {
                 s.scan_progress["state"] = json!(status);
+                s.scan_progress["percent"] = json!(100);
                 if completed {
                     s.m35.conclusion = None;
                 }
@@ -1266,6 +1295,8 @@ impl ScanJob {
             s.local_scans.remove(&worker_id);
             s.records.retain(|r| r.result.scan_id != worker_id);
             s.scan_progress["state"] = json!("failed");
+            s.scan_progress["percent"] = json!(100);
+            s.scan_progress["percent"] = json!(100);
             s.busy = "idle";
             s.cancel = None;
         }
@@ -1407,15 +1438,41 @@ fn progress_categories(plan: &water_junk_rules::ScanPlan) -> Vec<Value> {
                 | water_junk_rules::MatchSpec::Discovery { root } = &t.match_spec
                     && seen.insert(root)
                 {
-                    result.push(json!({"category":cat,"title_zh":format!("你加的位置 · {root}"),"state":"waiting","found_bytes":"0"}));
+                    result.push(json!({"category":cat,"title_zh":format!("你加的位置 · {root}"),"title_en":format!("Your folder · {root}"),"state":"waiting","found_bytes":"0"}));
                 }
             }
         } else if !targets.is_empty() {
             result
-                .push(json!({"category":cat,"title_zh":title,"state":"waiting","found_bytes":"0"}));
+                .push(json!({"category":cat,"title_zh":title,"title_en":views::category_en(cat).0,"state":"waiting","found_bytes":"0"}));
         }
     }
     result
+}
+
+// The row's position and its target root are kept outside IPC display text.
+fn progress_category_roots(plan: &water_junk_rules::ScanPlan) -> Vec<Option<String>> {
+    let mut roots = Vec::new();
+    for (cat, _, _, _) in views::CATEGORIES {
+        let targets = plan
+            .targets
+            .iter()
+            .filter(|t| t.category.as_str() == cat)
+            .collect::<Vec<_>>();
+        if cat == "custom" {
+            let mut seen = BTreeSet::new();
+            for t in targets {
+                if let water_junk_rules::MatchSpec::Marker { root, .. }
+                | water_junk_rules::MatchSpec::Discovery { root } = &t.match_spec
+                    && seen.insert(root)
+                {
+                    roots.push(Some(root.clone()));
+                }
+            }
+        } else if !targets.is_empty() {
+            roots.push(None);
+        }
+    }
+    roots
 }
 
 struct Progress {
@@ -1424,9 +1481,36 @@ struct Progress {
     reported: Mutex<BTreeMap<String, usize>>,
     last_found: Mutex<u64>,
     started: Instant,
+    category_roots: Vec<Option<String>>,
+    drive_ids: BTreeSet<String>,
+    space_used: u128,
+    space: Mutex<(u128, u64)>,
+}
+impl Progress {
+    fn end_space(&self) {
+        let mut space = self.space.lock().unwrap_or_else(PoisonError::into_inner);
+        space.0 = space.0.saturating_add(u128::from(space.1));
+        space.1 = 0;
+    }
 }
 impl scan::ScanObserver for Progress {
     fn on_progress(&self, p: &scan::ScanProgress) {
+        if p.category == "space" && p.group_id == "space_overview" {
+            let mut space = self.space.lock().unwrap_or_else(PoisonError::into_inner);
+            space.1 = space.1.max(p.found_bytes);
+            let measured = space.0.saturating_add(u128::from(space.1));
+            let percent = if self.space_used == 0 {
+                40
+            } else {
+                40 + (measured.saturating_mul(54) / self.space_used).min(54) as u64
+            };
+            if let Ok(mut s) = lock(&self.core) {
+                s.scan_progress["percent"] =
+                    json!(percent.max(s.scan_progress["percent"].as_u64().unwrap_or(0)));
+                s.scan_progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
+            }
+            return;
+        }
         // The accepted scanner emits exactly once at each target boundary (pattern/marker, then discovery).
         let mut reported = self.reported.lock().unwrap_or_else(PoisonError::into_inner);
         *reported.entry(p.group_id.clone()).or_default() += 1;
@@ -1443,10 +1527,16 @@ impl scan::ScanObserver for Progress {
             progress["found_bytes"] = json!(p.found_bytes.to_string());
             progress["elapsed_ms"] = json!(self.started.elapsed().as_millis() as u64);
             let n: usize = reported.values().sum();
-            progress["percent"] = json!((n * 100 / self.plan.targets.len().max(1)).min(99));
-            for row in progress["categories"]
+            let ceiling = if self.drive_ids.is_empty() { 90 } else { 40 };
+            progress["percent"] = json!(
+                ((n * ceiling / self.plan.targets.len().max(1)).min(ceiling) as u64)
+                    .max(progress["percent"].as_u64().unwrap_or(0))
+            );
+            for (row_index, row) in progress["categories"]
                 .as_array_mut()
                 .expect("progress array")
+                .iter_mut()
+                .enumerate()
             {
                 let targets: Vec<_> = self
                     .plan
@@ -1458,7 +1548,8 @@ impl scan::ScanObserver for Progress {
                                 || match &t.match_spec {
                                     water_junk_rules::MatchSpec::Marker { root, .. }
                                     | water_junk_rules::MatchSpec::Discovery { root } => {
-                                        row["title_zh"] == format!("你加的位置 · {root}")
+                                        self.category_roots[row_index].as_deref()
+                                            == Some(root.as_str())
                                     }
                                     _ => false,
                                 })
@@ -1506,7 +1597,11 @@ impl scan::ScanObserver for Progress {
                     .map(|id| reported.get(*id).copied().unwrap_or(0))
                     .sum::<usize>();
                 row["state"] = json!(if done >= targets.len() {
-                    "done"
+                    if self.drive_ids.contains(id) {
+                        "waiting"
+                    } else {
+                        "done"
+                    }
                 } else if done > 0 {
                     "running"
                 } else {
@@ -1728,7 +1823,7 @@ pub(crate) fn locations(core: &Core, s: &State) -> Value {
     let mut skipped = s.settings.skipped.clone();
     skipped.sort_by(|a, b| a.added_at.cmp(&b.added_at).then(a.skip_id.cmp(&b.skip_id)));
     let (sessions, manifests) = m35::locations_extra(core, s);
-    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"description_zh":d,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>(),"skipped":skipped.iter().map(|v|json!({"skip_id":v.skip_id,"kind":v.kind,"display_zh":if v.title_zh.is_empty(){v.path.clone().unwrap_or_default()}else{v.title_zh.clone()},"display_path":if v.kind=="path"{v.path.clone()}else{None::<String>},"added_at":v.added_at})).collect::<Vec<_>>(),"home":m35::home(core,s),"sessions":sessions,"manifests":manifests})
+    json!({"categories":views::CATEGORIES[..7].iter().map(|(c,t,_,d)|json!({"category":c,"title_zh":t,"title_en":views::category_en(c).0,"description_zh":d,"description_en":views::category_en(c).2,"enabled":views::enabled(&s.settings,c),"locked":false})).collect::<Vec<_>>(),"custom_roots":s.settings.custom_roots.iter().map(|r|root_view(s,r)).collect::<Vec<_>>(),"skipped":skipped.iter().map(|v|json!({"skip_id":v.skip_id,"kind":v.kind,"display_zh":if v.title_zh.is_empty(){v.path.clone().unwrap_or_default()}else{v.title_zh.clone()},"display_en":v.title_en.clone().unwrap_or_else(||if v.title_zh.is_empty(){v.path.clone().unwrap_or_default()}else{v.title_zh.clone()}),"display_path":if v.kind=="path"{v.path.clone()}else{None::<String>},"added_at":v.added_at})).collect::<Vec<_>>(),"home":m35::home(core,s),"sessions":sessions,"manifests":manifests})
 }
 
 fn added_7d(s: &State, r: &Record) -> Option<String> {
@@ -1788,7 +1883,8 @@ fn history(s: &State) -> Value {
             } else {
                 format!("识别 {n} 类位置")
             };
-            json!({"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":summary_zh,"bytes":r.projection().view["totals"]["recommended_bytes"]})
+            let summary_en = if r.result.status == "cancelled" {format!("Stopped; {} location categories recognized",language::number(n))} else {format!("{} location categories recognized",language::number(n))};
+            json!({"summary_en":summary_en,"kind":"scan","id":r.result.scan_id,"at":r.saved["finished_at"],"summary_zh":summary_zh,"bytes":r.projection().view["totals"]["recommended_bytes"]})
         })
         .collect();
     rows.extend(s.cleans.iter().map(|(id, v)| {
@@ -1815,9 +1911,15 @@ fn history(s: &State) -> Value {
         };
         let quarantined=v["view"]["quarantined"]["item_count"].as_u64().unwrap_or(0);
         if quarantined>0 {summary_zh.push_str(&format!("，{quarantined} 项进了隔离区"));}
-        json!({"kind":"clean","id":id,"at":v["view"]["finished_at"],"summary_zh":summary_zh,"bytes":v["view"]["freed_bytes"]})
+        let mut summary_en = format!("Cleaned {} groups, skipped {} items",language::number(n),language::number(skipped));
+        if failed > 0 { summary_en.push_str(&format!(", {} items failed",language::number(failed))); }
+        if quarantined > 0 {summary_en.push_str(&format!(", {} items moved to quarantine",language::number(quarantined)));}
+        json!({"summary_en":summary_en,"kind":"clean","id":id,"at":v["view"]["finished_at"],"summary_zh":summary_zh,"bytes":v["view"]["freed_bytes"]})
     }));
-    rows.extend(s.m35.events.clone());
+    rows.extend(s.m35.events.iter().cloned().map(|mut v| {
+        language::legacy(&mut v);
+        v
+    }));
     rows.sort_by(|a, b| b["at"].as_str().cmp(&a["at"].as_str()));
     rows.truncate(100);
     json!(rows)
@@ -1838,14 +1940,14 @@ pub(crate) fn trends(core: &Core, s: &State) -> Value {
     let last = s.last_record();
     let mut growth = last.as_ref().map(|r| r.growth.clone()).unwrap_or_default();
     growth.sort_by_key(|g| std::cmp::Reverse(g.bytes_delta.parse::<i128>().unwrap_or(0)));
-    let growth:Vec<_>=growth.iter().take(10).map(|g|json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"level":last.as_ref().and_then(|r|r.result.groups.iter().find(|x|x.group_id==g.group_id)).map(|g|g.level),"bytes_delta":g.bytes_delta,"count_delta":g.count_delta,"bytes_per_day":g.bytes_per_day})).collect();
+    let growth:Vec<_>=growth.iter().take(10).map(|g|json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"title_en":core.rules.text(&g.group_id).map(|t|t.title_en).unwrap_or_else(||"Unrecognized".into()),"level":last.as_ref().and_then(|r|r.result.groups.iter().find(|x|x.group_id==g.group_id)).map(|g|g.level),"bytes_delta":g.bytes_delta,"count_delta":g.count_delta,"bytes_per_day":g.bytes_per_day})).collect();
     let mut seen = BTreeSet::new();
     let mut leaks = Vec::new();
     for r in recent.iter().rev() {
         for g in &r.growth {
             if g.leak_suspect && seen.insert(&g.group_id) && leaks.len() < 5 {
                 let insight = views::insight(r, g, &core.rules, core.platform.as_ref());
-                leaks.push(json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"message_zh":insight["message_zh"],"fix_hint_zh":core.rules.text(&g.group_id).and_then(|t|t.fix_hint_zh).unwrap_or_default(),"active":last.as_ref().is_some_and(|r|r.growth.iter().any(|x|x.group_id==g.group_id && x.leak_suspect))}));
+                leaks.push(json!({"group_id":g.group_id,"title_zh":core.rules.text(&g.group_id).map(|t|t.title_zh).unwrap_or_else(||"未识别".into()),"title_en":core.rules.text(&g.group_id).map(|t|t.title_en).unwrap_or_else(||"Unrecognized".into()),"message_zh":insight["message_zh"],"message_en":insight["message_en"],"fix_hint_zh":core.rules.text(&g.group_id).and_then(|t|t.fix_hint_zh).unwrap_or_default(),"fix_hint_en":core.rules.text(&g.group_id).and_then(|t|t.fix_hint_en).unwrap_or_else(||"No repair advice is available".into()),"active":last.as_ref().is_some_and(|r|r.growth.iter().any(|x|x.group_id==g.group_id && x.leak_suspect))}));
             }
         }
     }
@@ -2067,7 +2169,7 @@ fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
         let (last,free_last) = points[points.len()-1];
         let days = last.duration_since(first).unwrap_or_default().as_secs_f64()/86400.0;
         let basis = (days*10.0).round()/10.0;
-        if points.len()<3 || days<3.0 { return json!({"root":root,"days_to_full":null,"bytes_per_day":"0","basis_days":basis,"note_zh":if reset{"Flick 以外的清理之后重新起算"}else{"至少需要 3 天内 3 次体检才能估算"}}); }
+        if points.len()<3 || days<3.0 { return json!({"root":root,"days_to_full":null,"bytes_per_day":"0","basis_days":basis,"note_zh":if reset{"Flick 以外的清理之后重新起算"}else{"至少需要 3 天内 3 次体检才能估算"},"note_en":if reset{"Restarted after cleaning outside Flick"}else{"An estimate needs at least 3 checkups spanning 3 days"}}); }
         let freed: u128 = s.cleans.values().filter(|c|c["view"]["finished_at"].as_str().and_then(util::parse_time).is_some_and(|t|t>first && t<=last))
             .flat_map(|c|c["view"]["drives"].as_array().into_iter().flatten())
             .filter(|d|d["root"].as_str().is_some_and(|r|r.eq_ignore_ascii_case(&root)))
@@ -2076,6 +2178,6 @@ fn forecast(core: &Core, s: &State, points: &[Value]) -> Vec<Value> {
         let estimate = (free_last as f64/rate).floor();
         let (days_to_full,note) = if rate<=0.0 {(None,Some("最近 30 天可用空间没有减少"))} else if estimate>3650.0 {(None,Some("按现在的速度，十年内不会满"))} else {(Some(estimate as u64),None)};
         let rounded = rate.trunc();
-        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":if rounded == 0.0 {"0".to_owned()} else {format!("{rounded:.0}")},"basis_days":basis,"note_zh":if reset{Some("Flick 以外的清理之后重新起算")}else{note}})
+        json!({"root":root,"days_to_full":days_to_full,"bytes_per_day":if rounded == 0.0 {"0".to_owned()} else {format!("{rounded:.0}")},"basis_days":basis,"note_zh":if reset{Some("Flick 以外的清理之后重新起算")}else{note},"note_en":if reset{Some("Restarted after cleaning outside Flick")}else if rate<=0.0{Some("Free space has not decreased in the last 30 days")}else if estimate>3650.0{Some("At this rate, the drive will not fill within ten years")}else{None}})
     }).collect()
 }

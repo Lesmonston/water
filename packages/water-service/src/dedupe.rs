@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    IpcError, m35,
+    IpcError, language, m35,
     service::{Core, State, lock},
     util, views,
 };
@@ -15,6 +15,7 @@ use water_dup_finder as dup;
 pub(crate) struct Record {
     pub result: dup::DupResult,
     pub label: String,
+    pub label_en: String,
     pub serial: u64,
     pub included: BTreeSet<String>,
     pub local: bool,
@@ -32,6 +33,11 @@ pub(crate) fn load(core: &Core, s: &mut State) {
                 Record {
                     result,
                     label: v["label"].as_str().unwrap_or("查重位置").into(),
+                    label_en: v["label_en"]
+                        .as_str()
+                        .or_else(|| v["label"].as_str())
+                        .unwrap_or("查重位置")
+                        .into(),
                     serial: 1,
                     included: BTreeSet::new(),
                     local: false,
@@ -127,6 +133,7 @@ pub(crate) fn start(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         .ok_or_else(|| IpcError::new("invalid"))?
         .to_owned();
     let label = row["label_zh"].as_str().unwrap().to_owned();
+    let label_en = row["label_en"].as_str().unwrap().to_owned();
     let mut id = util::new_id("dedupe", core.platform.now());
     while s.m35.dedupes.contains_key(&id) {
         id = util::new_id("dedupe", core.platform.now());
@@ -162,7 +169,7 @@ pub(crate) fn start(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                 worker.store.write(
                     "dedupes",
                     &format!("{worker_id}.json"),
-                    &json!({"label":label,"result":result}),
+                    &json!({"label":label,"label_en":label_en,"result":result}),
                 )?;
                 let found: u64 = result
                     .groups
@@ -180,6 +187,10 @@ pub(crate) fn start(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                     &worker,
                     "dedupe",
                     format!("查重完成 · {} 组", result.groups.len()),
+                    format!(
+                        "Duplicate search complete · {}",
+                        language::count(result.groups.len(), "group", "groups")
+                    ),
                     found.to_string(),
                 )?;
                 let dropped = {
@@ -193,6 +204,7 @@ pub(crate) fn start(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                         Record {
                             result,
                             label,
+                            label_en,
                             serial: 1,
                             included: BTreeSet::new(),
                             local: true,
@@ -254,7 +266,7 @@ fn chosen_bytes(g: &dup::DupGroup) -> u64 {
             .count() as u64,
     )
 }
-fn keep_reason(g: &dup::DupGroup) -> &'static str {
+fn keep_reason(g: &dup::DupGroup) -> (&'static str, &'static str) {
     let k = &g.copies[g.keep_index];
     let others = g
         .copies
@@ -264,20 +276,29 @@ fn keep_reason(g: &dup::DupGroup) -> &'static str {
         .map(|(_, c)| c)
         .collect::<Vec<_>>();
     if k.protected && others.iter().any(|c| !c.protected) {
-        "这份在项目声明保护的位置里"
+        (
+            "这份在项目声明保护的位置里",
+            "This copy is protected by the project declaration",
+        )
     } else if k.preferred && others.iter().any(|c| !c.preferred) {
-        "这份在‘以这里为准’的文件夹里"
+        (
+            "这份在‘以这里为准’的文件夹里",
+            "This copy is in the preferred folder",
+        )
     } else if others.iter().any(|c| c.mtime > k.mtime) {
-        "这份更早"
+        ("这份更早", "This copy is older")
     } else if !k.export_tail && others.iter().any(|c| c.export_tail) {
-        "这份名字不带副本尾巴"
+        (
+            "这份名字不带副本尾巴",
+            "This copy has no copy suffix in its name",
+        )
     } else {
-        "按位置排在前面"
+        ("按位置排在前面", "This copy comes first by location")
     }
 }
 fn projection(r: &Record, expand: bool) -> Value {
     let limit = if expand { 200 } else { 8 };
-    let groups=r.result.groups.iter().take(limit).filter(|g|!g.copies.is_empty()).map(|g|json!({"group_id":g.group_id,"name_zh":m35::name(&g.copies[g.keep_index].path),"copies":g.copies.len(),"size":g.size,"keep":{"display_path":g.copies[g.keep_index].path,"reason_zh":keep_reason(g)},"others":g.copies.iter().enumerate().filter(|(i,_)|*i!=g.keep_index).map(|(_,c)|c.path.clone()).collect::<Vec<_>>(),"included":r.included.contains(&g.group_id),"removable":removable(g),"note_zh":if g.copies.iter().skip(1).any(|c|c.link_count>1){Some("有硬链接的副本不可移除，移走一条路径腾不出空间")}else{None}})).collect::<Vec<_>>();
+    let groups=r.result.groups.iter().take(limit).filter(|g|!g.copies.is_empty()).map(|g|json!({"group_id":g.group_id,"name_zh":m35::name(&g.copies[g.keep_index].path),"name_en":m35::name(&g.copies[g.keep_index].path),"copies":g.copies.len(),"size":g.size,"keep":{"display_path":g.copies[g.keep_index].path,"reason_zh":keep_reason(g).0,"reason_en":keep_reason(g).1},"others":g.copies.iter().enumerate().filter(|(i,_)|*i!=g.keep_index).map(|(_,c)|c.path.clone()).collect::<Vec<_>>(),"included":r.included.contains(&g.group_id),"removable":removable(g),"note_en":if g.copies.iter().skip(1).any(|c|c.link_count>1){Some("Hard-linked copies cannot be removed; moving one path does not free space")}else{None},"note_zh":if g.copies.iter().skip(1).any(|c|c.link_count>1){Some("有硬链接的副本不可移除，移走一条路径腾不出空间")}else{None}})).collect::<Vec<_>>();
     let more = &r.result.groups[r.result.groups.len().min(limit)..];
     let skips = &r.result.skipped;
     let mut notes = Vec::new();
@@ -292,7 +313,18 @@ fn projection(r: &Record, expand: bool) -> Value {
             notes.push(format!("{n} {t}"));
         }
     }
-    json!({"dedupe_id":r.result.scan_id,"version":version(r),"location_label_zh":r.label,"finished_at":r.result.ended_at,"status":r.result.status,"extra_bytes":r.result.groups.iter().map(|g|util::number(&g.reclaimable_bytes)).sum::<u64>().to_string(),"chosen_bytes":r.result.groups.iter().filter(|g|r.included.contains(&g.group_id)).map(chosen_bytes).sum::<u64>().to_string(),"groups":groups,"more":if more.is_empty(){Value::Null}else{json!({"count":more.len(),"bytes":more.iter().map(|g|util::number(&g.reclaimable_bytes)).sum::<u64>().to_string(),"text_zh":format!("还有 {} 组",more.len())})},"same_name_different":r.result.same_name_different,"skipped_zh":if notes.is_empty(){None}else{Some(notes.join("；"))}})
+    let notes_en = [
+        (skips.offline, "cloud files not read"),
+        (skips.reparse, "special links not read"),
+        (skips.access_denied, "items without permission"),
+        (skips.locked, "items in use"),
+        (skips.changed, "items changed"),
+    ]
+    .into_iter()
+    .filter(|(n, _)| *n > 0)
+    .map(|(n, t)| format!("{} {t}", language::number(n)))
+    .collect::<Vec<_>>();
+    json!({"skipped_en":if notes_en.is_empty(){None}else{Some(notes_en.join("; "))},"dedupe_id":r.result.scan_id,"version":version(r),"location_label_zh":r.label,"location_label_en":r.label_en,"finished_at":r.result.ended_at,"status":r.result.status,"extra_bytes":r.result.groups.iter().map(|g|util::number(&g.reclaimable_bytes)).sum::<u64>().to_string(),"chosen_bytes":r.result.groups.iter().filter(|g|r.included.contains(&g.group_id)).map(chosen_bytes).sum::<u64>().to_string(),"groups":groups,"more":if more.is_empty(){Value::Null}else{json!({"count":more.len(),"bytes":more.iter().map(|g|util::number(&g.reclaimable_bytes)).sum::<u64>().to_string(),"text_zh":format!("还有 {} 组",more.len()),"text_en":format!("{} more groups",language::number(more.len()))})},"same_name_different":r.result.same_name_different,"skipped_zh":if notes.is_empty(){None}else{Some(notes.join("；"))}})
 }
 pub(crate) fn view(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     let s = lock(core)?;
@@ -362,6 +394,7 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     let mut groups = Vec::new();
     let mut items = Vec::new();
     let mut notes = Vec::new();
+    let mut notes_en = Vec::new();
     let mut by_drive = BTreeMap::<String, u64>::new();
     let mut unavailable = BTreeMap::<String, usize>::new();
     let mut available = BTreeMap::<String, bool>::new();
@@ -376,6 +409,10 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         if !water_junk_clean::identity_of(&keep.path)
             .is_ok_and(|i| expected.is_some_and(|(v, f)| i.volume_serial == v && i.file_id == f))
         {
+            notes_en.push(format!(
+                "{}: the suggested copy to keep has changed; this group was not included",
+                m35::name(&keep.path)
+            ));
             notes.push(format!(
                 "{}：建议保留的那份已经变化，这组没有加入",
                 m35::name(&keep.path)
@@ -420,6 +457,11 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
             groups.push(json!({"group_id":g.group_id,"rule_id":"dedupe","level":"confirm","category":"custom","item_count":count,"eligible_count":count,"total_bytes":bytes.to_string(),"eligible_bytes":bytes.to_string(),"unique_bytes":bytes.to_string(),"eligible_unique_bytes":bytes.to_string(),"file_count":count,"oldest_activity":null,"newest_activity":null,"in_use":{"mode":"runs_from_or_references_item","processes":[]},"top_keys":[]}));
         }
     }
+    notes_en.extend(
+        unavailable
+            .iter()
+            .map(|(drive, count)| crate::quarantine::unavailable_note_en(drive, *count)),
+    );
     notes.extend(
         unavailable
             .into_iter()
@@ -428,6 +470,11 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     if plans.is_empty() {
         return Err(IpcError {
             code: "invalid".into(),
+            message_en: if notes_en.is_empty() {
+                language::error("invalid").into()
+            } else {
+                notes_en.join("; ")
+            },
             message_zh: if notes.is_empty() {
                 "所选内容无法清理，请重新选择。".into()
             } else {
@@ -471,7 +518,12 @@ pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
     } else {
         format!("重复文件 · {}", notes.join("；"))
     };
+    let title_en = if notes_en.is_empty() {
+        "Duplicate files".to_owned()
+    } else {
+        format!("Duplicate files · {}", notes_en.join("; "))
+    };
     Ok(
-        json!({"plan_id":plan_id,"confirm_token":token,"item_count":plans.len(),"total_bytes":total.to_string(),"groups":groups.iter().map(|g|json!({"group_id":g["group_id"],"title_zh":title,"level":"confirm","item_count":g["item_count"],"total_bytes":g["total_bytes"],"in_use_note_zh":null})).collect::<Vec<_>>(),"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":false,"excluded_count":0,"delete":{"bytes":"0","categories":[]},"chosen":{"bytes":total.to_string(),"items":[{"title_zh":title,"bytes":total.to_string()}],"mode":"quarantine","note_zh":if notes.is_empty(){None}else{Some(notes.join("；"))}},"expected_skip":null}),
+        json!({"plan_id":plan_id,"confirm_token":token,"item_count":plans.len(),"total_bytes":total.to_string(),"groups":groups.iter().map(|g|json!({"group_id":g["group_id"],"title_zh":title,"title_en":title_en,"level":"confirm","item_count":g["item_count"],"total_bytes":g["total_bytes"],"in_use_note_zh":null,"in_use_note_en":null})).collect::<Vec<_>>(),"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":false,"excluded_count":0,"delete":{"bytes":"0","categories":[]},"chosen":{"bytes":total.to_string(),"items":[{"title_zh":title,"title_en":title_en,"bytes":total.to_string()}],"mode":"quarantine","note_zh":if notes.is_empty(){None}else{Some(notes.join("；"))},"note_en":if notes_en.is_empty(){None}else{Some(notes_en.join("; "))}},"expected_skip":null}),
     )
 }

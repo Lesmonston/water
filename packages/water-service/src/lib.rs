@@ -4,6 +4,7 @@
 mod clean;
 mod conclusion;
 mod dedupe;
+mod language;
 mod m35;
 #[allow(unsafe_code)]
 mod native_windows;
@@ -21,6 +22,7 @@ use std::{
     time::SystemTime,
 };
 use water_junk_rules::KnownFolders;
+use water_junk_scan as scan;
 use water_process_scan::{InUseSpec, ProcessSnapshot};
 
 /// What `WindowsPlatform::in_use` reports when the process snapshot is unavailable.
@@ -38,6 +40,7 @@ pub struct ServiceConfig {
 pub struct IpcError {
     pub code: String,
     pub message_zh: String,
+    pub message_en: String,
 }
 
 impl IpcError {
@@ -53,6 +56,7 @@ impl IpcError {
                 _ => "Flick 服务暂时不可用。",
             }
             .into(),
+            message_en: language::error(code).into(),
         }
     }
 
@@ -60,6 +64,9 @@ impl IpcError {
         Self {
             code: "unavailable".into(),
             message_zh: "这一版只做体检，清理功能会在下一版开放。".into(),
+            message_en:
+                "This version only runs checkups. Cleaning will be available in the next version."
+                    .into(),
         }
     }
 }

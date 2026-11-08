@@ -27,6 +27,127 @@ const DISABLED: &str = "这一版只做体检，清理功能会在下一版开�
 // Compile the unchanged production service/clean/view/storage sources for two
 // white-box cases. Ordinary contract tests still use water_service::Service.
 // This keeps fixture authorisation and the storage barrier out of the product.
+#[path = "../src/language.rs"]
+mod language;
+mod scan {
+    use super::*;
+    pub use water_junk_scan::*;
+    pub struct Gate {
+        pub steps: mpsc::Sender<&'static str>,
+        pub resume: Mutex<mpsc::Receiver<()>>,
+    }
+    impl Gate {
+        fn pause(&self, step: &'static str) {
+            self.steps.send(step).unwrap();
+            self.resume.lock().unwrap().recv().unwrap();
+        }
+    }
+    pub static GATE: Mutex<Option<Arc<Gate>>> = Mutex::new(None);
+    pub fn scan_full(
+        plan: &ScanPlan,
+        id: &str,
+        options: &ScanOptions,
+        extras: &ExtrasOptions,
+        cancel: &CancelToken,
+        observer: &dyn ScanObserver,
+        now: SystemTime,
+    ) -> Result<(ScanResult, ScanExtras), ScanError> {
+        let gate = GATE.lock().unwrap().clone();
+        if let Some(gate) = gate {
+            // The accepted scanner can repeat this same untagged event while one target is still running.
+            // Neither group_id, category, visited_entries nor found_bytes identifies completion.
+            if let Some(t) = plan.targets.first() {
+                for _ in 0..plan.targets.len() {
+                    observer.on_progress(&ScanProgress {
+                        group_id: t.group_id.clone(),
+                        category: serde_json::to_value(t.category)
+                            .unwrap()
+                            .as_str()
+                            .unwrap()
+                            .into(),
+                        visited_entries: 1,
+                        found_bytes: 123,
+                    });
+                }
+            }
+            gate.pause("rule-mid");
+            for (n, t) in plan.targets.iter().enumerate() {
+                observer.on_progress(&ScanProgress {
+                    group_id: t.group_id.clone(),
+                    category: serde_json::to_value(t.category)
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .into(),
+                    visited_entries: n as u64 + 1,
+                    found_bytes: 123,
+                });
+            }
+            gate.pause("rules");
+            return Ok((
+                ScanResult {
+                    result_version: "water.scan-result.v1".into(),
+                    scan_id: id.into(),
+                    started_at: util::timestamp(now),
+                    ended_at: util::timestamp(now),
+                    status: "completed".into(),
+                    visited_entries: plan.targets.len() as u64,
+                    groups: vec![],
+                    items: vec![],
+                    issues: vec![],
+                },
+                ScanExtras {
+                    extras_version: "water.scan-extras.v1".into(),
+                    scan_id: id.into(),
+                    junctions: vec![],
+                    junctions_truncated: false,
+                    declarations: vec![],
+                },
+            ));
+        }
+        water_junk_scan::scan_full(plan, id, options, extras, cancel, observer, now)
+    }
+    pub fn space_overview(
+        root: &str,
+        id: &str,
+        options: &ScanOptions,
+        cancel: &CancelToken,
+        observer: &dyn ScanObserver,
+        now: SystemTime,
+    ) -> Result<SpaceOverview, ScanError> {
+        let gate = GATE.lock().unwrap().clone();
+        if let Some(gate) = gate {
+            gate.pause("space-start");
+            for bytes in [250, 500, 1500] {
+                observer.on_progress(&ScanProgress {
+                    group_id: "space_overview".into(),
+                    category: "space".into(),
+                    visited_entries: 5,
+                    found_bytes: bytes,
+                });
+                gate.pause("space-progress");
+            }
+            return Ok(SpaceOverview {
+                overview_version: "water.space-overview.v1".into(),
+                scan_id: id.into(),
+                root: root.into(),
+                started_at: util::timestamp(now),
+                ended_at: util::timestamp(now),
+                status: "completed".into(),
+                visited_entries: 5,
+                disk_bytes: "1500".into(),
+                total_bytes: "1500".into(),
+                file_count: 5,
+                top: vec![],
+                others_count: 0,
+                others_disk_bytes: "0".into(),
+                issues: vec![],
+            });
+        }
+        water_junk_scan::space_overview(root, id, options, cancel, observer, now)
+    }
+}
+
 #[path = "../src/clean.rs"]
 mod clean;
 #[path = "../src/conclusion.rs"]
@@ -59,11 +180,13 @@ const IN_USE_UNKNOWN: &str = "无法确认占用状态";
 struct IpcError {
     code: String,
     message_zh: String,
+    message_en: String,
 }
 impl IpcError {
     fn new(code: &str) -> Self {
         Self {
             code: code.into(),
+            message_en: language::error(code).into(),
             message_zh: match code {
                 "busy" => "正在进行另一项任务，请稍候。",
                 "stale" => "结果已过期，请重新体检后再清理。",
@@ -79,6 +202,9 @@ impl IpcError {
         Self {
             code: "unavailable".into(),
             message_zh: DISABLED.into(),
+            message_en:
+                "This version only runs checkups. Cleaning will be available in the next version."
+                    .into(),
         }
     }
 }
@@ -87,6 +213,7 @@ impl From<PublicIpcError> for IpcError {
         Self {
             code: e.code,
             message_zh: e.message_zh,
+            message_en: e.message_en,
         }
     }
 }
@@ -177,6 +304,7 @@ impl TestService for service::Service {
         self.call(command, args).map_err(|e| PublicIpcError {
             code: e.code,
             message_zh: e.message_zh,
+            message_en: e.message_en,
         })
     }
 }
@@ -507,9 +635,65 @@ fn age(path: &Path, seconds: u64) {
     )
     .unwrap();
 }
+fn english_pairs(value: &Value, check_english: bool) {
+    match value {
+        Value::Object(map) => {
+            for (key, zh) in map {
+                let sibling = key
+                    .strip_suffix("_zh")
+                    .map(|stem| format!("{stem}_en"))
+                    .or_else(|| (key == "copy_text").then(|| "copy_text_en".into()));
+                if let Some(sibling) = sibling {
+                    let en = map
+                        .get(&sibling)
+                        .unwrap_or_else(|| panic!("SERVICE_W14_EN: missing {sibling}"));
+                    match (zh, en) {
+                        (Value::String(_), Value::String(en)) => {
+                            assert!(!en.is_empty(), "SERVICE_W14_EN: empty {sibling}");
+                            if check_english {
+                                assert!(!en.chars().any(|c|matches!(c,'\u{3400}'..='\u{9fff}'|'\u{f900}'..='\u{faff}')),"SERVICE_W14_EN: Chinese in {sibling}: {en}");
+                            }
+                        }
+                        (Value::Null, Value::Null) => {}
+                        (Value::Array(zh), Value::Array(en)) => {
+                            assert_eq!(
+                                zh.len(),
+                                en.len(),
+                                "SERVICE_W14_EN: array length {sibling}"
+                            );
+                            assert!(
+                                en.iter().all(Value::is_string),
+                                "SERVICE_W14_EN: array type {sibling}"
+                            );
+                            if check_english {
+                                assert!(
+                                    !en.iter().filter_map(Value::as_str).any(|s| s
+                                        .chars()
+                                        .any(|c| matches!(c, '\u{3400}'..='\u{9fff}'))),
+                                    "SERVICE_W14_EN: Chinese in array {sibling}: {en:?}"
+                                );
+                            }
+                        }
+                        _ => panic!("SERVICE_W14_EN: type mismatch {key}/{sibling}"),
+                    }
+                }
+                english_pairs(zh, check_english);
+            }
+        }
+        Value::Array(values) => {
+            for value in values {
+                english_pairs(value, check_english)
+            }
+        }
+        _ => {}
+    }
+}
+
 fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
+    // Old records and user-provided folder/project names may legitimately contain Chinese.
+    english_pairs(&result, false);
     // SERVICE.md L46: call except custom_root_add (folder picker) must return in 50 ms.
     // Commands that write files synchronously in the same call get 200 ms.
     if c == "custom_root_add" {
@@ -552,7 +736,7 @@ fn wait(s: &impl TestService, c: &str) -> Value {
             assert!(current >= percent);
             percent = current;
         }
-        if p["state"] != "running" {
+        if !matches!(p["state"].as_str(), Some("running" | "finishing")) {
             return p;
         }
         assert!(
@@ -686,11 +870,11 @@ fn shape(actual: &Value, sample: &Value) {
     match (actual, sample) {
         (Value::Object(a), Value::Object(b)) => {
             assert_eq!(
-                a.keys().collect::<Vec<_>>(),
-                b.keys().collect::<Vec<_>>(),
+                a.keys().filter(|k| !k.ends_with("_en")).collect::<Vec<_>>(),
+                b.keys().filter(|k| !k.ends_with("_en")).collect::<Vec<_>>(),
                 "shape {actual}"
             );
-            for (key, value) in a {
+            for (key, value) in a.iter().filter(|(key, _)| !key.ends_with("_en")) {
                 shape(value, &b[key]);
             }
         }
@@ -828,6 +1012,7 @@ fn service_ipc_contract() {
         ),
     ] {
         let error = s.call(c, a).unwrap_err();
+        english_pairs(&json!(error), true);
         assert_eq!(error.code, "invalid");
         shape(&json!(error), &samples["errors"]["invalid"]);
     }
@@ -835,6 +1020,7 @@ fn service_ipc_contract() {
     shape(&started, &samples["scan_start"]);
     wait(&s, "scan_progress");
     let result = call(&s, "scan_result", json!({"scanId":started["scan_id"]}));
+    english_pairs(&result, true);
     shape(&result, &samples["scan_result"]);
     shape(
         &call(&s, "app_state", json!({})),
@@ -902,6 +1088,165 @@ fn service_ipc_contract() {
 
 #[test]
 fn service_scan_views() {
+    // The source-compiled service replaces only the scanner boundary. No real drive is traversed.
+    // Channels hold each stage; no polling interval or sleep determines which stages are observed.
+    for whole_drive in [true, false] {
+        let f = Fixture::new();
+        let root = f.root.join("progress-drive");
+        fs::create_dir(&root).unwrap();
+        if whole_drive {
+            f.fake.drives.lock().unwrap().push(DriveInfo {
+                root: slash(&root),
+                is_system: false,
+                total_bytes: 2000,
+                free_bytes: 1000,
+            });
+        }
+        let s = source_service(&f, false);
+        let (steps, seen) = mpsc::channel();
+        let (resume, go) = mpsc::channel();
+        *scan::GATE.lock().unwrap() = Some(Arc::new(scan::Gate {
+            steps,
+            resume: Mutex::new(go),
+        }));
+        let (written, writing) = mpsc::channel();
+        let (persist, save) = mpsc::channel();
+        *s.core.store.after_snapshot.lock().unwrap() = Some((written, save));
+        let args = if whole_drive {
+            json!({"locationIds":["common","drive-f"]})
+        } else {
+            json!({"locationIds":["common"]})
+        };
+        // The fixture's drive letter may differ on other Windows runners.
+        let args = if whole_drive {
+            json!({"locationIds":["common",format!("drive-{}",fixture_drive()[..1].to_ascii_lowercase())]})
+        } else {
+            args
+        };
+        call(&s, "scan_start", args);
+        assert_eq!(
+            seen.recv().unwrap(),
+            "rule-mid",
+            "SERVICE_W14_PROGRESS: periodic event barrier"
+        );
+        let mid_target = call(&s, "scan_progress", json!({}));
+        resume.send(()).unwrap();
+        assert_eq!(
+            seen.recv().unwrap(),
+            "rules",
+            "SERVICE_W14_PROGRESS: rules barrier"
+        );
+        let mut sequence = vec![call(&s, "scan_progress", json!({}))];
+        assert_eq!(
+            sequence[0]["state"], "running",
+            "SERVICE_W14_PROGRESS: rules state"
+        );
+        assert_eq!(
+            sequence[0]["percent"],
+            if whole_drive { 40 } else { 90 },
+            "SERVICE_W14_PROGRESS: rule weight"
+        );
+        let labels = sequence[0]["locations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|l| (l["label_zh"].clone(), l["label_en"].clone()))
+            .collect::<Vec<_>>();
+        if whole_drive {
+            assert_ne!(
+                sequence[0]["locations"][1]["state"], "done",
+                "SERVICE_W14_PROGRESS: drive is not done after rules"
+            );
+        }
+        resume.send(()).unwrap();
+        if whole_drive {
+            for (step, percent) in [
+                ("space-start", 40),
+                ("space-progress", 53),
+                ("space-progress", 67),
+                ("space-progress", 94),
+            ] {
+                assert_eq!(
+                    seen.recv().unwrap(),
+                    step,
+                    "SERVICE_W14_PROGRESS: space barrier"
+                );
+                let p = call(&s, "scan_progress", json!({}));
+                assert_eq!(
+                    p["locations"][1]["state"], "space",
+                    "SERVICE_W14_PROGRESS: space state"
+                );
+                assert_eq!(
+                    p["percent"], percent,
+                    "SERVICE_W14_PROGRESS: used bytes weight"
+                );
+                assert_eq!(
+                    p["found_bytes"], "123",
+                    "SERVICE_W14_PROGRESS: overview bytes excluded"
+                );
+                sequence.push(p);
+                resume.send(()).unwrap();
+            }
+        }
+        writing.recv().unwrap();
+        let finishing = call(&s, "scan_progress", json!({}));
+        assert_eq!(
+            finishing["state"], "finishing",
+            "SERVICE_W14_PROGRESS: finishing state"
+        );
+        assert_eq!(
+            finishing["percent"], 95,
+            "SERVICE_W14_PROGRESS: finishing percent"
+        );
+        if whole_drive {
+            assert_eq!(
+                finishing["locations"][1]["state"], "done",
+                "SERVICE_W14_PROGRESS: overview completed"
+            );
+        }
+        sequence.push(finishing);
+        persist.send(()).unwrap();
+        sequence.push(wait(&s, "scan_progress"));
+        assert_eq!(
+            sequence.last().unwrap()["state"],
+            "completed",
+            "SERVICE_W14_PROGRESS: terminal"
+        );
+        assert_eq!(
+            sequence.last().unwrap()["percent"],
+            100,
+            "SERVICE_W14_PROGRESS: terminal percent"
+        );
+        assert!(
+            sequence
+                .windows(2)
+                .all(|p| p[0]["percent"].as_u64() <= p[1]["percent"].as_u64()),
+            "SERVICE_W14_PROGRESS: monotonic"
+        );
+        for p in &sequence {
+            assert_eq!(
+                p["found_bytes"], "123",
+                "SERVICE_W14_PROGRESS: final excludes overview"
+            );
+            assert_eq!(
+                p["locations"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|l| (l["label_zh"].clone(), l["label_en"].clone()))
+                    .collect::<Vec<_>>(),
+                labels,
+                "SERVICE_W14_PROGRESS: stable names"
+            );
+        }
+        *scan::GATE.lock().unwrap() = None;
+        // Assert only after releasing every barrier, so a failure cannot leave a worker behind.
+        assert_eq!(
+            mid_target["percent"], 0,
+            "SERVICE_W14_PROGRESS: repeated within-target callbacks are not completed targets"
+        );
+    }
+
     m3c_unique_inuse();
     m3c_by_drive();
     let f = Fixture::new();
@@ -1457,7 +1802,15 @@ fn service_trends_locations() {
             .all(|v| v["message_zh"].as_str().unwrap().contains("+<1 MB"))
     );
     // Scan timestamps include real elapsed time; query after both scans finish.
-    f.fake.now.store(NOW + 2 * 86400 + 60, Ordering::SeqCst);
+    f.fake.now.store(
+        util::parse_time(result["finished_at"].as_str().unwrap())
+            .unwrap()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 60,
+        Ordering::SeqCst,
+    );
     let trends = call(&s, "trends", json!({}));
     assert_eq!(trends["points"].as_array().unwrap().len(), 2);
     assert!(!trends["growth"].as_array().unwrap().is_empty());
@@ -1845,7 +2198,7 @@ fn settle(s: &impl TestService, c: &str, marker: &str) -> Value {
     let start = Instant::now();
     loop {
         let p = call(s, c, json!({}));
-        if p["state"] != "running" {
+        if !matches!(p["state"].as_str(), Some("running" | "finishing")) {
             return p;
         }
         assert!(

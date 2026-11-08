@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    IpcError, conclusion, m35, quarantine,
+    IpcError, conclusion, language, m35, quarantine,
     service::{Core, Record, State, lock, trim_files, trim_state},
     util, views,
 };
@@ -13,7 +13,7 @@ use std::{
 use water_junk_clean as clean;
 
 pub(crate) fn idle() -> Value {
-    json!({"clean_id":null,"state":"idle","done_items":0,"total_items":0,"freed_bytes":"0","group_index":0,"group_count":0,"current_group_title_zh":null,"phase":"delete","quarantined_bytes":"0"})
+    json!({"clean_id":null,"state":"idle","done_items":0,"total_items":0,"freed_bytes":"0","group_index":0,"group_count":0,"current_group_title_zh":null,"current_group_title_en":null,"phase":"delete","quarantined_bytes":"0"})
 }
 
 pub(crate) fn prepare(
@@ -60,6 +60,8 @@ pub(crate) fn prepare_mode(
         return Err(IpcError {
             code: "stale".into(),
             message_zh: "这次体检没有完整完成，请重新体检后再清理。".into(),
+            message_en: "This checkup did not finish completely. Check again before cleaning."
+                .into(),
         });
     }
     let mut items = Vec::new();
@@ -179,7 +181,7 @@ pub(crate) fn prepare_mode(
             items.push(json!({"item_id":item.item_id,"group_id":id,"rule_id":group.rule_id,"level":group.level,"path":item.path,"root":root,"kind":item.kind,"identity":item.identity,"total_bytes":item.total_bytes,"min_age_hours":age,"unlocked_paths":unlocks}));
         }
         if items.len() > before {
-            groups.push(json!({"group_id":id,"title_zh":projection.details[id]["group"]["title_zh"],"level":group.level,"item_count":0,"total_bytes":"0","in_use_note_zh":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
+            groups.push(json!({"group_id":id,"title_zh":projection.details[id]["group"]["title_zh"],"title_en":projection.details[id]["group"]["title_en"],"level":group.level,"item_count":0,"total_bytes":"0","in_use_note_en":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("Running; in-use items will be skipped")},"in_use_note_zh":if projection.details[id]["group"]["in_use"].is_null(){None}else{Some("运行中，占用的项会跳过")}}));
         }
     }
     retain_outermost(&mut items);
@@ -278,14 +280,28 @@ pub(crate) fn prepare_mode(
     );
     if !unavailable.is_empty() {
         if extra["chosen"].is_null() {
-            extra["chosen"] = json!({"bytes":"0","items":[],"mode":"quarantine","note_zh":null});
+            extra["chosen"] =
+                json!({"bytes":"0","items":[],"mode":"quarantine","note_zh":null,"note_en":null});
         }
         let mut notes = Vec::new();
+        let mut notes_en = Vec::new();
         if let Some(note) = extra["chosen"]["note_zh"].as_str() {
             notes.push(note.to_owned());
         } else if skipped_session {
             notes.push("清掉后这些对话不能再续接或回看".into());
         }
+        if let Some(note) = extra["chosen"]["note_en"].as_str() {
+            notes_en.push(note.to_owned());
+        } else if skipped_session {
+            notes_en
+                .push("These conversations cannot be resumed or reviewed after cleaning".into());
+        }
+        notes_en.extend(
+            unavailable
+                .iter()
+                .map(|(drive, count)| quarantine::unavailable_note_en(drive, *count)),
+        );
+        extra["chosen"]["note_en"] = json!(notes_en.join("; "));
         notes.extend(
             unavailable
                 .into_iter()
@@ -344,6 +360,7 @@ pub(crate) fn preview_parts(
 ) -> Value {
     let mut cats = BTreeMap::<String, u64>::new();
     let mut titles = BTreeMap::<String, u64>::new();
+    let mut title_en = BTreeMap::<String, String>::new();
     let mut skips = BTreeMap::<String, u64>::new();
     let mut chosen_bytes = 0u64;
     let projection = r.projection();
@@ -365,6 +382,13 @@ pub(crate) fn preview_parts(
                 .as_str()
                 .unwrap_or("重复文件")
                 .to_owned();
+            title_en.insert(
+                title.clone(),
+                projection.details[&g.group_id]["group"]["title_en"]
+                    .as_str()
+                    .unwrap_or("Duplicate files")
+                    .into(),
+            );
             *titles.entry(title).or_default() += n;
         } else {
             *cats.entry(views::category(g)).or_default() += n;
@@ -386,7 +410,7 @@ pub(crate) fn preview_parts(
                     .is_some_and(|r| r.session_tool.is_some())
         })
     });
-    json!({"delete":{"bytes":cats.values().sum::<u64>().to_string(),"categories":cats.into_iter().map(|(c,n)|json!({"title_zh":views::CATEGORIES.iter().find(|x|x.0==c).map(|x|x.1).unwrap_or("其它"),"bytes":n.to_string()})).collect::<Vec<_>>()},"chosen":if chosen.is_empty(){Value::Null}else{json!({"bytes":chosen_bytes.to_string(),"items":titles.into_iter().map(|(title,n)|json!({"title_zh":title,"bytes":n.to_string()})).collect::<Vec<_>>(),"mode":mode,"note_zh":if session{Some("清掉后这些对话不能再续接或回看")}else{None}})},"expected_skip":if skip_bytes==0{Value::Null}else{json!({"bytes":skip_bytes.to_string(),"notes_zh":skips.into_iter().map(|(name,n)|format!("{name} 开着，会跳过约 {}",m35::amount(n))).collect::<Vec<_>>()})}})
+    json!({"delete":{"bytes":cats.values().sum::<u64>().to_string(),"categories":cats.into_iter().map(|(c,n)|json!({"title_en":views::category_en(&c).0,"title_zh":views::CATEGORIES.iter().find(|x|x.0==c).map(|x|x.1).unwrap_or("其它"),"bytes":n.to_string()})).collect::<Vec<_>>()},"chosen":if chosen.is_empty(){Value::Null}else{json!({"bytes":chosen_bytes.to_string(),"items":titles.into_iter().map(|(title,n)|json!({"title_zh":title,"title_en":title_en.get(&title),"bytes":n.to_string()})).collect::<Vec<_>>(),"mode":mode,"note_zh":if session{Some("清掉后这些对话不能再续接或回看")}else{None},"note_en":if session{Some("These conversations cannot be resumed or reviewed after cleaning")}else{None}})},"expected_skip":if skip_bytes==0{Value::Null}else{json!({"bytes":skip_bytes.to_string(),"notes_en":skips.iter().map(|(name,n)|format!("{} is running; about {} will be skipped",if name==crate::IN_USE_UNKNOWN {"Cannot confirm in-use status".to_owned()}else{views::product_name_en(name)},m35::amount_en(*n))).collect::<Vec<_>>(),"notes_zh":skips.into_iter().map(|(name,n)|format!("{name} 开着，会跳过约 {}",m35::amount(n))).collect::<Vec<_>>()})}})
 }
 
 pub(crate) struct Execution<'a> {
@@ -509,7 +533,10 @@ pub(crate) fn start_with_executor(
     let stop = clean::StopFlag::default();
     s.stop = Some(stop.clone());
     s.busy = "cleaning";
-    s.clean_progress = json!({"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":usize::from(!group_ids.is_empty()),"group_count":group_ids.len(),"current_group_title_zh":title,"phase":"delete","quarantined_bytes":"0"});
+    let title_en = group_ids
+        .first()
+        .map(|g| r.projection().details[g]["group"]["title_en"].clone());
+    s.clean_progress = json!({"current_group_title_en":title_en,"clean_id":clean_id,"state":"running","done_items":0,"total_items":plan.items.len(),"freed_bytes":"0","group_index":usize::from(!group_ids.is_empty()),"group_count":group_ids.len(),"current_group_title_zh":title,"phase":"delete","quarantined_bytes":"0"});
     drop(s);
     let worker_core = core.clone();
     let worker_id = clean_id.clone();
@@ -666,10 +693,7 @@ pub(crate) fn start_with_executor(
                                             skipped
                                         } else {
                                             for item in &batch.items {
-                                                batch_errors.push((
-                                                    item.group_id.clone(),
-                                                    quarantine_failure_reason(e).to_owned(),
-                                                ));
+                                                batch_errors.push((item.group_id.clone(), e));
                                             }
                                             failed_batch(&batch, &id, now)
                                         }
@@ -685,6 +709,7 @@ pub(crate) fn start_with_executor(
                                 .map_err(|_| IpcError {
                                     code: "unavailable".into(),
                                     message_zh: quarantine::JOURNAL_MESSAGE.into(),
+                                    message_en: quarantine::JOURNAL_MESSAGE_EN.into(),
                                 })?;
                                 report
                             } else {
@@ -755,6 +780,7 @@ pub(crate) fn start_with_executor(
                         let ids = if let Ok(mut s) = lock(&worker_core) {
                             s.clean_progress["group_index"] = json!(group_ids.len());
                             s.clean_progress["current_group_title_zh"] = Value::Null;
+                            s.clean_progress["current_group_title_en"] = Value::Null;
                             s.clean_order.push(worker_id.clone());
                             s.cleans.insert(worker_id, stored);
                             Some(trim_state(&mut s))
@@ -911,6 +937,9 @@ impl clean::CleanObserver for Observer<'_> {
             }
             let _ = total;
             s.clean_progress["group_index"] = json!(index);
+            s.clean_progress["current_group_title_en"] = group
+                .map(|g| self.record.projection().details[g]["group"]["title_en"].clone())
+                .unwrap_or(Value::Null);
             s.clean_progress["current_group_title_zh"] = group
                 .map(|g| self.record.projection().details[g]["group"]["title_zh"].clone())
                 .unwrap_or(Value::Null);
@@ -938,8 +967,10 @@ fn result_view(
             counts[5]+=item.failed_entries;
         }
         let tails=[" 项正在使用，已跳过"," 项已经变化，已跳过"," 项刚有改动，已跳过"," 项未通过安全复核，已跳过"," 项因停止未处理"," 个文件无法删除"," 项因日志写不进去未处理"];
+        let tails_en=[" in use; skipped"," changed; skipped"," changed recently; skipped"," failed the safety review; skipped"," unprocessed after stopping"," files could not be deleted"," unprocessed because the journal could not be written"];
+        let notes_en=counts.iter().zip(tails_en).filter(|(n,_)|**n>0).map(|(n,t)|format!("{}{t}",language::number(n))).collect::<Vec<_>>();
         let notes:Vec<_>=counts.into_iter().zip(tails).filter(|(n,_)|*n>0).map(|(n,t)|format!("{n}{t}")).collect();
-        json!({"group_id":group,"title_zh":r.projection().details[&group]["group"]["title_zh"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes})
+        json!({"group_id":group,"title_zh":r.projection().details[&group]["group"]["title_zh"],"title_en":r.projection().details[&group]["group"]["title_en"],"status":status,"freed_bytes":reports.iter().map(|i|util::number(&i.bytes_freed)).sum::<u64>().to_string(),"notes_zh":notes,"notes_en":notes_en})
     }).collect();
     let estimate: u64 = plan
         .items
@@ -947,7 +978,7 @@ fn result_view(
         .filter_map(|p| r.result.items.iter().find(|i| i.item_id == p.item_id))
         .map(|i| util::number(&i.unique_bytes))
         .sum();
-    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy(),"quarantined":null,"journal_note_zh":null})
+    json!({"clean_id":id,"finished_at":report.ended_at,"estimate_bytes":estimate.to_string(),"freed_bytes":report.freed_bytes,"drives":report.volumes,"groups":groups,"journal_display_path":core.store.root.join("journal").join(format!("{id}.jsonl")).to_string_lossy(),"quarantined":null,"journal_note_zh":null,"journal_note_en":null})
 }
 
 pub(crate) fn quarantine_failure_reason(error: clean::CleanError) -> &'static str {
@@ -1011,7 +1042,7 @@ pub(crate) fn save_result(
     plan: &clean::CleanPlan,
     report: &clean::CleanReport,
     quarantines: &[clean::QuarantineReport],
-    errors: &[(String, String)],
+    errors: &[(String, clean::CleanError)],
     id: &str,
 ) -> Result<Value, IpcError> {
     let mut view = result_view(core, r, plan, report, id);
@@ -1029,6 +1060,14 @@ pub(crate) fn save_result(
             .filter(|i| i.skip_reason == Some(clean::SkipReason::JournalFailed))
             .count();
     if journal_error {
+        view["journal_note_en"] = if n == 0 {
+            json!("The cleaning journal is incomplete; all selected items were processed")
+        } else {
+            json!(format!(
+                "The cleaning journal is incomplete; the remaining {} were left alone",
+                language::count(n, "item", "items")
+            ))
+        };
         view["journal_note_zh"] = if n == 0 {
             json!("清理日志没写全，这次要清的都已处理")
         } else {
@@ -1043,10 +1082,16 @@ pub(crate) fn save_result(
             .filter(|g| g["group_id"] == *id)
         {
             g["status"] = json!("failed");
-            let note = json!(format!("没能放进隔离区：{reason}"));
+            let reason_zh = quarantine_failure_reason(*reason);
+            let note_en = json!(format!(
+                "Could not move to quarantine: {}",
+                quarantine_failure_reason_en(*reason)
+            ));
+            let note = json!(format!("没能放进隔离区：{reason_zh}"));
             let notes = g["notes_zh"].as_array_mut().unwrap();
             if !notes.contains(&note) {
                 notes.push(note);
+                g["notes_en"].as_array_mut().unwrap().push(note_en);
             }
         }
     }
@@ -1080,7 +1125,7 @@ fn apply_quarantines(
         .collect::<Vec<_>>();
     ids.sort_by_key(|s| s.rsplit('-').next().unwrap_or("").to_owned());
     if count > 0 {
-        view["quarantined"] = json!({"quarantine_ids":ids,"bytes":bytes.to_string(),"item_count":count,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"]});
+        view["quarantined"] = json!({"quarantine_ids":ids,"bytes":bytes.to_string(),"item_count":count,"notes_zh":["移入隔离区尚未腾出空间，确认没问题后再永久删除"],"notes_en":["Moving to quarantine has not freed space. Permanently delete after confirming everything is fine"]});
     }
     for group in view["groups"].as_array_mut().into_iter().flatten() {
         let moved = reports
@@ -1108,6 +1153,7 @@ fn apply_quarantines(
         } else {
             "skipped"
         });
+        let mut notes_en = group["notes_en"].as_array().cloned().unwrap_or_default();
         let notes = group["notes_zh"].as_array_mut().unwrap();
         let journal_failed = moved
             .iter()
@@ -1115,14 +1161,39 @@ fn apply_quarantines(
             .count();
         if journal_failed > 0 {
             notes.push(json!(format!("{journal_failed} 项因日志写不进去未处理")));
+            notes_en.push(json!(format!(
+                "{} unprocessed because the journal could not be written",
+                language::count(journal_failed, "item", "items")
+            )));
         }
         if done > 0 {
             notes.push(json!(format!("{done} 项进了隔离区")));
+            notes_en.push(json!(format!(
+                "{} moved to quarantine",
+                language::count(done, "item", "items")
+            )));
         }
         for i in moved.iter().filter(|i| {
             i.status != clean::MoveStatus::Moved
                 && i.skip_reason != Some(clean::SkipReason::JournalFailed)
         }) {
+            notes_en.push(json!(
+                if i.move_error == Some(clean::MoveError::QuarantineUnavailable) {
+                    let drive = plan
+                        .items
+                        .iter()
+                        .find(|p| p.item_id == i.item_id)
+                        .map(|p| util::drive(&p.path))
+                        .unwrap_or_default();
+                    quarantine::unavailable_note_en(&drive, 1)
+                } else if i.skip_reason == Some(clean::SkipReason::InUse) {
+                    "In use; skipped".into()
+                } else if i.skip_reason == Some(clean::SkipReason::Cancelled) {
+                    "Unprocessed after stopping".into()
+                } else {
+                    "Not moved; verification or the move failed".into()
+                }
+            ));
             notes.push(json!(
                 if i.move_error == Some(clean::MoveError::QuarantineUnavailable) {
                     let drive = plan
@@ -1141,6 +1212,17 @@ fn apply_quarantines(
                 }
             ));
         }
+        group["notes_en"] = json!(notes_en);
     }
     let _ = r;
+}
+
+fn quarantine_failure_reason_en(error: clean::CleanError) -> &'static str {
+    match error {
+        clean::CleanError::InvalidPlan => "Invalid cleaning plan",
+        clean::CleanError::Native => "File operation failed",
+        clean::CleanError::Unsupported => "Unsupported on this computer",
+        clean::CleanError::Journal => "Could not write the journal",
+        clean::CleanError::Overflow => "Count exceeds the supported range",
+    }
 }

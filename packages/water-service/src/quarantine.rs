@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    IpcError, m35,
+    IpcError, language, m35,
     service::{Core, State, lock},
     util,
 };
@@ -10,6 +10,8 @@ use std::{collections::BTreeMap, sync::Arc};
 use water_junk_clean as clean;
 
 pub(crate) const JOURNAL_MESSAGE: &str = "文件已经动过，但记录没有写成功，请到隔离区核对";
+pub(crate) const JOURNAL_MESSAGE_EN: &str =
+    "Files have already changed, but the record could not be saved. Check quarantine";
 #[derive(Default)]
 pub(crate) struct Cache {
     pub view: Value,
@@ -30,6 +32,7 @@ pub(crate) fn error(e: clean::CleanError) -> IpcError {
         IpcError {
             code: "unavailable".into(),
             message_zh: JOURNAL_MESSAGE.into(),
+            message_en: JOURNAL_MESSAGE_EN.into(),
         }
     } else {
         IpcError::new("unavailable")
@@ -83,6 +86,10 @@ pub(crate) fn refresh_with(
         .records("quarantine")
         .into_iter()
         .filter(|(id, v)| valid_record(v, id, &roots))
+        .map(|(id, mut v)| {
+            language::legacy(&mut v);
+            (id, v)
+        })
         .collect::<BTreeMap<_, _>>();
     let mut cache = Cache {
         view: json!({"bytes":"0","roots":[],"cards":[]}),
@@ -143,7 +150,7 @@ pub(crate) fn refresh_with(
                     {
                         continue;
                     }
-                    leftovers.push(json!({"display_name":rel,"bytes":e["bytes"],"reason_zh":reason(e["reason"].as_str().unwrap_or("other"),e["kind"]=="dir",rel),"retry":e["reason"]!="reparse" && e["reason"]!="access_denied"}));
+                    leftovers.push(json!({"display_name":rel,"bytes":e["bytes"],"reason_zh":reason(e["reason"].as_str().unwrap_or("other"),e["kind"]=="dir",rel),"reason_en":reason_en(e["reason"].as_str().unwrap_or("other"),e["kind"]=="dir",rel),"retry":e["reason"]!="reparse" && e["reason"]!="access_denied"}));
                 }
             }
             for e in &info.hard_entries {
@@ -158,7 +165,7 @@ pub(crate) fn refresh_with(
                         clean::LeftoverHint::Reparse => "reparse",
                         clean::LeftoverHint::AccessDenied => "access_denied",
                     };
-                    leftovers.push(json!({"display_name":e.rel,"bytes":e.bytes,"reason_zh":reason(kind,e.kind==clean::Kind::Dir,&e.rel),"retry":!matches!(kind,"reparse"|"access_denied")}));
+                    leftovers.push(json!({"display_name":e.rel,"bytes":e.bytes,"reason_zh":reason(kind,e.kind==clean::Kind::Dir,&e.rel),"reason_en":reason_en(kind,e.kind==clean::Kind::Dir,&e.rel),"retry":!matches!(kind,"reparse"|"access_denied")}));
                 }
             }
             let leftover = record.is_some_and(|r| {
@@ -167,10 +174,18 @@ pub(crate) fn refresh_with(
             let count = leftovers.len();
             leftovers.truncate(20);
             let mut by_title = BTreeMap::<String, (u64, u64)>::new();
+            let mut english_titles = BTreeMap::<String, String>::new();
             if let Some(record) = record {
                 for e in record["entries"].as_array().into_iter().flatten() {
                     let rel = e["rel"].as_str().unwrap_or("");
                     if std::fs::symlink_metadata(format!("{}\\{rel}", q.dir)).is_ok() {
+                        english_titles.insert(
+                            e["group_title_zh"].as_str().unwrap_or("隔离文件").into(),
+                            e["group_title_en"]
+                                .as_str()
+                                .unwrap_or("Quarantined files")
+                                .into(),
+                        );
                         let x = by_title
                             .entry(e["group_title_zh"].as_str().unwrap_or("隔离文件").into())
                             .or_default();
@@ -180,13 +195,13 @@ pub(crate) fn refresh_with(
                 }
             }
             let present_count = by_title.values().map(|(count, _)| *count).sum::<u64>();
-            let mut summary=by_title.into_iter().map(|(label,(count,bytes))|json!({"label_zh":label,"count":count,"bytes":bytes.to_string()})).collect::<Vec<_>>();
+            let mut summary=by_title.into_iter().map(|(label,(count,bytes))|json!({"label_en":english_titles.get(&label),"label_zh":label,"count":count,"bytes":bytes.to_string()})).collect::<Vec<_>>();
             summary.sort_by_key(|v| std::cmp::Reverse(util::bytes(&v["bytes"])));
             if summary.len() > 8 {
                 let other = summary.drain(7..).collect::<Vec<_>>();
-                summary.push(json!({"label_zh":"其它","count":other.iter().map(|r|r["count"].as_u64().unwrap_or(0)).sum::<u64>(),"bytes":other.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>().to_string()}));
+                summary.push(json!({"label_zh":"其它","label_en":"Other","count":other.iter().map(|r|r["count"].as_u64().unwrap_or(0)).sum::<u64>(),"bytes":other.iter().map(|r|util::bytes(&r["bytes"])).sum::<u64>().to_string()}));
             }
-            cards.push(json!({"quarantine_id":q.quarantine_id,"created_at":created,"days":days,"bytes":bytes.to_string(),"item_count":record.map(|_|present_count).unwrap_or(info.file_count+info.dir_count),"state":if leftover{"leftover"}else{"present"},"restorable":record.is_some() && present_count>0,"reminder_zh":if days>=7{Some(format!("已经放了 {days} 天，确认没问题可以永久删除"))}else{None},"rows":summary,"leftovers":leftovers,"more_leftovers":count.saturating_sub(20)}));
+            cards.push(json!({"quarantine_id":q.quarantine_id,"created_at":created,"days":days,"bytes":bytes.to_string(),"item_count":record.map(|_|present_count).unwrap_or(info.file_count+info.dir_count),"state":if leftover{"leftover"}else{"present"},"restorable":record.is_some() && present_count>0,"reminder_en":if days>=7{Some(format!("Stored for {} days; permanently delete after confirming everything is fine",language::number(days)))}else{None},"reminder_zh":if days>=7{Some(format!("已经放了 {days} 天，确认没问题可以永久删除"))}else{None},"rows":summary,"leftovers":leftovers,"more_leftovers":count.saturating_sub(20)}));
         }
         total += root_bytes;
         let target = if root.len() == 20 && root.as_bytes().get(1) == Some(&b':') {
@@ -264,7 +279,7 @@ pub(crate) fn bar(s: &State) -> Value {
         .filter(|c| c["state"] == "leftover")
         .map(|c| util::bytes(&c["bytes"]))
         .sum::<u64>();
-    json!({"bytes":v["bytes"],"oldest_days":days,"leftover_count":count,"leftover_bytes":left.to_string(),"text_zh":if count>0 && cards.iter().all(|c|c["state"]=="leftover"){format!("还剩 {count} 个文件删不掉")}else{format!("隔离区还有 {} · 最早的放了 {days} 天",m35::amount(util::bytes(&v["bytes"])))}})
+    json!({"bytes":v["bytes"],"oldest_days":days,"leftover_count":count,"leftover_bytes":left.to_string(),"text_en":if count>0 && cards.iter().all(|c|c["state"]=="leftover"){format!("{} files could not be deleted",language::number(count))}else{format!("{} remains in quarantine · oldest items stored for {} days",m35::amount_en(util::bytes(&v["bytes"])),language::number(days))},"text_zh":if count>0 && cards.iter().all(|c|c["state"]=="leftover"){format!("还剩 {count} 个文件删不掉")}else{format!("隔离区还有 {} · 最早的放了 {days} 天",m35::amount(util::bytes(&v["bytes"])))}})
 }
 
 fn reason(kind: &str, dir: bool, name: &str) -> String {
@@ -364,7 +379,13 @@ pub(crate) fn save_moves(
             .get(&item.group_id)
             .map(|d| d["group"]["title_zh"].clone())
             .unwrap_or(json!("重复文件"));
-        entries.push(json!({"item_id":item.item_id,"group_title_zh":title,"original":item.path,"rel":&item.path[3..],"kind":item.kind,"identity":moved.identity,"bytes":moved.bytes,"valuable_names":source.result.items.iter().find(|i|i.item_id==item.item_id).map(|i|i.valuable_names.clone()).unwrap_or_default()}));
+        let title_en = source
+            .projection()
+            .details
+            .get(&item.group_id)
+            .map(|d| d["group"]["title_en"].clone())
+            .unwrap_or(json!("Duplicate files"));
+        entries.push(json!({"item_id":item.item_id,"group_title_zh":title,"group_title_en":title_en,"original":item.path,"rel":&item.path[3..],"kind":item.kind,"identity":moved.identity,"bytes":moved.bytes,"valuable_names":source.result.items.iter().find(|i|i.item_id==item.item_id).map(|i|i.valuable_names.clone()).unwrap_or_default()}));
     }
     if !entries.is_empty() {
         let stored = json!({"record_version":"water.quarantine-record.v1","quarantine_id":report.quarantine_id,"created_at":report.started_at,"clean_id":clean_id,"root":root,"entries":entries,"last_purge":null});
@@ -485,7 +506,7 @@ pub(crate) fn restore(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                     restored += 1;
                     bytes += util::bytes(&e["bytes"]);
                 } else {
-                    conflicts.push(json!({"label_zh":e["original"],"reason_zh":if report.items.iter().any(|i|i.rel==e["rel"] && i.reason==Some(clean::RestoreError::DestinationExists)){"原位置已有同名的项，可以还原到旁边"}else{"没有还原，请核对身份、路径与占用状态"}}));
+                    conflicts.push(json!({"label_zh":e["original"],"label_en":e["original"],"reason_en":if report.items.iter().any(|i|i.rel==e["rel"] && i.reason==Some(clean::RestoreError::DestinationExists)){"The original location already has an item with this name. Restore beside it instead"}else{"Not restored. Check identity, path, and in-use status"},"reason_zh":if report.items.iter().any(|i|i.rel==e["rel"] && i.reason==Some(clean::RestoreError::DestinationExists)){"原位置已有同名的项，可以还原到旁边"}else{"没有还原，请核对身份、路径与占用状态"}}));
                     keep.push(e);
                 }
             }
@@ -500,6 +521,10 @@ pub(crate) fn restore(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                 core,
                 "restore",
                 format!("还原隔离区 · {restored} 项"),
+                format!(
+                    "Restored {} from quarantine",
+                    language::count(restored, "item", "items")
+                ),
                 bytes.to_string(),
             )?;
             {
@@ -575,7 +600,7 @@ pub(crate) fn purge(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
                 stored["last_purge"]=json!(report);worker.store.write("quarantine",&format!("{worker_id}.json"),&stored)?;
             }
             let tail=if report.remaining_entries>0{format!("，还剩 {} 项",report.remaining_entries)}else{String::new()};
-            let event=m35::write_event(&worker,"purge",format!("永久删除隔离区 · 腾出 {}{tail}",m35::amount(util::number(&report.freed_bytes))),report.freed_bytes.clone())?;
+            let event=m35::write_event(&worker,"purge",format!("永久删除隔离区 · 腾出 {}{tail}",m35::amount(util::number(&report.freed_bytes))),format!("Permanently deleted quarantine · freed {}{}",m35::amount_en(util::number(&report.freed_bytes)),if report.remaining_entries>0{format!(", {} remain",language::count(report.remaining_entries,"item","items"))}else{String::new()}),report.freed_bytes.clone())?;
             let final_state=if report.status==clean::RunStatus::Stopped{"stopped"}else{"completed"};
             {
                 let mut s=lock(&worker)?;
@@ -595,4 +620,32 @@ pub(crate) fn purge(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
         return Err(IpcError::new("unavailable"));
     }
     Ok(json!({}))
+}
+
+pub(crate) fn unavailable_note_en(drive: &str, count: usize) -> String {
+    format!(
+        "Drive {}: cannot use quarantine; {} will be left alone this time",
+        drive.get(..1).unwrap_or("?"),
+        language::count(count, "item", "items")
+    )
+}
+pub(crate) fn reason_en(reason: &str, dir: bool, name: &str) -> String {
+    match reason {
+        "sharing" | "locked" | "in_use" => {
+            if dir {
+                "An app is using this folder (possibly an open terminal)".into()
+            } else {
+                "An app is using it; close the app and try again".into()
+            }
+        }
+        "odd_name" | "reserved_name" => format!(
+            "System-reserved name {} (Flick can delete it; try again)",
+            m35::name(name)
+        ),
+        "long_path" => "The path is too long (Flick can delete it; try again)".into(),
+        "read_only" => "Read-only file (Flick can delete it; try again)".into(),
+        "reparse" => "Cloud placeholder or special link; handle it in the corresponding app".into(),
+        "access_denied" => "Permission denied".into(),
+        _ => "Could not delete it. Try again".into(),
+    }
 }

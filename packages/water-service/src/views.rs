@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    IN_USE_UNKNOWN, Platform,
+    IN_USE_UNKNOWN, Platform, language,
     service::{Record, Settings},
     util,
 };
@@ -101,11 +101,17 @@ fn text(record: &Record, g: &Group, rules: &RuleSet) -> Option<water_junk_rules:
                 crate::m35::name(&cluster.parent),
                 cluster.template
             ),
+            title_en: format!("{} · {}", crate::m35::name(&cluster.parent), cluster.template),
             owner_zh: "所在项目".into(),
+            owner_en: "Containing project".into(),
             what_zh: "同一位置里反复生成、名字模板相同的临时条目。".into(),
             why_zh: "只按名字、数量、体量与时间聚类，仍需你确认。".into(),
             after_zh: "清理存量前，请先核对生产者；不修复还会再次累积。".into(),
             fix_hint_zh: Some("先找出生成它们的代码并修好，再清存量。".into()),
+            what_en: "Temporary items with the same name pattern, repeatedly created in one location.".into(),
+            why_en: "Grouped by name, count, size, and time. Your review is still needed.".into(),
+            after_en: "Check the producer before cleaning existing items. They will accumulate again until it is fixed.".into(),
+            fix_hint_en: Some("Find and fix the code that creates these items, then clean the existing items.".into()),
         });
     }
     let id = g.rule_id.strip_prefix("decl:")?;
@@ -137,6 +143,12 @@ fn text(record: &Record, g: &Group, rules: &RuleSet) -> Option<water_junk_rules:
         why_zh: "你已信任此版本的项目声明；保护、身份和在用检查仍然生效。".into(),
         after_zh: "先放进同盘隔离区，核对后可还原或永久删除。".into(),
         fix_hint_zh: None,
+        title_en: entry["title"].as_str()?.into(),
+        owner_en: declaration["manifest"]["project"].as_str().unwrap_or("Project declaration").into(),
+        what_en: "Cleanable output listed in the project declaration.".into(),
+        why_en: "You trusted this version of the project declaration. Protection, identity, and in-use checks still apply.".into(),
+        after_en: "Move to quarantine on the same drive first. After reviewing, restore or permanently delete it.".into(),
+        fix_hint_en: None,
     })
 }
 
@@ -207,17 +219,19 @@ pub(crate) fn scan_in_use(result: &ScanResult, platform: &dyn Platform) -> (Valu
                 count += 1;
                 unknown |= name == IN_USE_UNKNOWN;
                 let label = product_name(&name);
-                items.insert(item.item_id.clone(), json!({"process_label_zh": if name == IN_USE_UNKNOWN { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在使用") }}));
+                items.insert(item.item_id.clone(), json!({"process_label_en": if name == IN_USE_UNKNOWN { UNKNOWN_TEXT_EN.to_owned() } else { format!("{} is in use", product_name_en(&name)) },"process_label_zh": if name == IN_USE_UNKNOWN { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在使用") }}));
                 first.get_or_insert(label);
             }
         }
         if let Some(label) = first {
-            saved.insert(g.group_id.clone(), json!({"process_label_zh":if unknown { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在运行，将跳过 {count} 个占用的项") },"item_count":count}));
+            saved.insert(g.group_id.clone(), json!({"process_label_en":if unknown { UNKNOWN_TEXT_EN.to_owned() } else {format!("{} is running; {} in-use items will be skipped", product_name_en(&label), language::number(count))},"process_label_zh":if unknown { UNKNOWN_TEXT.to_owned() } else { format!("{label} 正在运行，将跳过 {count} 个占用的项") },"item_count":count}));
         }
     }
     (Value::Object(saved), Value::Object(items))
 }
 
+pub(crate) const UNKNOWN_TEXT_EN: &str =
+    "Cannot confirm whether it is running. Cleaning will check again";
 const UNKNOWN_TEXT: &str = "暂时无法确认是否在运行，清理时会再次检查";
 
 pub(crate) fn skipped(item: &water_junk_scan::Item, settings: &Settings) -> bool {
@@ -426,6 +440,7 @@ impl Projection {
                 adjust_bytes(&mut row["eligible_bytes"], bytes, after);
             }
             g["summary_zh"] = json!(summary(group, count, rules, platform));
+            g["summary_en"] = json!(summary_en(group, count, rules, platform));
             let selectable =
                 group.level.cleanable() && count > 0 && enabled(settings, &category(group));
             g["selectable"] = json!(selectable);
@@ -463,6 +478,11 @@ impl Projection {
                 displayed["eligible"] = json!(!after);
                 displayed["reason_zh"] = if after {
                     json!("已设为以后都跳过")
+                } else {
+                    Value::Null
+                };
+                displayed["reason_en"] = if after {
+                    json!("Always skipped")
                 } else {
                     Value::Null
                 };
@@ -507,7 +527,8 @@ impl Projection {
             let label = record.saved["item_in_use"][&record.result.items[*first].item_id]["process_label_zh"].as_str().unwrap_or(UNKNOWN_TEXT).trim_end_matches(" 正在使用");
             let count = occupied.map_or(0,BTreeSet::len);
             let unknown = self.unknown.get(id).is_some_and(|s|!s.is_empty());
-            json!({"process_label_zh":if unknown {UNKNOWN_TEXT.to_owned()} else {format!("{label} 正在运行，将跳过 {count} 个占用的项")},"item_count":count})
+            let label_en = record.saved["item_in_use"][&record.result.items[*first].item_id]["process_label_en"].as_str().unwrap_or(label).trim_end_matches(" is in use");
+            json!({"process_label_en":if unknown {UNKNOWN_TEXT_EN.to_owned()} else {format!("{label_en} is running; {} in-use items will be skipped",language::number(count))},"process_label_zh":if unknown {UNKNOWN_TEXT.to_owned()} else {format!("{label} 正在运行，将跳过 {count} 个占用的项")},"item_count":count})
         }).unwrap_or(Value::Null);
         self.view["categories"][ci]["groups"][gi]["in_use"] = value.clone();
         self.details.get_mut(id).expect("indexed group")["group"]["in_use"] = value;
@@ -681,9 +702,9 @@ pub(crate) fn group(
         .map(|i| util::drive(&i.path))
         .unwrap_or_default();
     json!({"group_id":g.group_id,"title_zh":text.as_ref().map(|t|t.title_zh.as_str()).unwrap_or("未识别"),
-        "owner_zh":text.as_ref().map(|t|t.owner_zh.as_str()).unwrap_or("未知"),"level":g.level,"category":g.category,"drive_root":root,
+        "title_en":text.as_ref().map(|t|t.title_en.as_str()).unwrap_or("Unrecognized"),"owner_en":text.as_ref().map(|t|t.owner_en.as_str()).unwrap_or("Unknown"),"owner_zh":text.as_ref().map(|t|t.owner_zh.as_str()).unwrap_or("未知"),"level":g.level,"category":g.category,"drive_root":root,
         "item_count":g.item_count,"eligible_count":eligible_count,"file_count":g.file_count,"total_bytes":g.unique_bytes,"eligible_bytes":eligible_bytes.to_string(),"logical_bytes":g.total_bytes,"by_drive":by_drive.into_iter().map(|(root,(item_count,bytes))|json!({"root":root,"item_count":item_count,"eligible_bytes":bytes.to_string()})).collect::<Vec<_>>(),
-        "newest_activity":g.newest_activity,"summary_zh":summary,"growth":growth,"in_use":in_use,"selectable":selectable,"default_selected":selectable && g.level==Level::Recommended})
+        "newest_activity":g.newest_activity,"summary_zh":summary,"summary_en":summary_en(g,eligible_count,rules,platform),"growth":growth,"in_use":in_use,"selectable":selectable,"default_selected":selectable && g.level==Level::Recommended})
 }
 
 fn amount(n: &str) -> String {
@@ -710,6 +731,47 @@ fn amount(n: &str) -> String {
         "{}{formatted}{decimal} {suffix}",
         if n >= 0 { "+" } else { "-" }
     )
+}
+
+fn amount_en(n: &str) -> String {
+    amount(n)
+}
+
+fn summary_en(g: &Group, count: u64, rules: &RuleSet, platform: &dyn Platform) -> String {
+    if g.item_count == 0 {
+        return "None found".into();
+    }
+    let (month, day) = g
+        .newest_activity
+        .as_deref()
+        .and_then(util::parse_time)
+        .map(|at| platform.local_date(at))
+        .unwrap_or((0, 0));
+    let (one, many) = match rules.rule(&g.rule_id).map(|r| r.item_type) {
+        Some(water_junk_rules::ItemType::Dir) => ("folder", "folders"),
+        Some(water_junk_rules::ItemType::File) => ("file", "files"),
+        _ => ("item", "items"),
+    };
+    let mut text = format!(
+        "{} · latest {}",
+        language::count(g.item_count, one, many),
+        language::date(month, day)
+    );
+    if count < g.item_count {
+        text += &format!(" · {} skipped", language::number(g.item_count - count));
+    }
+    if matches!(g.level, Level::Protected | Level::Advisory) {
+        text += " · size only";
+    }
+    text
+}
+
+pub(crate) fn product_name_en(name: &str) -> String {
+    if name == "Chrome 无头浏览器" || name.eq_ignore_ascii_case("chrome-headless-shell.exe") {
+        "Chrome headless browser".into()
+    } else {
+        product_name(name)
+    }
 }
 
 pub(crate) fn insight(
@@ -757,7 +819,42 @@ pub(crate) fn insight(
             amount(&growth.bytes_delta)
         )
     };
-    json!({"kind":if growth.leak_suspect {"leak"}else{"growth"},"group_id":growth.group_id,
+    let title_en = rules
+        .text(&growth.group_id)
+        .map(|t| t.title_en)
+        .unwrap_or_else(|| "Unrecognized".into());
+    let compared_en = if record.previous_at.is_none() {
+        "Compared with an earlier checkup".into()
+    } else {
+        format!("Compared with {}", language::date(date.0, date.1))
+    };
+    let message_en = if growth.leak_suspect {
+        format!(
+            "{compared_en}, {} more items ({}), about {} per day.",
+            language::number(growth.count_delta),
+            amount_en(&growth.bytes_delta),
+            amount_en(&growth.bytes_per_day)
+        )
+    } else {
+        let (one, many) = record
+            .result
+            .groups
+            .iter()
+            .find(|g| g.group_id == growth.group_id)
+            .and_then(|g| rules.rule(&g.rule_id))
+            .map(|r| match r.item_type {
+                water_junk_rules::ItemType::Dir => ("folder", "folders"),
+                water_junk_rules::ItemType::File => ("file", "files"),
+                _ => ("item", "items"),
+            })
+            .unwrap_or(("item", "items"));
+        format!(
+            "{compared_en}, {} more ({}).",
+            language::count(growth.count_delta, one, many),
+            amount_en(&growth.bytes_delta)
+        )
+    };
+    json!({"title_en":format!("{title_en} {}",if growth.leak_suspect {"may be leaking"}else{"keeps growing"}),"message_en":message_en,"kind":if growth.leak_suspect {"leak"}else{"growth"},"group_id":growth.group_id,
         "title_zh":format!("{title}{}",if growth.leak_suspect {" 疑似泄漏"}else{"在持续累积"}),"message_zh":message})
 }
 
@@ -824,11 +921,11 @@ pub(crate) fn build(
                     "contains_protected"=>"里面有受保护的数据".into(),"inside_protected"=>"位于受保护的数据之内".into(),"repository"=>"这是代码仓库".into(),
                     "too_recent"=>format!("最近 {} 小时内有改动",rule.map(|r|r.min_age_hours).unwrap_or(0)),
                     "user_skipped"=>"已设为以后都跳过".into(),"keep_newest"=>format!("按规则保留最新的 {} 个",rule.map(|r|r.keep_newest).unwrap_or(0)),"identity_unavailable"=>"无法确认这一项的身份".into(),_=>r.into() }) };
-                json!({"item_id":i.item_id,"in_use":if eligible(i, settings) { record.saved["item_in_use"].get(&i.item_id).cloned().unwrap_or(Value::Null) } else { Value::Null },"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(i, settings),"reason_zh":reason})
+                json!({"item_id":i.item_id,"in_use":if eligible(i, settings) { record.saved["item_in_use"].get(&i.item_id).cloned().unwrap_or(Value::Null) } else { Value::Null },"display_path":i.path,"total_bytes":i.unique_bytes,"newest_activity":i.newest_activity,"eligible":eligible(i, settings),"reason_zh":reason,"reason_en":if skipped(i,settings){Some("Always skipped".to_owned())}else{i.ineligible_reason.as_deref().map(|r|reason_en(record,&i.item_id,r,rule))}})
             }).collect();
-            details.insert(g.group_id.clone(),json!({"group":view,"what_zh":text.as_ref().map(|t|t.what_zh.as_str()).unwrap_or("未识别的位置，只统计占用。"),
-                "why_zh":text.as_ref().map(|t|t.why_zh.as_str()).unwrap_or("没有匹配的清理规则。"),"after_zh":text.as_ref().map(|t|t.after_zh.as_str()).unwrap_or("请自行检查。"),
-                "fix_hint_zh":text.as_ref().and_then(|t|t.fix_hint_zh.as_deref()),"items":item_views,"items_total":g.item_count,"top_keys":g.top_keys}));
+            details.insert(g.group_id.clone(),json!({"group":view,"what_en":text.as_ref().map(|t|t.what_en.as_str()).unwrap_or("An unrecognized location. Only its size is measured."),"what_zh":text.as_ref().map(|t|t.what_zh.as_str()).unwrap_or("未识别的位置，只统计占用。"),
+                "why_en":text.as_ref().map(|t|t.why_en.as_str()).unwrap_or("No cleaning rule matches."),"why_zh":text.as_ref().map(|t|t.why_zh.as_str()).unwrap_or("没有匹配的清理规则。"),"after_en":text.as_ref().map(|t|t.after_en.as_str()).unwrap_or("Please review it yourself."),"after_zh":text.as_ref().map(|t|t.after_zh.as_str()).unwrap_or("请自行检查。"),
+                "fix_hint_en":text.as_ref().and_then(|t|t.fix_hint_en.as_deref()),"fix_hint_zh":text.as_ref().and_then(|t|t.fix_hint_zh.as_deref()),"items":item_views,"items_total":g.item_count,"top_keys":g.top_keys}));
             let key = if cat == "custom" {
                 custom_path(record, &g.group_id)
             } else {
@@ -838,7 +935,7 @@ pub(crate) fn build(
         }
         for (path, groups) in buckets {
             let bytes: u64 = groups.iter().map(|g| util::bytes(&g["total_bytes"])).sum();
-            categories.push(json!({"category":cat,"title_zh":if cat=="custom" {format!("你加的位置 · {path}")}else{title.into()},"subtitle_zh":subtitle,"total_bytes":bytes.to_string(),"groups":groups}));
+            categories.push(json!({"category":cat,"title_zh":if cat=="custom" {format!("你加的位置 · {path}")}else{title.into()},"title_en":if cat=="custom"{format!("Your folder · {path}")}else{category_en(cat).0.into()},"subtitle_zh":subtitle,"subtitle_en":category_en(cat).1,"total_bytes":bytes.to_string(),"groups":groups}));
         }
     }
     let mut growth: Vec<_> = record
@@ -867,4 +964,84 @@ pub(crate) fn build(
         "recommended_by_drive":by_drive.into_iter().filter(|(_, n)| *n > 0).map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"insights":insights,"categories":categories}),
         details,
     )
+}
+
+pub(crate) fn category_en(id: &str) -> (&'static str, &'static str, &'static str) {
+    match id {
+        "agent_tool" => (
+            "AI coding tools",
+            "Codex · Claude · Cursor · grok",
+            "Temporary folders, update leftovers, and old versions of Claude Code, Codex, Cursor, grok, and other tools",
+        ),
+        "browser" => (
+            "Browsers",
+            "Chrome · Edge · cache only; sign-in data stays",
+            "Cache for Chrome, Edge, Brave, and Firefox; sign-in information and website data are always protected",
+        ),
+        "system_temp" => (
+            "System temporary files",
+            "Windows and user temporary folders",
+            "Files older than 7 days in Windows and user temporary folders",
+        ),
+        "app_leftover" => (
+            "App updates and installers",
+            "Installers, update leftovers, and app cache",
+            "Installers in Downloads and app update leftovers",
+        ),
+        "dev_cache" => (
+            "Development cache",
+            "npm · Cargo · Playwright and more",
+            "npm, pip, Cargo, Gradle, Playwright, and more",
+        ),
+        "crash_log" => (
+            "Crashes and logs",
+            "Crash dumps and error reports",
+            "Crash dumps, error reports, and app logs",
+        ),
+        "gpu_system" => (
+            "GPU and system cache",
+            "Shader cache and thumbnails",
+            "GPU shader cache and system thumbnails",
+        ),
+        "custom" => (
+            "Your folder",
+            "Only build folders with cache markers and test configurations are recognized",
+            "Your added locations",
+        ),
+        "unrecognized" => (
+            "Unrecognized",
+            "Size only; cannot be cleaned",
+            "Unrecognized locations",
+        ),
+        _ => ("Other", "Other items", "Other locations"),
+    }
+}
+
+pub(crate) fn reason_en(
+    record: &Record,
+    id: &str,
+    reason: &str,
+    rule: Option<&water_junk_rules::Rule>,
+) -> String {
+    if let Some(text) = record.saved["item_reason_en"][id].as_str() {
+        return text.into();
+    }
+    match reason {
+        "level_not_cleanable" => "This category is measured only and will not be cleaned".into(),
+        "hard_guard" => "This is a critical system or user folder".into(),
+        "contains_protected" => "Contains protected data".into(),
+        "inside_protected" => "Located inside protected data".into(),
+        "repository" => "This is a code repository".into(),
+        "too_recent" => format!(
+            "Changed within the last {} hours",
+            language::number(rule.map(|r| r.min_age_hours).unwrap_or(0))
+        ),
+        "user_skipped" => "Always skipped".into(),
+        "keep_newest" => format!(
+            "The rule keeps the newest {} items",
+            language::number(rule.map(|r| r.keep_newest).unwrap_or(0))
+        ),
+        "identity_unavailable" => "Cannot confirm this item's identity".into(),
+        _ => reason.into(),
+    }
 }
