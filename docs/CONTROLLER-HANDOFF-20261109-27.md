@@ -40,10 +40,12 @@
    - `nc-replay.py s1` 重放三条负控；
    - 总控变异重点打补单 03 的改动，例如整盘位置的规则目标走完就标 `space`、单复数一律复数；
    - 独立审查。
-2. **F 盘**：用户 11-09 00:45 说“现在涨的又太快了”。
-   - 实测可用 123 GB（11-02 清理后是 372.7 GB）。
-   - 总控做了只读普查，结果见[普查记录](maintenance/F-USAGE-20261109.md)。
-   - 照[清理方法](maintenance/CLEANUP-METHOD.md)出分级表，用户选号，总控只隔离不删除。
+2. **F 盘**（[普查](maintenance/F-USAGE-20261109.md)、[清理记录](maintenance/F-CLEANUP-20261109.md)，STATUS 117）：
+   - 用户选“隔离1-4”：73 棵已合入的 Water 工作树（197.8 GB）已移进 `F:\_water-quarantine-20261109`，并跑了 `git worktree prune`；
+   - 用户说自己删，总控已在资源管理器里打开这个文件夹。
+   - **下次先核对**：隔离目录已不在、F 盘可用约 320 GB，结果补进清理记录第 4 节。
+   - 第 6 项 denglou `worktrees` 交 denglou 总控（[简报](maintenance/DENGLOU-DISK-BRIEF-20261109.md)）；它回话后记一句。
+   - **以后每次收单合入后就收树**：执行者树与验收树移进隔离区，只留还在做的。
 3. **S1 + H1 一起合入**：
    - 先合 S1 分支，再合 H1 分支；H1 的底是 S1 第 A 段 `f91a982a`，应当没有冲突；
    - 合入后在主线跑服务、宿主、界面测试（照第十一次整合的做法，用 `integ-w8a` / `integ-w8b` 两棵树与覆盖清单）。
@@ -89,8 +91,8 @@ WATER-W14-S1 补单 03
 - **第十四波分支与工作树**：
   - `.worktrees/w14-s1`：`worker/water-w14-s1`，交回 `47760070`；第 B 段的底是总控合并提交 `dd7ac13a`（清单 `baseCommit`，旧底记在 `baseHistory`）。补单 03 从这里续做。
   - `.worktrees/w14-h1`：`worker/water-w14-h1`，交回 `1b534207`（实现 `bb87445d`，底 `f91a982a`）。
-  - 已合入：`w14-r1`、`w14-j1`、`w14-u1`、`w14-j2`。
-  - 验收树：`accept-w14-j1`、`accept-w14-u1`、`accept-w14-j2`、`accept-w14-s1`（分支 `controller/accept-w14-*`）。
+  - 验收树：只留 `accept-w14-s1`（分支 `controller/accept-w14-s1`）。
+  - 其余已合入的 73 棵树 11-09 已移进隔离区（分支都在，要用时 `git worktree add` 重建）。
   - `integ-w8b` 在 `controller/release-b`（`45294836`），用来编 release。
 - **工具**：
   - `.local/w14-accept/`：`run.sh`、`seq.sh`、`make-manifest.mjs`、`nc-replay.py`、`controls.mjs`，以及 `add-mutations-{j1,j2,s1}.py`、`mutations.json`；
@@ -99,7 +101,11 @@ WATER-W14-S1 补单 03
 - **本机**：
   - Flick 0.1.0 Beta 装在 `%LOCALAPPDATA%\Programs\Flick`；
   - `E:\flick-ci`（7.9 GB）还等用户自己删。
-- **用户方面**：没有在外面做的单；S1 补单 03 待派；没有后台任务。
+- **用户方面**：
+  - 没有在外面做的单；S1 补单 03 待派；
+  - 用户在删 `F:\_water-quarantine-20261109`；
+  - denglou 简报在用户手里，要转给 denglou 总控；
+  - 没有后台任务。
 
 ## 6. 粘贴语
 

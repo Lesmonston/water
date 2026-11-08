@@ -633,6 +633,11 @@ A–AB及八补单、AD保持VERIFIED；AC/补单06新增VERIFIED（Windows静�
    - H1 宿主与安装包 VERIFIED（轻门）：宿主错误带英文、安装包中英两种语言（编译 0 警告，未运行）；整机 31 步通过，盘根隔离区运行前后都不在。等 S1 一起合入。
    - S1 第 B 段：审计 0 问题，新验收树三个 final 与三条负控重放都过，总控变异 c1、c3 抓到，c2、c4 是多余逻辑（审查同意）。独立审查中级一条：整盘位置的规则目标一走完就显示 `space`，真实扫描先走盘根，界面会在规则阶段写“正在统计整盘”。出 [S1 补单 03](dispatch/tickets/WATER-W14-S1-ADDENDUM-03-20261109.md)，连同英文单复数与几处措辞；S1 暂不合入。
    - 清单里补单的续做提交补成审计要的 `resumeFromCommit`。
+117. **F 盘清理**（11-09，用户：“你趁现在看一下F盘，现在涨的又太快了”；选择：“隔离1-4，6给我写个简报我让那边的主控去分析一下。6让登楼主控处理。”）：[普查](maintenance/F-USAGE-20261109.md)、[清理记录](maintenance/F-CLEANUP-20261109.md)。
+   - F 盘可用 122 GB（11-02 清理后 372.7）。主要原因是 Water 自己的 78 棵工作树占 214 GB：每棵都检出约 2.7 GB 已提交的验收证据，第九波以来合入后一棵都没收。
+   - 73 棵已合入的树（197.8 GB）移进 `F:\_water-quarantine-20261109`，`git worktree prune`，断链 0、隔离区联接 0。用户自己删。
+   - denglou 这周约 +34 GB（`worktrees` 75.8 GB），写了[简报](maintenance/DENGLOU-DISK-BRIEF-20261109.md)交 denglou 总控。
+   - 以后每次收单合入后就收树。
 ## 真实AA→AD联合验收通过（2026-10-26）
 
 新总控（Claude）接任后按事先冻结的[计划](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-PLAN-20261026.md)执行一次：真实固定AA宿主→原生目录选择→R/Z→AB传输→AD同源报告页，四场景全部通过，4窗/9.993秒/无重试/手动终止0。报告页鼠标下载的Q与Z与当次原字符串逐字节一致，淘汰与正常关闭通过。见[联合验收报告](acceptance/wave1/controller/WATER-W1-AAAD-JOINT-REVIEW-20261026.md)。31任务/槽位不变，没有新READY票；桌面接入扫描、真实用户scope、自然同意鉴真、生产竞态、macOS与M1仍未验收。用户同日要求先暂停安排后续任务，结合本机清理经验重订计划；总控草案见[计划重订（待拍板）](REPLAN-20261026-AGENT-ERA-CHECKUP.md)，拍板前不出新票。
