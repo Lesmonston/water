@@ -499,7 +499,7 @@ fn call(s: &impl TestService, c: &str, a: Value) -> Value {
     let started = Instant::now();
     let result = s.call(c, a).unwrap_or_else(|e| panic!("{c}: {e:?}"));
     // SERVICE.md L46: call except custom_root_add (folder picker) must return in 50 ms.
-    // Addendum 05: commands that sync-write files in the same call get 200 ms.
+    // Commands that write files synchronously in the same call get 200 ms.
     if c == "custom_root_add" {
         return result;
     }
@@ -4476,8 +4476,8 @@ fn m14_program_directories() {
             "SERVICE_M35_SCOPE: first note {rel}"
         );
     }
-    // Before W10-M12 the rules also took unins000.exe as an installer; since M12 it is no item at
-    // all. Either way it must never be clean-able.
+    // Older rules data took unins000.exe as an installer; now it is no item at all. Either way it
+    // must never be clean-able.
     let uninstaller = "selected/prog/App/unins000.exe";
     if let Some(i) = items
         .iter()

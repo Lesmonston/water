@@ -1,10 +1,10 @@
-# IPC-M35：界面接口（第十波，设计 v2）
+# IPC-M35：界面接口（设计 v2）
 
-2026-11-05，总控（Claude）冻结（11-02 起草，11-05 按通读结果修订）。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`）与 [IPC-M3C](../m3c-v1/IPC-M3C.md)，冲突时以本文为准。
+2026-11-05 冻结（11-02 起草，11-05 修订）。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`）与 [IPC-M3C](../m3c-v1/IPC-M3C.md)，冲突时以本文为准。
 
-- 服务（M7，[SERVICE-M35](SERVICE-M35.md)）产出这些形状，宿主（M5，[HOST-M35](HOST-M35.md)）转发，界面（M6，[UI-M35](UI-M35.md)）消费。
-- 依据：[设计 v2](../../docs/design/water-ui-v2/DESIGN.md) 第 3～6 节，[第十波计划](../../docs/dispatch/wave10/PLAN.md)第 2 节。
-- 样例 `contracts/m35-v1/ui-fixtures-m35.json` 冻结时由总控给出（照 IPC-M3C 的做法，是前两份样例的增量，同名形状以新文件为准）。
+- 服务产出这些形状，宿主转发，界面消费。
+- 依据：界面设计 v2 第 3～6 节。
+- 样例 `contracts/m35-v1/ui-fixtures-m35.json` 与本文一起冻结（照 IPC-M3C 的做法，是前两份样例的增量，同名形状以新文件为准）。
 - 通用约定不变：参数键 camelCase，返回键 snake_case；字节数用十进制字符串；时间用 UTC RFC 3339；错误码只有 `busy`、`not_found`、`stale`、`invalid`、`unavailable`、`cancelled`，界面只显示 `message_zh`。
 - **界面永远不传路径**：参数里只有 ID、决定、开关与天数；唯一的自由文字是第 4 节的搜索词，不得含 `\`、`/`、`:`。
 

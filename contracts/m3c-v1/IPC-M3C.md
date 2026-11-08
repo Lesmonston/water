@@ -1,8 +1,8 @@
 # IPC-M3C：界面接口增量（M3 收口）
 
-2026-10-31，总控（Claude）冻结。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`），冲突时以本文为准。依据：[第八波计划](../../docs/dispatch/wave8/PLAN.md)（已拍板）。
+2026-10-31 冻结。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`），冲突时以本文为准。
 
-- 服务（W8-K4）产出这些形状，宿主（W8-K5）转发，界面（W8-K6）消费。
+- 服务产出这些形状，宿主转发，界面消费。
 - 样例见 [ui-fixtures-m3c.json](ui-fixtures-m3c.json)，它是 `checkup-v1/ui-fixtures.json` 的增量：同名形状以新文件为准，没写到的照旧。
 - 通用约定不变：
   - 参数键 camelCase，返回键 snake_case；

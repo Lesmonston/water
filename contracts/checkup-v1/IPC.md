@@ -1,6 +1,6 @@
 # Water 桌面 IPC v1（`water.ipc.v1`）
 
-2026-10-26 冻结。界面（WATER-W2-E）通过 Tauri `invoke` 调用下列命令；可信宿主（下一波的桌面接线票）实现它们，并在内部调用 A–D 四个 crate。界面只认这里的形状。
+2026-10-26 冻结。界面通过 Tauri `invoke` 调用下列命令；可信宿主实现它们，并在内部调用规则、扫描、进程与清理四个 crate。界面只认这里的形状。
 
 ## 1. 通用
 
@@ -91,7 +91,7 @@ CustomRootView = {root_id, display_path, last_scanned_at|null, found_bytes|null}
 
 - `clean_prepare` 只接受当前最新扫描中 `selectable` 为真的组；否则 `invalid`。扫描之后若又开始新扫描，旧计划 `stale`。
 - `clean_start` 的 confirm_token 一次有效；重复提交或与 plan_id 不配对返回 `invalid`。
-- 宿主保证：清理只针对计划中的条目，并按 [CLEAN](CLEAN.md) 逐项复核；界面无法扩大范围。
+- 宿主保证：清理只针对计划中的条目，并按清理契约逐项复核；界面无法扩大范围。
 - 界面在扫描或清理进行中禁用开始类按钮；收到 busy 时显示 message_zh。
 
 ## 5. 界面测试用的回放数据

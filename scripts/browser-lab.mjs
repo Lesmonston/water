@@ -88,7 +88,7 @@ export async function openBrowser({ width = 1440, height = 1000 } = {}) {
       async goto(url) { const value = new URL(url); assert(value.protocol === 'http:' && value.hostname === '127.0.0.1', 'Only local test servers'); const result = await page('Page.navigate', { url }); assert(!result.errorText); },
       async waitFor(expression, timeout = 10000) { const until = Date.now() + timeout; while (Date.now() < until) { if (await evaluate(expression)) return; await delay(25); } throw new Error('Browser condition timed out'); },
       async screenshot(relativePath) {
-        assert(relativePath.startsWith('docs/acceptance/wave1/c/') || relativePath.startsWith('.local/browser-lab/'));
+        assert(!isAbsolute(relativePath) && !relativePath.startsWith('.git/'), 'Screenshot path must be relative to the worktree');
         assert(relativePath.endsWith('.png') && !relativePath.split('/').includes('..'));
         const output = resolve(root, relativePath); localDir(relative(root, dirname(output)).replaceAll('\\', '/'));
         const result = await page('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });

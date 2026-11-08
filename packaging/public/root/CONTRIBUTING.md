@@ -66,7 +66,7 @@ cargo test --locked --manifest-path <包>/Cargo.toml
 ### 测试
 
 1. 在 `packages/junk-rules/tests/rules_v1.rs` 里给新规则加用例：该认出的路径认出，不该认的（同名但属于别的程序、受保护的数据）不认。
-2. 规则总数和数据版本 `data_version`（格式 `YYYY-MM-DD.N`）在测试里有断言，加规则后一起改。
+2. 规则总数和数据版本 `data_version`（格式 `YYYY-MM-DD.N`）各由 `tests/rules_v1.rs` 开头的一个常量断言（`EXPECTED_RULE_COUNT`、`EXPECTED_DATA_VERSION`），加规则后改这两处。
 3. 运行 `packages/junk-rules` 与 `packages/water-service` 的测试。
 
 ## 提 PR
@@ -80,5 +80,5 @@ cargo test --locked --manifest-path <包>/Cargo.toml
 - Flick deletes files, so prefer cleaning less over deleting the wrong thing; anything uncertain is `confirm`, not `recommended`.
 - Never put real user names, private paths or emails in issues, PRs, tests or rules; use paths like `C:\Users\alice\...`.
 - Before a PR, run `cargo fmt --check`, `cargo clippy --all-targets -D warnings` and `cargo test` in the packages you changed, and the UI unit tests if you touched the interface.
-- Rules live in `packages/junk-rules/rules/windows.json`; the table above describes each field. Every rule needs at least one source and test cases in `packages/junk-rules/tests/rules_v1.rs`; update the asserted rule count and `data_version` too. Rule texts are Chinese for now; write English and a maintainer will help translate.
+- Rules live in `packages/junk-rules/rules/windows.json`; the table above describes each field. Every rule needs at least one source and test cases in `packages/junk-rules/tests/rules_v1.rs`; update `EXPECTED_RULE_COUNT` and `EXPECTED_DATA_VERSION` at the top of that file too. Rule texts are Chinese for now; write English and a maintainer will help translate.
 - Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.

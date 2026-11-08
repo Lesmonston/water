@@ -2673,7 +2673,7 @@ fn m35_markers() {
     );
 }
 
-fn m13_expected_cluster_id(parent: &str, kind: &str, template: &str) -> String {
+fn expected_cluster_id(parent: &str, kind: &str, template: &str) -> String {
     let mut hash = 0xcbf29ce484222325u64;
     for byte in format!("{}\n{kind}\n{template}", parent.to_ascii_lowercase()).bytes() {
         hash = (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3);
@@ -2789,7 +2789,7 @@ fn cluster_exclusions() {
         "SCAN_M35_CLUSTERS: exact surviving clusters"
     );
     for (parent, kind, template) in expected {
-        let id = m13_expected_cluster_id(&fx.p(parent), kind, template);
+        let id = expected_cluster_id(&fx.p(parent), kind, template);
         let group = result
             .groups
             .iter()

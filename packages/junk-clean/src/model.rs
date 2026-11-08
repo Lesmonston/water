@@ -215,8 +215,7 @@ pub enum SkipReason {
     InUse,
     TooRecent,
     Cancelled,
-    /// W12: the journal stopped accepting lines after an action already ran; this item was not touched.
-    /// Interface landed by the controller in the wave 12 base; WATER-W12-P1 produces it.
+    /// The journal stopped accepting lines after an action already ran; this item was not touched.
     JournalFailed,
 }
 

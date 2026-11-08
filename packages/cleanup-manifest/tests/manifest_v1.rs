@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 use water_cleanup_manifest::*;
 
 fn sample() -> Value {
-    json!({"version":1,"project":"Water","producer":"总控与执行器","disposable":[{
+    json!({"version":1,"project":"Flick","producer":"维护者与贡献者","disposable":[{
         "id":"worktree-builds","title":"工作树里的构建产物","paths":[".worktrees/*/.local/target",".worktrees/*/.local/*-profile-*"],
         "kind":"build","when":"older-than-3-days","keepNewest":0,"ask":true,
         "producer":"cargo test 与界面冒烟","fixedIn":null}],"protected":[".offline-cache","docs"],
-        "worktrees":[{"path":".worktrees/w10-m1","note":"第十波 M1"}]})
+        "worktrees":[{"path":".worktrees/feature-a","note":"功能分支 A"}]})
 }
 fn parsed(v: &Value) -> Manifest {
     parse(&serde_json::to_vec(v).unwrap()).expect("MANIFEST_FORMAT: valid fixture")

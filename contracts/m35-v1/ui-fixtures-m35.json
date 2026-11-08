@@ -1665,17 +1665,17 @@
       {
         "clue_id": "clue-worktrees-demo-app",
         "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
         "clue_id": "clue-verify-fix-demo",
         "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "clue_id": "clue-junction-server-kit",
         "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
+        "copy_text": "联接线索（Flick 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -2032,17 +2032,17 @@
       {
         "clue_id": "clue-worktrees-demo-app",
         "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
         "clue_id": "clue-verify-fix-demo",
         "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "clue_id": "clue-junction-server-kit",
         "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
+        "copy_text": "联接线索（Flick 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -2399,17 +2399,17 @@
       {
         "clue_id": "clue-worktrees-demo-app",
         "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
         "clue_id": "clue-verify-fix-demo",
         "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "clue_id": "clue-junction-server-kit",
         "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
+        "copy_text": "联接线索（Flick 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -2766,17 +2766,17 @@
       {
         "clue_id": "clue-worktrees-demo-app",
         "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
         "clue_id": "clue-verify-fix-demo",
         "text_zh": "fix-demo\\.tmp-checks 里有 81 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "clue_id": "clue-junction-server-kit",
         "text_zh": "D:\\code\\audit-tool\\node_modules 指向 D:\\code\\server-kit\\server\\node_modules，audit-tool 改指 ui-kit 之后 server-kit 才能清",
-        "copy_text": "联接线索（Water 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
+        "copy_text": "联接线索（Flick 只读了联接指向哪里）\n联接：D:\\code\\audit-tool\\node_modules\n指向：D:\\code\\server-kit\\server\\node_modules（约 0.9 GB）\n1. 把 audit-tool 的 node_modules 改指 D:\\code\\ui-kit\\node_modules，或在 audit-tool 里重新安装依赖\n2. 改完再体检一次，server-kit\\server\\node_modules 就能清了"
       }
     ],
     "more_clues": 1,
@@ -3109,12 +3109,12 @@
       {
         "clue_id": "clue-worktrees-demo-app",
         "text_zh": "D:\\code\\demo-app\\.worktrees 里 11 棵工作树已脱离 git，约 2.6 GB；其中一棵里有 release.jks 这类签名文件，删之前要查有没有未提交的改动",
-        "copy_text": "工作树检查清单（Water 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
+        "copy_text": "工作树检查清单（Flick 只看了名字和大小，没有跑 git）\n位置：D:\\code\\demo-app\\.worktrees，11 棵，约 2.6 GB\n这些工作树的 .git 文件指向的目录已经不在了（已脱离 git）\nfix-demo 里有签名文件 release.jks\n1. 在主仓库运行 git worktree list，确认它们不在列表里\n2. 逐棵查有没有未提交、未推送的改动\n3. 把 release.jks 这类贵重文件挪走或确认已有备份\n4. 确认没用后再删，或者写进仓库根的 .water-cleanup.json"
       },
       {
         "clue_id": "clue-verify-fix-demo",
         "text_zh": "fix-demo\\.tmp-checks 里有 74 个 verify-******，每天新增约 4 个：每次验证建一个目录、结束不删，生产者还没修",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），74 个，共 1.9 GB\n最近 14 天每天新建：0、0、2、3、5、6、4、7、6、5、8、6、7、9\n最新一个：10 月 31 日 12:10\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），74 个，共 1.9 GB\n最近 14 天每天新建：0、0、2、3、5、6、4、7、6、5、8、6、7、9\n最新一个：10 月 31 日 12:10\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       }
     ],
     "more_clues": 0,
@@ -7598,7 +7598,7 @@
         "state": "growing",
         "fixed_at": null,
         "clue_id": "clue-verify-fix-demo",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "group_id": "leak:effb8ca30d910f9c",
@@ -7616,7 +7616,7 @@
         "state": "suspected",
         "fixed_at": null,
         "clue_id": "clue-jest-temp",
-        "copy_text": "疑似泄漏线索（Water 只看了名字、大小与时间）\n位置：C:\\Users\\alice\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
+        "copy_text": "疑似泄漏线索（Flick 只看了名字、大小与时间）\n位置：C:\\Users\\alice\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
       }
     ]
   },
@@ -7770,7 +7770,7 @@
         "state": "stopped",
         "fixed_at": "2026-11-02T09:10:00Z",
         "clue_id": "clue-verify-fix-demo",
-        "copy_text": "泄漏线索（Water 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
+        "copy_text": "泄漏线索（Flick 只看了名字、大小与时间）\n位置：D:\\code\\demo-app\\worktrees\\fix-demo\\.tmp-checks\n模板：verify-******（目录），81 个，共 2.1 GB\n最近 14 天每天新建：0、2、3、5、6、4、7、6、5、8、6、7、9、6\n最新一个：11 月 2 日 15:31\n所在仓库根：D:\\code\\demo-app\\worktrees\\fix-demo（有 .git）\n先找出生成它们的代码并修好，再清存量；修好后用 Water 标记为已修。"
       },
       {
         "group_id": "leak:effb8ca30d910f9c",
@@ -7788,7 +7788,7 @@
         "state": "suspected",
         "fixed_at": null,
         "clue_id": "clue-jest-temp",
-        "copy_text": "疑似泄漏线索（Water 只看了名字、大小与时间）\n位置：C:\\Users\\alice\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
+        "copy_text": "疑似泄漏线索（Flick 只看了名字、大小与时间）\n位置：C:\\Users\\alice\\AppData\\Local\\Temp\\jest\n模板：haste-map-*（文件），33 个，共 410 MB\n只体检过一次，下次体检后才能判断是不是一直在长\n先找出生成它们的测试配置；确认是泄漏再修好、清存量。"
       }
     ]
   },
