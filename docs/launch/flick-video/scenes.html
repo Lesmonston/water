@@ -46,10 +46,11 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   font-size:32px;font-weight:500;letter-spacing:.02em}
 .clue svg{width:34px;height:34px;color:var(--ink)}
 
-/* placeholder for the two UI shots (32-38 s), filled after the UI sample data uses made-up paths */
-.shot{position:absolute;left:330px;top:150px;width:1260px;height:700px;border-radius:18px;border:1.5px dashed rgba(17,20,24,.16);
-  display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:300;color:var(--ink-3)}
-.cap{position:absolute;left:0;right:0;top:896px;text-align:center;font-size:44px;font-weight:300;letter-spacing:.03em}
+/* the two UI shots (32-38 s): the real UI on the made-up sample data, 1240x820 shown at 0.887 */
+.shot{position:absolute;left:410px;top:96px;width:1100px;height:727px;border-radius:16px;overflow:hidden;background:#fff;
+  border:1px solid rgba(17,20,24,.08);box-shadow:0 34px 90px rgba(17,20,24,.15),0 2px 8px rgba(17,20,24,.05)}
+.shot img{display:block;width:100%;height:100%;transform-origin:50% 28%}
+.cap{position:absolute;left:0;right:0;top:872px;text-align:center;font-size:44px;font-weight:300;letter-spacing:.03em}
 
 /* end card */
 .end-mark{position:absolute;left:50%;top:360px;width:100px;height:100px;margin-left:-50px}
@@ -122,11 +123,11 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   </section>
 
   <section class="scene" id="u1">
-    <div class="shot" data-d="0" data-shift="24">界面：结论页（等虚构样例）</div>
+    <div class="shot" data-d="0" data-shift="24"><img src="ui-results.png" alt="" data-zoom="0.03"></div>
     <p class="cap" data-d="0.35">先只读体检，再给结论。拿不准的，一张卡，你来定。</p>
   </section>
   <section class="scene" id="u2">
-    <div class="shot" data-d="0" data-shift="24">界面：隔离区（等虚构样例）</div>
+    <div class="shot" data-d="0" data-shift="24"><img src="ui-quarantine.png" alt="" data-zoom="0.02"></div>
     <p class="cap" data-d="0.25">清掉的先进隔离区，随时还原。</p>
   </section>
 
@@ -176,6 +177,12 @@ function renderAt(t) {
       key.push(o.toFixed(3), x.toFixed(1), y.toFixed(1), b.toFixed(2));
     }
     // The mark is drawn like one brush flick: a soft edge sweeps from the round head to the tip.
+    // UI shots zoom in slowly over the whole scene.
+    for (const el of s.node.querySelectorAll('[data-zoom]')) {
+      const z = 1 + +el.dataset.zoom * clamp((t - s.a) / (s.b - s.a));
+      el.style.transform = `scale(${z.toFixed(4)})`;
+      key.push(z.toFixed(4));
+    }
     for (const el of s.node.querySelectorAll('[data-draw]')) {
       const p = easeInOut(clamp((t - s.a - +el.dataset.draw) / +el.dataset.drawDur));
       const [a, b] = document.getElementById(el.dataset.grad).querySelectorAll('stop');
