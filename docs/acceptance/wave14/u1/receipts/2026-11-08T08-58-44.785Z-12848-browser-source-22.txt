@@ -1,0 +1,7 @@
+import {t, serviceText, listText, notesText} from './strings.mjs';
+import {add, el, heading, button, row} from './common.mjs';
+export function intro(s, a) {
+  const lines = [t('introRead'), t('introClean'), t('introRestore')];
+  const main = add(el('section', 'card dark main-card intro'), lines.map(text => row(text)), add(el('div', 'bottom action-stack'), button(t('start'), a.startIntro, 'btn primary', 'intro-start')));
+  return add(el('section', 'screen'), heading(t('howFlickWorks'), ''), main);
+}

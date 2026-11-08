@@ -7,8 +7,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use water_junk_scan::{
-    CancelToken, Condition, ExtrasOptions, ScanObserver, ScanOptions, ScanPlan, ScanProgress,
-    ScanResult, extras_from_json, extras_to_json, growth, identity_of, name_template,
+    CancelToken, Condition, ExtrasOptions, RootProgress, ScanObserver, ScanOptions, ScanPlan,
+    ScanProgress, ScanResult, extras_from_json, extras_to_json, growth, identity_of, name_template,
     normalize_key, overview_from_json, overview_to_json, result_from_json, result_to_json, scan,
     scan_full, snapshot, snapshot_from_json, snapshot_to_json, space_overview,
 };
@@ -17,6 +17,42 @@ struct Quiet;
 
 impl ScanObserver for Quiet {
     fn on_progress(&self, _: &ScanProgress) {}
+}
+
+enum RootEvent {
+    Progress(ScanProgress),
+    Done(RootProgress),
+}
+
+#[derive(Default)]
+struct RecordedRoots {
+    events: std::sync::Mutex<Vec<RootEvent>>,
+    cancel_on_progress: Option<CancelToken>,
+}
+
+impl ScanObserver for RecordedRoots {
+    fn on_progress(&self, progress: &ScanProgress) {
+        self.events
+            .lock()
+            .unwrap()
+            .push(RootEvent::Progress(progress.clone()));
+        if let Some(cancel) = &self.cancel_on_progress {
+            cancel.cancel();
+        }
+    }
+
+    fn on_root_done(&self, root: &RootProgress) {
+        assert!(
+            self.cancel_on_progress
+                .as_ref()
+                .is_none_or(|token| !token.is_cancelled()),
+            "SCAN_W14_ROOTS: no root callback after cancellation"
+        );
+        self.events
+            .lock()
+            .unwrap()
+            .push(RootEvent::Done(root.clone()));
+    }
 }
 
 struct Fixture {
@@ -683,6 +719,204 @@ fn scan_pattern_marker_discovery() {
 
 #[test]
 fn scan_overlap_and_guards() {
+    {
+        let fx = Fixture::create();
+        write_file(&fx.join("RootAlpha/inner/deep/a.bin"), b"a");
+        write_file(&fx.join("RootAlpha/other/b.bin"), b"b");
+        write_file(&fx.join("RootBeta/payload/c.bin"), b"c");
+        write_file(&fx.join(".flick-quarantine/ignored/private.bin"), b"q");
+        write_file(&fx.join("repo/.git/objects/private.bin"), b"g");
+        write_file(&fx.join("plain.bin"), b"f");
+        junction(&fx.join("alias"), &fx.join("elsewhere"));
+        let alpha = fx.p("RootAlpha");
+        let beta = fx.p("RootBeta");
+        let inner = fx.p("RootAlpha/inner");
+        let missing = fx.p("missing");
+        let quarantine = fx.p(".flick-quarantine/ignored");
+        let git = fx.p("repo/.git/objects");
+        let plain = fx.p("plain.bin");
+        let alias = fx.p("alias");
+        let marker = json!({"kind":"dir_name","names":["inner"]});
+        let specs = vec![
+            ("alpha", json!({"kind":"discovery","root":alpha})),
+            (
+                "beta",
+                json!({"kind":"pattern","base":beta,"segments":["payload"]}),
+            ),
+            (
+                "inner",
+                json!({"kind":"marker","root":inner,"marker":marker,"max_depth":2,
+                "conditions":[{"kind":"path_has_any","names":["inner"]}]}),
+            ),
+            (
+                "shared",
+                json!({"kind":"pattern","base":alpha.to_ascii_uppercase(),"segments":["other"]}),
+            ),
+            ("missing", json!({"kind":"discovery","root":missing})),
+            ("quarantine", json!({"kind":"discovery","root":quarantine})),
+            ("git", json!({"kind":"discovery","root":git})),
+            ("file", json!({"kind":"discovery","root":plain})),
+            ("alias", json!({"kind":"discovery","root":alias})),
+            (
+                "fallback",
+                json!({"kind":"marker","root":inner,"marker":marker,"max_depth":2,
+                "fallback_for":"inner"}),
+            ),
+        ];
+        let targets = specs
+            .iter()
+            .map(|(id, spec)| target(id, "confirm", "custom", spec.clone(), "dir", 0, 0))
+            .collect();
+        let parsed = ScanPlan::from_json(&plan(targets, vec![])).unwrap();
+        for full in [false, true] {
+            let recorded = RecordedRoots::default();
+            let options = ScanOptions::default();
+            let cancel = CancelToken::new();
+            let result = if full {
+                scan_full(
+                    &parsed,
+                    "roots",
+                    &options,
+                    &ExtrasOptions::default(),
+                    &cancel,
+                    &recorded,
+                    SystemTime::now(),
+                )
+                .unwrap()
+                .0
+            } else {
+                scan(
+                    &parsed,
+                    "roots",
+                    &options,
+                    &cancel,
+                    &recorded,
+                    SystemTime::now(),
+                )
+                .unwrap()
+            };
+            assert_eq!(result.status, "completed", "SCAN_W14_ROOTS: complete scan");
+            let events = recorded.events.lock().unwrap();
+            let roots: Vec<_> = events
+                .iter()
+                .filter_map(|e| match e {
+                    RootEvent::Done(root) => Some(root),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(
+                roots.len(),
+                8,
+                "SCAN_W14_ROOTS: exactly one event per distinct root"
+            );
+            let expected = [
+                &quarantine,
+                &git,
+                &alpha,
+                &beta,
+                &missing,
+                &plain,
+                &alias,
+                &inner,
+            ];
+            assert_eq!(
+                roots.iter().map(|r| &r.root).collect::<Vec<_>>(),
+                expected,
+                "SCAN_W14_ROOTS: skipped roots first, original spelling and traversal order"
+            );
+            for (i, root) in roots.iter().enumerate() {
+                assert_eq!(
+                    root.roots_done,
+                    i as u64 + 1,
+                    "SCAN_W14_ROOTS: consecutive done count"
+                );
+                assert_eq!(
+                    root.roots_total, 8,
+                    "SCAN_W14_ROOTS: constant total includes skipped roots"
+                );
+                let encoded = serde_json::to_string(root).unwrap();
+                assert_eq!(
+                    serde_json::from_str::<RootProgress>(&encoded).unwrap(),
+                    **root,
+                    "SCAN_W14_ROOTS: public root event round trip"
+                );
+            }
+            assert!(
+                matches!(&events[0], RootEvent::Done(r) if r.root == quarantine),
+                "SCAN_W14_ROOTS: quarantine precedes every walk and progress event"
+            );
+            assert_eq!(
+                roots[0].visited_entries, 0,
+                "SCAN_W14_ROOTS: ignored root is not read"
+            );
+            assert_eq!(
+                roots[1].visited_entries, 0,
+                "SCAN_W14_ROOTS: git root is not read"
+            );
+            // Alpha has inner, deep, a.bin, other and b.bin: five entries.
+            assert_eq!(
+                roots[2].visited_entries, 5,
+                "SCAN_W14_ROOTS: report after the whole alpha subtree"
+            );
+            assert_eq!(
+                roots[3].visited_entries, 7,
+                "SCAN_W14_ROOTS: report after the beta subtree"
+            );
+            assert!(
+                roots.iter().skip(3).all(|r| r.visited_entries == 7),
+                "SCAN_W14_ROOTS: skipped and already visited roots do not enumerate again"
+            );
+            assert_eq!(
+                result.visited_entries, 7,
+                "SCAN_W14_ROOTS: shared engine counter"
+            );
+            let last_done = events
+                .iter()
+                .rposition(|e| matches!(e, RootEvent::Done(_)))
+                .unwrap();
+            let final_progress: Vec<_> = events[last_done + 1..]
+                .iter()
+                .filter_map(|e| match e {
+                    RootEvent::Progress(p) => Some((p.group_id.as_str(), p.visited_entries)),
+                    _ => None,
+                })
+                .collect();
+            let expected_progress: Vec<_> = specs
+                .iter()
+                .filter(|(id, _)| *id != "fallback")
+                .map(|(id, _)| (*id, 7))
+                .collect();
+            assert_eq!(
+                final_progress, expected_progress,
+                "SCAN_W14_ROOTS: final per-target progress remains unchanged"
+            );
+            assert!(
+                events
+                    .iter()
+                    .all(|e| !matches!(e, RootEvent::Progress(p) if p.group_id == "fallback")),
+                "SCAN_W14_ROOTS: fallback never emits progress"
+            );
+        }
+        let recorded = RecordedRoots::default();
+        space_overview(
+            &alpha,
+            "roots-overview",
+            &ScanOptions::default(),
+            &CancelToken::new(),
+            &recorded,
+            SystemTime::now(),
+        )
+        .unwrap();
+        assert!(
+            recorded
+                .events
+                .lock()
+                .unwrap()
+                .iter()
+                .all(|e| matches!(e, RootEvent::Progress(_))),
+            "SCAN_W14_ROOTS: overview never reports root completion"
+        );
+    }
     m35_rules_names();
     check_single_walk();
     let fx = Fixture::create();
@@ -943,6 +1177,144 @@ fn scan_overlap_and_guards() {
 
 #[test]
 fn scan_reparse_budget_cancel() {
+    {
+        let fx = Fixture::create();
+        write_file(&fx.join("first/branch/a.bin"), b"a");
+        write_file(&fx.join("later/b.bin"), b"b");
+        let first = fx.p("first");
+        let quarantine = fx.p(".water-quarantine/ignored");
+        let parsed = ScanPlan::from_json(&plan(
+            vec![
+                target(
+                    "first",
+                    "confirm",
+                    "custom",
+                    json!({"kind":"pattern","base":first,"segments":["absent"]}),
+                    "dir",
+                    0,
+                    0,
+                ),
+                target(
+                    "later",
+                    "confirm",
+                    "custom",
+                    json!({"kind":"discovery","root":fx.p("later")}),
+                    "dir",
+                    0,
+                    0,
+                ),
+                target(
+                    "ignored",
+                    "confirm",
+                    "custom",
+                    json!({"kind":"discovery","root":quarantine}),
+                    "dir",
+                    0,
+                    0,
+                ),
+            ],
+            vec![],
+        ))
+        .unwrap();
+        let token = CancelToken::new();
+        let recorded = RecordedRoots {
+            cancel_on_progress: Some(token.clone()),
+            ..RecordedRoots::default()
+        };
+        let result = scan(
+            &parsed,
+            "roots-cancel",
+            &ScanOptions::default(),
+            &token,
+            &recorded,
+            SystemTime::now(),
+        )
+        .unwrap();
+        assert_eq!(
+            result.status, "cancelled",
+            "SCAN_W14_ROOTS: cancel from first walking callback"
+        );
+        let events = recorded.events.lock().unwrap();
+        let roots: Vec<_> = events
+            .iter()
+            .filter_map(|e| match e {
+                RootEvent::Done(root) => Some(root),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            roots.len(),
+            1,
+            "SCAN_W14_ROOTS: unfinished and later roots are not reported"
+        );
+        assert_eq!(
+            roots[0].root, quarantine,
+            "SCAN_W14_ROOTS: only the upfront skip completed"
+        );
+        assert_eq!(
+            (roots[0].roots_done, roots[0].roots_total),
+            (1, 3),
+            "SCAN_W14_ROOTS: cancellation leaves progress below the total"
+        );
+        assert!(
+            matches!(&events[1], RootEvent::Progress(p) if p.group_id == "first" && p.visited_entries > 0),
+            "SCAN_W14_ROOTS: cancellation happens inside the first root without sleeping"
+        );
+        drop(events);
+        let recorded = RecordedRoots::default();
+        scan(
+            &parsed,
+            "roots-pre-cancel",
+            &ScanOptions::default(),
+            &token,
+            &recorded,
+            SystemTime::now(),
+        )
+        .unwrap();
+        assert!(
+            recorded
+                .events
+                .lock()
+                .unwrap()
+                .iter()
+                .all(|e| !matches!(e, RootEvent::Done(_))),
+            "SCAN_W14_ROOTS: pre-cancelled scans do not report even skipped roots"
+        );
+        let recorded = RecordedRoots::default();
+        let result = scan(
+            &parsed,
+            "roots-budget",
+            &ScanOptions {
+                max_entries: 0,
+                max_seconds: 900,
+            },
+            &CancelToken::new(),
+            &recorded,
+            SystemTime::now(),
+        )
+        .unwrap();
+        assert_eq!(
+            result.status, "partial",
+            "SCAN_W14_ROOTS: budget stops traversal"
+        );
+        let events = recorded.events.lock().unwrap();
+        let roots: Vec<_> = events
+            .iter()
+            .filter_map(|e| match e {
+                RootEvent::Done(root) => Some(root),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            roots.len(),
+            1,
+            "SCAN_W14_ROOTS: budget does not complete current or later roots"
+        );
+        assert_eq!(
+            roots[0].root, quarantine,
+            "SCAN_W14_ROOTS: budget preserves earlier completions"
+        );
+    }
     m35_junctions_overview();
     let fx = Fixture::create();
     write_file(&fx.join("elsewhere/leaf/cache/z.bin"), &[8; 200]);

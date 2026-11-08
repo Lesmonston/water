@@ -1,0 +1,78 @@
+import {strings} from './views/strings.mjs';
+const invalid = () => ({code:'invalid', message_zh:strings.zh.invalidSelection, message_en:strings.en.invalidSelection});
+function id(value) {
+  if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._-]{0,255}$/.test(value) || (/^[A-Za-z]:/.test(value) && !/^(m:[a-z0-9._-]+|r:[a-f0-9]{16})$/.test(value))) throw invalid();
+  return value;
+}
+function token(value) {
+  if (typeof value !== 'string' || !value.length || value.length > 512 || value.includes('\\')) throw invalid();
+  return value;
+}
+async function invoke(command, build = () => ({})) {
+  const host = (globalThis.window ?? globalThis).__TAURI__;
+  if (typeof host?.core?.invoke !== 'function') throw {code:'unavailable'};
+  return host.core.invoke(command, build());
+}
+export const app_state = () => invoke('app_state');
+export const scan_start = locationIds => invoke('scan_start', () => locationIds === undefined ? {} : {locationIds:ids(locationIds, 24)});
+export const scan_cancel = scanId => invoke('scan_cancel', () => ({scanId:id(scanId)}));
+export const scan_progress = () => invoke('scan_progress');
+export const scan_result = scanId => invoke('scan_result', () => ({scanId:id(scanId)}));
+export const group_detail = groupId => invoke('group_detail', () => ({groupId:id(groupId)}));
+export const clean_prepare = (groupIds, excludeItemIds) => invoke('clean_prepare', () => {
+  if (groupIds && !Array.isArray(groupIds) && typeof groupIds === 'object') {
+    if (hasKeys(groupIds, ['conclusionVersion', 'chosenMode'])) return {conclusionVersion:version(groupIds.conclusionVersion), chosenMode:oneOf(groupIds.chosenMode, ['quarantine', 'delete'])};
+    if (hasKeys(groupIds, ['dedupeId', 'dedupeVersion'])) return {dedupeId:id(groupIds.dedupeId), dedupeVersion:version(groupIds.dedupeVersion)};
+    throw invalid();
+  }
+  if (!Array.isArray(groupIds) || !groupIds.length) throw invalid();
+  if (excludeItemIds === undefined) return {groupIds:groupIds.map(id)};
+  if (!Array.isArray(excludeItemIds) || excludeItemIds.length > 5000 || new Set(excludeItemIds).size !== excludeItemIds.length) throw invalid();
+  return {groupIds:groupIds.map(id), excludeItemIds:excludeItemIds.map(id)};
+});
+export const clean_start = (planId, confirmToken) => invoke('clean_start', () => ({planId:id(planId), confirmToken:token(confirmToken)}));
+export const clean_stop = () => invoke('clean_stop');
+export const clean_progress = () => invoke('clean_progress');
+export const clean_result = cleanId => invoke('clean_result', () => ({cleanId:id(cleanId)}));
+export const trends = () => invoke('trends');
+export const history_list = () => invoke('history_list');
+export const locations_get = () => invoke('locations_get');
+export const locations_set_category = (category, enabled) => invoke('locations_set_category', () => {
+  if (typeof enabled !== 'boolean') throw invalid();
+  return {category:id(category), enabled};
+});
+export const custom_root_add = () => invoke('custom_root_add');
+export const custom_root_remove = rootId => invoke('custom_root_remove', () => ({rootId:id(rootId)}));
+export const skip_add = itemId => invoke('skip_add', () => ({itemId:id(itemId)}));
+export const skip_remove = skipId => invoke('skip_remove', () => ({skipId:id(skipId)}));
+function hasKeys(value, keys) { return value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === keys.length && keys.every(k => Object.hasOwn(value, k)); }
+function bool(value) { if (typeof value !== 'boolean') throw invalid(); return value; }
+function oneOf(value, allowed) { if (!allowed.includes(value)) throw invalid(); return value; }
+function version(value) { if (typeof value !== 'string' || !/^[A-Za-z0-9:._-]{1,64}$/.test(value)) throw invalid(); return value; }
+function ids(values, max) { if (!Array.isArray(values) || !values.length || values.length > max || new Set(values).size !== values.length) throw invalid(); return values.map(id); }
+function query(value) { if (value === null) return value; if (typeof value !== 'string' || !value.length || [...value].length > 64 || /[\\/:\u0000-\u001f\u007f]/.test(value)) throw invalid(); return value; }
+function decision(value) {
+  if (hasKeys(value, ['group', 'choice'])) return {group:id(value.group), choice:oneOf(value.choice, ['clean', 'keep', 'undecided'])};
+  for (const kind of ['category', 'row', 'item']) if (hasKeys(value, [kind, 'include'])) return {[kind]:id(value[kind]), include:bool(value.include)};
+  throw invalid();
+}
+export const conclusion_get = () => invoke('conclusion_get');
+export const conclusion_decide = (v, choice) => invoke('conclusion_decide', () => ({version:version(v), decision:decision(choice)}));
+export const detail_get = (v, mode) => invoke('detail_get', () => ({version:version(v), mode:oneOf(mode, ['category', 'location'])}));
+export const group_items = (groupId, rowId, term) => invoke('group_items', () => ({groupId:id(groupId), rowId:rowId === null ? null : id(rowId), query:query(term)}));
+export const quarantine_list = () => invoke('quarantine_list');
+export const quarantine_restore = (quarantineId, beside) => invoke('quarantine_restore', () => ({quarantineId:id(quarantineId), beside:bool(beside)}));
+export const quarantine_delete = quarantineId => invoke('quarantine_delete', () => ({quarantineId:id(quarantineId)}));
+export const quarantine_progress = () => invoke('quarantine_progress');
+export const quarantine_reveal = targetId => invoke('quarantine_reveal', () => ({targetId:id(targetId)}));
+export const dedupe_start = locationId => invoke('dedupe_start', () => ({locationId:id(locationId)}));
+export const dedupe_progress = () => invoke('dedupe_progress');
+export const dedupe_cancel = dedupeId => invoke('dedupe_cancel', () => ({dedupeId:id(dedupeId)}));
+export const dedupe_result = (dedupeId, expand) => invoke('dedupe_result', () => ({dedupeId:id(dedupeId), expand:bool(expand)}));
+export const dedupe_decide = (dedupeId, v, groupId, include) => invoke('dedupe_decide', () => ({dedupeId:id(dedupeId), version:version(v), groupId:id(groupId), include:bool(include)}));
+export const locations_set_session_cleanup = (tool, enabled, days) => invoke('locations_set_session_cleanup', () => ({tool:id(tool), enabled:bool(enabled), days:oneOf(days, [7, 30, 90])}));
+export const manifest_trust = (manifestId, trusted) => invoke('manifest_trust', () => ({manifestId:id(manifestId), trusted:bool(trusted)}));
+export const cluster_mark_fixed = (groupId, fixed) => invoke('cluster_mark_fixed', () => ({groupId:id(groupId), fixed:bool(fixed)}));
+export const skip_unit_add = (conclusionVersion, unitId) => invoke('skip_unit_add', () => ({conclusionVersion:version(conclusionVersion), unitId:id(unitId)}));
+export const diagnostics_get = () => invoke('diagnostics_get');
+export const app_info = () => invoke('app_info');

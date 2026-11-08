@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {bytes, formatBytes, byteDelta, countDelta, count, relativeTime, elapsed, percent, middlePath} from '../format.mjs';
+import {bytes, formatBytes, byteDelta, countDelta, count, relativeTime, dateOnly, dateTime, approximate, formatDays, formatList, driveName, elapsed, percent, middlePath} from '../format.mjs';
+import {strings, setLanguage, resolveLanguage, serviceText, t, readLanguage, saveLanguage} from '../views/strings.mjs';
 import * as model from '../model.mjs';
 import * as ipc from '../ipc.mjs';
 const fixture = JSON.parse(readFileSync(new URL('../../../../contracts/checkup-v1/ui-fixtures.json', import.meta.url), 'utf8'));
 const m3c = JSON.parse(readFileSync(new URL('../../../../contracts/m3c-v1/ui-fixtures-m3c.json', import.meta.url), 'utf8'));
 
 test('ui_format_bytes_time', () => {
+  setLanguage('zh');
   assert.equal(formatBytes('0'), '0 MB', 'UI_W11_ZERO: zero bytes display as zero');
   assert.equal(byteDelta('0'), '0 MB', 'UI_W11_ZERO: zero delta has no plus sign');
   assert.equal(formatBytes('1'), '<1 MB', 'UI_W11_ZERO: positive sub-MB bytes remain below one MB');
@@ -42,8 +44,8 @@ test('ui_format_bytes_time', () => {
   try {
     for (const zone of ['UTC', 'Asia/Tokyo', 'America/Los_Angeles']) {
       process.env.TZ = zone;
-      assert.equal(relativeTime('2026-10-24T23:30:00Z', now), '10 月 24 日');
-      assert.equal(relativeTime('2024-10-24T23:30:00Z', now), '2024 年 10 月 24 日');
+      assert.equal(relativeTime('2026-10-24T23:30:00Z', now), zone === 'Asia/Tokyo' ? '10 月 25 日' : '10 月 24 日', 'UI_W14_STRINGS: local calendar day');
+      assert.equal(relativeTime('2024-10-24T23:30:00Z', now), zone === 'Asia/Tokyo' ? '2024 年 10 月 25 日' : '2024 年 10 月 24 日', 'UI_W14_STRINGS: local calendar day across years');
     }
   } finally { if (previousTZ === undefined) delete process.env.TZ; else process.env.TZ = previousTZ; }
   assert.equal(relativeTime(null, now), '尚无记录');
@@ -56,6 +58,26 @@ test('ui_format_bytes_time', () => {
   assert.throws(() => bytes('1.2'));
   assert.equal(middlePath('short'), 'short');
   assert.equal(middlePath('a'.repeat(100)).length, 56);
+  for (const [lang, expected] of [['zh', ['11 月 8 日', '11 月 8 日 14:05', '2025 年 11 月 8 日', '约 1.2 GB', 'F 盘', '7 天', 'A、B、C']], ['en', ['Nov 8', 'Nov 8, 14:05', 'Nov 8, 2025', 'about 1.2 GB', 'Drive F:', '7 days', 'A, B, and C']]]) {
+    setLanguage(lang);
+    const local = new Date(2026, 10, 8, 14, 5), reference = new Date(2026, 10, 10).getTime();
+    assert.deepEqual([dateOnly(local, reference), dateTime(local, reference), dateOnly(new Date(2025, 10, 8), reference), approximate('1.2 GB'), driveName('F:\\'), formatDays(7), formatList(['A', 'B', 'C'])], expected, 'UI_W14_STRINGS: complete locale formatting');
+    assert.equal(relativeTime(local, reference), expected[0], 'UI_W14_STRINGS: over a day uses a local date');
+    assert.equal(formatBytes('1288490189'), '1.2 GB', 'UI_W14_STRINGS: exact bytes in both languages');
+    assert.equal(count(369510), '369,510', 'UI_W14_STRINGS: grouped counts');
+    assert.equal(driveName('f:\\'), lang === 'en' ? 'Drive F:' : 'F 盘', 'UI_W14_STRINGS: drive letters are uppercase');
+    assert.equal(relativeTime(local, local.getTime() + 5 * 60000), lang === 'en' ? '5 min ago' : '5 分钟前', 'UI_W14_STRINGS: minutes');
+    assert.equal(relativeTime(local, local.getTime() + 3 * 3600000), lang === 'en' ? '3 h ago' : '3 小时前', 'UI_W14_STRINGS: hours');
+    assert.equal(relativeTime(local, local.getTime()), lang === 'en' ? 'just now' : '刚刚', 'UI_W14_STRINGS: now');
+  }
+  for (const [choice, host, browser, expected] of [['system','zh-TW','en-US','zh'], ['system','ZH-hk','en-US','zh'], ['system','en-GB','zh-CN','en'], ['system','','zh-CN','zh'], ['system',undefined,'en-US','en'], ['system','fr-FR','zh-CN','en'], ['zh','en-US','en-US','zh'], ['en','zh-CN','zh-CN','en']]) assert.equal(resolveLanguage(choice, host, browser), expected, 'UI_W14_STRINGS: language resolution');
+  const storage = globalThis.localStorage;
+  try {
+    globalThis.localStorage = {getItem:() => { throw new Error('blocked'); }, setItem:() => { throw new Error('blocked'); }};
+    assert.equal(readLanguage(), 'system', 'UI_W14_STRINGS: blocked storage follows system');
+    assert.doesNotThrow(() => saveLanguage('en'), 'UI_W14_STRINGS: failed storage writes are harmless');
+    globalThis.localStorage = {getItem:() => 'invalid'}; assert.equal(readLanguage(), 'system', 'UI_W14_STRINGS: invalid saved preference');
+  } finally { if (storage === undefined) delete globalThis.localStorage; else globalThis.localStorage = storage; setLanguage('zh'); }
   for (const values of [[1, 2, 3, 4], [16, 23, 8, 67, 59], [2, 2, 2], [9, 8, 8, 0], [0, 1000, 1001]]) {
     const points = values.map((y, i) => ({x:i * 100, y}));
     const segments = model.monotoneSegments(points);
@@ -73,6 +95,50 @@ test('ui_format_bytes_time', () => {
 });
 
 test('ui_v2_view_rules', () => {
+  assert.deepEqual(Object.keys(strings.zh), Object.keys(strings.en), 'UI_W14_STRINGS: identical keys');
+  function checkText(lang, key, value) {
+    if (typeof value === 'object') {
+      assert.equal(lang, 'en', `UI_W14_STRINGS: only English needs plural variants ${key}`);
+      assert.deepEqual(Object.keys(value).sort(), ['count', 'one', 'other'], `UI_W14_STRINGS: complete plural ${key}`);
+      assert.equal(typeof value.count, 'string', `UI_W14_STRINGS: count parameter ${key}`);
+      checkText(lang, key, value.one); checkText(lang, key, value.other); return;
+    }
+    assert.equal(typeof value, 'string', `UI_W14_STRINGS: ${lang}.${key}`);
+    assert(value.trim().length, `UI_W14_STRINGS: nonempty ${lang}.${key}`);
+    // The language picker's native Chinese name is the sole UI-copy exception.
+    if (lang === 'en' && key === 'chinese') assert.equal(value, '中文', 'UI_W14_STRINGS: native language name');
+    else if (lang === 'en') assert(!/\p{Script=Han}/u.test(value), `UI_W14_STRINGS: English ${key}`);
+  }
+  for (const [lang, values] of Object.entries(strings)) for (const [key, value] of Object.entries(values)) checkText(lang, key, value);
+  for (const [key, one, two, zh] of [
+    ['quarantineBatches', '1 batch in quarantine', '2 batches in quarantine', '隔离区里有 {n} 批'],
+    ['items', '1 item', '2 items', '{n} 项'],
+    ['days', '1 day', '2 days', '{n} 天'],
+    ['processCount', '1 process · now', '2 processes · now', '{n} 个 · now'],
+    ['duplicateGroups', '1 duplicate group found', '2 duplicate groups found', '找到 {n} 组重复'],
+    ['cannotDeleteCount', '1 item could not be deleted', '2 items could not be deleted', '还剩 {n} 个删不掉'],
+    ['copiesCount', '1 copy', '2 copies', '{n} 份'],
+    ['otherItems', '1 other item', '2 other items', '另有 {n} 项']
+  ]) for (const n of [1, 2]) {
+    setLanguage('en'); assert.equal(t(key, {n, time:'now'}), n === 1 ? one : two, `UI_W14_PLURAL: ${key} ${n}`);
+    setLanguage('zh'); assert.equal(t(key, {n, time:'now'}), zh.replace('{n}', String(n)), `UI_W14_PLURAL: unchanged Chinese ${key} ${n}`);
+  }
+  setLanguage('en');
+  for (const protectedCount of [1, 2]) for (const trees of [1, 2]) assert.equal(t('declarationCounts', {protected:protectedCount, trees}), `${protectedCount} protected item${protectedCount === 1 ? '' : 's'} · ${trees} worktree${trees === 1 ? '' : 's'}`, 'UI_W14_PLURAL: independent counts');
+  assert.equal(t('itemCountShown', {shown:1, total:2}), 'Showing 1 / 2 items', 'UI_W14_PLURAL: total controls the noun');
+  assert.equal(t('itemCountShown', {shown:1, total:1}), 'Showing 1 / 1 item', 'UI_W14_PLURAL: singular total');
+  assert.equal(formatDays(1n), '1 day', 'UI_W14_PLURAL: formatted days use the count');
+  assert.equal(t('items', {n:0}), '0 items', 'UI_W14_PLURAL: zero is plural');
+  assert.equal(t('items', {n:1000n}), '1,000 items', 'UI_W14_PLURAL: grouped bigint count');
+  setLanguage('en');
+  assert.equal(t('checking'), 'Checking', 'UI_W14_STRINGS: UI lookup');
+  assert.equal(model.clusterStates.growing, 'Keeps growing', 'UI_W14_STRINGS: small maps update immediately');
+  assert.equal(serviceText({title_zh:'旧数据'}, 'title'), '旧数据', 'UI_W14_STRINGS: missing sibling falls back');
+  assert.equal(serviceText({title_zh:'中文', title_en:null}, 'title'), null, 'UI_W14_STRINGS: present null is preserved');
+  assert.deepEqual(serviceText({notes_zh:['中文'], notes_en:['English']}, 'notes'), ['English'], 'UI_W14_STRINGS: array sibling');
+  assert.equal(serviceText({message_zh:'中文', message_en:'English'}, 'message'), 'English', 'UI_W14_STRINGS: errors');
+  assert.equal(serviceText({copy_text:'中文', copy_text_en:'English'}, 'copy_text'), 'English', 'UI_W14_STRINGS: clipboard');
+  setLanguage('zh');
   const f = JSON.parse(readFileSync(new URL('../../../../contracts/m35-v1/ui-fixtures-m35.json', import.meta.url), 'utf8'));
   function checkPaths(value) {
     if (typeof value === 'string') {

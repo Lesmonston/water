@@ -1,0 +1,9 @@
+import {t} from './strings.mjs';
+import {add, el, card, button, icon, row} from './common.mjs';
+export function about(s, a) {
+  const node = el('div', 'privacy'), info = s.appInfo, brand = add(el('section', 'card about-info'), add(el('div', 'about-mark'), icon('flick')));
+  if (info) add(brand, row(`Flick ${info.version}`), row(t('license', {value:info.license})), row(t('homepage', {value:info.homepage}), '', button(t('copy'), () => a.copy(info.homepage), 'btn soft', 'about-copy-homepage')));
+  add(node, add(brand, add(el('div', 'bottom'), button(t('copyDiagnostics'), a.copyDiagnostics, 'btn soft', 'about-copy-diagnostics', s.pending))));
+  for (const [title, text] of [[t('readsTitle'), t('readsBody')], [t('protectsTitle'), t('protectsBody')], [t('staysLocalTitle'), t('staysLocalBody')], [t('yourChoiceTitle'), t('yourChoiceBody')]]) add(node, add(card(title), el('p', 'sub', text)));
+  return node;
+}

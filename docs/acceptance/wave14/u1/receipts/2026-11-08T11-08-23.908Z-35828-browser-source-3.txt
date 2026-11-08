@@ -1,0 +1,61 @@
+import {t, currentLanguage, listText} from './views/strings.mjs';
+const MB = 1024n ** 2n;
+const GB = 1024n ** 3n;
+export function bytes(value) {
+  if (typeof value === 'bigint') return value;
+  if (typeof value !== 'string' || !/^-?\d+$/.test(value)) throw new TypeError('Invalid byte value');
+  return BigInt(value);
+}
+export function formatBytes(value) {
+  const n = bytes(value), abs = n < 0n ? -n : n, sign = n < 0n ? '−' : '';
+  if (n === 0n) return '0 MB';
+  if (abs < MB) return `${sign}<1 MB`;
+  const roundedMB = (abs + MB / 2n) / MB;
+  if (abs < GB && roundedMB < 1024n) return `${sign}${count(roundedMB)} MB`;
+  const tenths = (abs * 10n + GB / 2n) / GB;
+  return `${sign}${count(tenths / 10n)}.${tenths % 10n} GB`;
+}
+export function count(value) { return BigInt(value).toLocaleString('en-US'); }
+export function byteDelta(value) { return `${bytes(value) > 0n ? '+' : ''}${formatBytes(value)}`; }
+export function countDelta(value) { const n = BigInt(value); return `${n < 0n ? '−' : n > 0n ? '+' : ''}${count(n < 0n ? -n : n)}`; }
+export function relativeTime(value, now = Date.now()) {
+  if (!value) return t('noRecords');
+  const date = new Date(value), delta = Math.max(0, now - date.getTime());
+  if (!Number.isFinite(date.getTime())) return t('unknownTime');
+  if (delta < 60000) return t('justNow');
+  if (delta < 3600000) return t('minutesAgo', {n:count(Math.floor(delta / 60000))});
+  if (delta < 86400000) return t('hoursAgo', {n:count(Math.floor(delta / 3600000))});
+  return dateOnly(value, now);
+}
+export function dateOnly(value, now = Date.now()) {
+  const date = new Date(value);
+  if (!value || !Number.isFinite(date.getTime())) return t('unknownTime');
+  const month = currentLanguage() === 'en' ? new Intl.DateTimeFormat('en-US', {month:'short'}).format(date) : date.getMonth() + 1;
+  const text = t('monthDay', {month, day:date.getDate()});
+  return date.getFullYear() !== new Date(now).getFullYear() ? t('yearDate', {date:text, year:date.getFullYear()}) : text;
+}
+export function dateTime(value, now = Date.now()) {
+  const date = new Date(value);
+  if (!value || !Number.isFinite(date.getTime())) return t('unknownTime');
+  return t('timeDate', {date:dateOnly(value, now), time:`${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`});
+}
+export const driveName = root => t('drive', {letter:root?.slice(0, 1).toUpperCase() ?? ''});
+export const approximate = value => t('about', {value});
+export const formatDays = value => t('days', {n:value});
+export const formatList = values => listText(values);
+export function localDateKey(value) {
+  const date = new Date(value), pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+export function elapsed(ms) {
+  const seconds = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+// Only the bounded ratio becomes a Number, never a byte quantity.
+export function percent(part, total) {
+  const t = bytes(total), p = bytes(part);
+  return t <= 0n ? 0 : Number((p < 0n ? 0n : p > t ? t : p) * 10000n / t) / 100;
+}
+export function middlePath(path, max = 56) {
+  return path.length <= max ? path : `${path.slice(0, 13)}…${path.slice(-(max - 14))}`;
+}
