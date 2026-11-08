@@ -61,7 +61,10 @@ windows, downloads and permission requests are disabled. Only the bundled root
 and index page can be navigated to. The sole frontend window permission is dragging.
 
 `cmd_*` adapters reconstruct camelCase argument objects and pass backend values
-and failures through unchanged. Configuration is embedded and checked before the
+and failures through unchanged. IPC failures contain `code`, `message_zh` and
+`message_en`. Service errors preserve all three fields; host-owned failures provide
+English alongside the existing Chinese message, including folder-picker errors.
+Configuration is embedded and checked before the
 Tauri runtime starts; capability validation rejects extra permissions and fields.
 `clean_prepare` forwards `excludeItemIds` only when the optional list is nonempty;
 omitted and empty lists retain the original `groupIds`-only request bytes.

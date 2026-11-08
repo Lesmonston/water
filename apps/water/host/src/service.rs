@@ -15,6 +15,7 @@ impl Backend for ServiceBackend {
         self.0.call(command, args).map_err(|error| IpcFailure {
             code: error.code,
             message_zh: error.message_zh,
+            message_en: error.message_en,
         })
     }
 }
@@ -53,10 +54,12 @@ impl FolderPicker for HostPicker {
         let _guard = self.begin().ok_or_else(|| IpcError {
             code: "busy".into(),
             message_zh: "正在进行另一项任务，请稍候。".into(),
+            message_en: "Another task is in progress. Please wait.".into(),
         })?;
         pick_folder(&self.initial_directory).map_err(|error| IpcError {
             code: error.code,
             message_zh: error.message_zh,
+            message_en: error.message_en,
         })
     }
 }

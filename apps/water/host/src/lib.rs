@@ -48,6 +48,7 @@ use tauri::{
 pub struct IpcFailure {
     pub code: String,
     pub message_zh: String,
+    pub message_en: String,
 }
 
 pub trait Backend: Send + Sync + 'static {
@@ -74,6 +75,7 @@ fn unavailable_failure() -> IpcFailure {
     IpcFailure {
         code: "unavailable".into(),
         message_zh: "Flick 服务暂时不可用。".into(),
+        message_en: "The Flick service is temporarily unavailable.".into(),
     }
 }
 

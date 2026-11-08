@@ -233,6 +233,126 @@ fn host_config_boundary() {
         validate_capability("{}").is_err(),
         "HOST_CONFIG missing capability fields"
     );
+
+    let tree = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(3)
+        .expect("HOST_W14_NSIS repository root");
+    let installer = fs::read_to_string(tree.join("packaging/windows/flick.nsi"))
+        .expect("HOST_W14_NSIS read installer");
+    let lines: Vec<_> = installer
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with(';'))
+        .collect();
+    let languages: Vec<_> = lines
+        .iter()
+        .filter_map(|line| line.strip_prefix("!insertmacro MUI_LANGUAGE "))
+        .map(str::trim)
+        .collect();
+    assert_eq!(
+        languages,
+        ["\"English\"", "\"SimpChinese\""],
+        "HOST_W14_NSIS exactly two languages, English fallback first"
+    );
+    assert!(
+        !installer.contains("MUI_LANGDLL_DISPLAY"),
+        "HOST_W14_NSIS no language dialog"
+    );
+    let mut strings =
+        std::collections::BTreeMap::<&str, std::collections::BTreeMap<&str, String>>::new();
+    for line in &lines {
+        let mut words = line.split_whitespace();
+        if words.next() != Some("LangString") {
+            continue;
+        }
+        let name = words.next().expect("HOST_W14_NSIS string name");
+        let language = words.next().expect("HOST_W14_NSIS string language");
+        let value = words.collect::<Vec<_>>().join(" ");
+        assert!(
+            value.starts_with('"') && value.ends_with('"') && value.len() > 2,
+            "HOST_W14_NSIS nonempty quoted {name} in {language}"
+        );
+        assert!(
+            strings
+                .entry(name)
+                .or_default()
+                .insert(language, value)
+                .is_none(),
+            "HOST_W14_NSIS no duplicate {name} in {language}"
+        );
+    }
+    assert_eq!(
+        strings.keys().copied().collect::<Vec<_>>(),
+        [
+            "InstallRunning",
+            "OpenFlick",
+            "UninstallRunning",
+            "WebView2Missing"
+        ],
+        "HOST_W14_NSIS all four custom strings"
+    );
+    for (name, translations) in &strings {
+        assert_eq!(
+            translations.keys().copied().collect::<Vec<_>>(),
+            ["${LANG_ENGLISH}", "${LANG_SIMPCHINESE}"],
+            "HOST_W14_NSIS both languages for {name}"
+        );
+        assert!(
+            translations["${LANG_ENGLISH}"].is_ascii(),
+            "HOST_W14_NSIS English text for {name}"
+        );
+    }
+    let messages: Vec<_> = lines
+        .iter()
+        .filter(|line| {
+            line.starts_with("MessageBox ") || line.starts_with("!define MUI_FINISHPAGE_RUN_TEXT ")
+        })
+        .collect();
+    assert_eq!(messages.len(), 4, "HOST_W14_NSIS all custom string uses");
+    for line in messages {
+        assert!(line.is_ascii(), "HOST_W14_NSIS no inline Chinese: {line}");
+        let reference = line
+            .split_once("$(")
+            .and_then(|(_, tail)| tail.split_once(')'))
+            .map(|(name, _)| name)
+            .expect("HOST_W14_NSIS custom text uses a language string");
+        assert!(
+            strings.contains_key(reference),
+            "HOST_W14_NSIS declared language string {reference}"
+        );
+    }
+    for language in ["${LANG_ENGLISH}", "${LANG_SIMPCHINESE}"] {
+        let prefix = format!("VIAddVersionKey /LANG={language} ");
+        assert_eq!(
+            lines
+                .iter()
+                .filter(|line| line.starts_with(&prefix))
+                .count(),
+            6,
+            "HOST_W14_NSIS six version keys in {language}"
+        );
+        for (key, value) in [
+            ("ProductName", "Flick"),
+            ("CompanyName", "Flick"),
+            (
+                "FileDescription",
+                if language == "${LANG_ENGLISH}" {
+                    "Flick Setup"
+                } else {
+                    "Flick 安装程序"
+                },
+            ),
+            ("FileVersion", "${VERSION}"),
+            ("ProductVersion", "${VERSION}"),
+            ("LegalCopyright", "Copyright (c) 2026 Flick contributors"),
+        ] {
+            assert!(
+                lines.contains(&format!("{prefix}\"{key}\" \"{value}\"").as_str()),
+                "HOST_W14_NSIS exact {key} in {language}"
+            );
+        }
+    }
 }
 
 #[test]
@@ -329,6 +449,54 @@ fn exercise(backend: &dyn Backend) -> Vec<Result<Value, IpcFailure>> {
 
 #[test]
 fn host_command_registry() {
+    let picker = HostPicker::new("relative".into());
+    let guard = picker.begin().expect("HOST_W14_EN hold picker guard");
+    let busy = picker.pick().expect_err("HOST_W14_EN busy picker");
+    assert_eq!(
+        serde_json::to_value(&busy).unwrap(),
+        json!({"code": "busy", "message_zh": "正在进行另一项任务，请稍候。", "message_en": "Another task is in progress. Please wait."}),
+        "HOST_W14_EN busy picker preserves Chinese and includes English"
+    );
+    drop(guard);
+    let invalid = pick_folder("relative").expect_err("HOST_W14_EN no dialog for invalid folder");
+    let forwarded = picker
+        .pick()
+        .expect_err("HOST_W14_EN picker error conversion");
+    assert_eq!(
+        serde_json::to_value(&forwarded).unwrap(),
+        serde_json::to_value(&invalid).unwrap(),
+        "HOST_W14_EN picker error converts all three fields unchanged"
+    );
+    for (failure, code, chinese) in [
+        (
+            UnavailableBackend
+                .call("app_state", json!({}))
+                .expect_err("HOST_W14_EN unavailable service"),
+            "unavailable",
+            "Flick 服务暂时不可用。",
+        ),
+        (
+            picker_failure(&PickerError::UnsupportedPlatform),
+            "unavailable",
+            "系统文件夹选择框暂时打不开。",
+        ),
+        (invalid, "invalid", "这个文件夹不能加入体检，请换一个。"),
+    ] {
+        assert_eq!(failure.code, code, "HOST_W14_EN host error code unchanged");
+        assert_eq!(
+            failure.message_zh, chinese,
+            "HOST_W14_EN host Chinese unchanged"
+        );
+        assert!(
+            !failure.message_en.trim().is_empty() && failure.message_en.is_ascii(),
+            "HOST_W14_EN host error has nonempty English: {code} / {chinese}"
+        );
+        assert_eq!(
+            serde_json::to_value(&failure).unwrap(),
+            json!({"code": code, "message_zh": chinese, "message_en": failure.message_en}),
+            "HOST_W14_EN host error serializes exactly three fields"
+        );
+    }
     for source in [
         "fn f() { let c = '}'; let quote = '\\''; let slash = '\\\\'; }",
         "fn f() { let c = '字'; let c = '\\u{7b}'; let c = '\\x7d'; }",
@@ -539,6 +707,7 @@ fn host_command_registry() {
         Err(IpcFailure {
             code: "invalid".into(),
             message_zh: "原样失败。".into(),
+            message_en: "The original failure.".into(),
         }),
     ] {
         let backend = Recorder {
@@ -616,10 +785,12 @@ fn host_command_registry() {
         Err(IpcFailure {
             code: "stale".into(),
             message_zh: "原样失败。".into(),
+            message_en: "The original failure.".into(),
         }),
         Err(IpcFailure {
             code: "busy".into(),
             message_zh: "原样忙碌。".into(),
+            message_en: "The original busy reply.".into(),
         }),
     ] {
         for (version, unit) in [("v:甲", "m:组-乙"), ("", ""), ("invalid", "r:其它")] {
@@ -661,6 +832,16 @@ fn host_command_registry() {
         "HOST_W12_INFO exact host-owned app info including package version"
     );
     assert_eq!(
+        cmd_app_info()
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect::<Vec<_>>(),
+        ["homepage", "license", "name", "version"],
+        "HOST_W14_EN app info retains exactly four keys"
+    );
+    assert_eq!(
         lib.matches("tauri::generate_handler![").count(),
         1,
         "HOST_COMMANDS single registry"
@@ -670,6 +851,7 @@ fn host_command_registry() {
         Err(IpcFailure {
             code: "stale".into(),
             message_zh: "请重新体检。".into(),
+            message_en: "Please run the checkup again.".into(),
         }),
     ] {
         let backend = Recorder {
@@ -691,7 +873,7 @@ fn host_command_registry() {
     for result in exercise(&UnavailableBackend) {
         assert_eq!(
             serde_json::to_value(result.unwrap_err()).unwrap(),
-            json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。"}),
+            json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。", "message_en": "The Flick service is temporarily unavailable."}),
             "HOST_COMMANDS unavailable reply"
         );
     }
@@ -709,7 +891,7 @@ fn host_command_registry() {
     ] {
         assert_eq!(
             serde_json::to_value(picker_failure(&error)).unwrap(),
-            json!({"code": "unavailable", "message_zh": "系统文件夹选择框暂时打不开。"}),
+            json!({"code": "unavailable", "message_zh": "系统文件夹选择框暂时打不开。", "message_en": "The system folder picker is temporarily unavailable."}),
             "HOST_COMMANDS unavailable picker mapping"
         );
     }
@@ -720,7 +902,7 @@ fn host_command_registry() {
     ] {
         assert_eq!(
             serde_json::to_value(picker_failure(&error)).unwrap(),
-            json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。"}),
+            json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。", "message_en": "This folder cannot be added to the checkup. Choose another folder."}),
             "HOST_COMMANDS invalid picker mapping"
         );
     }
@@ -728,7 +910,8 @@ fn host_command_registry() {
         pick_folder("relative"),
         Err(IpcFailure {
             code: "invalid".into(),
-            message_zh: "这个文件夹不能加入体检，请换一个。".into()
+            message_zh: "这个文件夹不能加入体检，请换一个。".into(),
+            message_en: "This folder cannot be added to the checkup. Choose another folder.".into(),
         }),
         "HOST_COMMANDS reject before opening any dialog"
     );
@@ -848,6 +1031,7 @@ fn assert_m35_forward() {
         Err(IpcFailure {
             code: "stale".into(),
             message_zh: "原样转交。".into(),
+            message_en: "The original reply.".into(),
         }),
     ] {
         let backend = Recorder {
@@ -1130,6 +1314,7 @@ fn assert_m35_reveal() {
     let failure = IpcFailure {
         code: "not_found".into(),
         message_zh: "服务原样未找到。".into(),
+        message_en: "The original service record was not found.".into(),
     };
     let backend = Recorder {
         calls: Mutex::new(vec![]),
@@ -2181,6 +2366,7 @@ impl Backend for ScriptedClean {
             _ => Err(IpcFailure {
                 code: "invalid".into(),
                 message_zh: "不会走到这里。".into(),
+                message_en: "This branch is unreachable.".into(),
             }),
         }
     }
@@ -2199,6 +2385,7 @@ impl Backend for UnknownClean {
         Err(IpcFailure {
             code: "unavailable".into(),
             message_zh: "测试服务无法回答。".into(),
+            message_en: "The test service cannot respond.".into(),
         })
     }
 }
@@ -2221,6 +2408,7 @@ impl Backend for SlowInitialState {
                 return Err(IpcFailure {
                     code: "unavailable".into(),
                     message_zh: "测试状态暂时未知。".into(),
+                    message_en: "The test state is temporarily unknown.".into(),
                 });
             }
             return Ok(json!({"busy": "cleaning"}));
@@ -2276,6 +2464,7 @@ impl Backend for UnknownResetClean {
         Err(IpcFailure {
             code: "unavailable".into(),
             message_zh: "测试状态暂时未知。".into(),
+            message_en: "The test state is temporarily unknown.".into(),
         })
     }
 }
@@ -2472,6 +2661,98 @@ fn wiring_block<'a>(tokens: &'a [&'a str], prefix: &[&str], marker: &str) -> &'a
 
 #[test]
 fn host_service_wiring() {
+    struct ErrorPicker(IpcError);
+
+    impl FolderPicker for ErrorPicker {
+        fn pick(&self) -> Result<Option<String>, IpcError> {
+            Err(self.0.clone())
+        }
+    }
+
+    let mut english_fixture = WiringFixture::new();
+    let service_error = IpcError {
+        code: "busy".into(),
+        message_zh: "测试服务的原样错误。".into(),
+        message_en: "A service error with original punctuation: 42.".into(),
+    };
+    let expected = serde_json::to_value(&service_error).unwrap();
+    let service = Service::new(ServiceConfig {
+        data_dir: english_fixture.root.join("english-service"),
+        app_version: env!("CARGO_PKG_VERSION").into(),
+        clean_enabled: CLEAN_ENABLED,
+        platform: Box::new(SyntheticPlatform(english_fixture.folders())),
+        picker: Box::new(ErrorPicker(service_error)),
+    })
+    .expect("HOST_W14_EN service with synthetic platform and error picker");
+    let backend = ServiceBackend(service);
+    assert_eq!(
+        serde_json::to_value(
+            cmd_custom_root_add(&backend).expect_err("HOST_W14_EN service failure")
+        )
+        .unwrap(),
+        expected,
+        "HOST_W14_EN real service adapter preserves code, Chinese and English verbatim"
+    );
+    let fake = Recorder {
+        calls: Mutex::new(vec![]),
+        reply: Err(IpcFailure {
+            code: "busy".into(),
+            message_zh: "测试服务的原样错误。".into(),
+            message_en: "A service error with original punctuation: 42.".into(),
+        }),
+    };
+    for reply in exercise(&fake) {
+        assert_eq!(
+            serde_json::to_value(reply.expect_err("HOST_W14_EN fake backend error")).unwrap(),
+            expected,
+            "HOST_W14_EN command adapters preserve all three failure fields"
+        );
+    }
+    let quarantine = english_fixture.root.join(".flick-quarantine");
+    fs::create_dir(&quarantine).expect("HOST_W14_EN owned quarantine folder");
+    let opener = RecordingOpener {
+        paths: Mutex::new(vec![]),
+        fail: true,
+    };
+    for (path, code, chinese, english) in [
+        (
+            "relative".to_owned(),
+            "invalid",
+            "这个隔离区文件夹不能打开。",
+            "This quarantine folder cannot be opened.",
+        ),
+        (
+            quarantine.to_str().unwrap().replace('/', "\\"),
+            "unavailable",
+            "隔离区文件夹暂时打不开。",
+            "The quarantine folder is temporarily unavailable.",
+        ),
+    ] {
+        let locate = Recorder {
+            calls: Mutex::new(vec![]),
+            reply: Ok(json!({"path": path})),
+        };
+        let failure = cmd_quarantine_reveal(&locate, &opener, "synthetic".into())
+            .expect_err("HOST_W14_EN quarantine error");
+        assert!(
+            !failure.message_en.trim().is_empty() && failure.message_en.is_ascii(),
+            "HOST_W14_EN quarantine error has nonempty English"
+        );
+        assert_eq!(
+            serde_json::to_value(failure).unwrap(),
+            json!({"code": code, "message_zh": chinese, "message_en": english}),
+            "HOST_W14_EN quarantine errors preserve Chinese and serialize English"
+        );
+    }
+    assert_eq!(
+        opener.paths.lock().unwrap().as_slice(),
+        [quarantine.to_str().unwrap().replace('/', "\\")],
+        "HOST_W14_EN only the valid fixture folder reaches the recording opener"
+    );
+    drop(backend);
+    english_fixture
+        .cleanup()
+        .expect("HOST_W14_EN owned fixture cleanup");
     assert_m35_forward();
     assert_m35_reveal();
     assert_m35_purge_exit();
@@ -2480,6 +2761,7 @@ fn host_service_wiring() {
         Err(IpcFailure {
             code: "invalid".into(),
             message_zh: "原样失败。".into(),
+            message_en: "The original failure.".into(),
         }),
     ] {
         for excluded in [None, Some(vec![]), Some(vec!["i-2", "i-甲", "i-2", ""])] {
@@ -2626,7 +2908,7 @@ fn host_service_wiring() {
     let released = cmd_clean_stop(&slot).expect_err("HOST_BACKEND_RELEASE unavailable after take");
     assert_eq!(
         serde_json::to_value(released).unwrap(),
-        json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。"}),
+        json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。", "message_en": "The Flick service is temporarily unavailable."}),
         "HOST_BACKEND_RELEASE unavailable value"
     );
     assert!(
@@ -2877,8 +3159,7 @@ fn host_service_wiring() {
         "HOST_BACKEND_DIRECT ready"
     );
     assert!(config.clean_enabled, "HOST_CLEAN_ENABLED production config");
-    let cleanup_closed =
-        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"});
+    let cleanup_closed = json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。", "message_en": "This version only runs checkups. Cleaning will be available in the next version."});
     assert_ne!(
         serde_json::to_value(
             cmd_clean_prepare(
@@ -2902,7 +3183,7 @@ fn host_service_wiring() {
     for command in COMMANDS.into_iter().chain(["unknown"]) {
         assert_eq!(
             serde_json::to_value(unavailable.call(command, json!({})).unwrap_err()).unwrap(),
-            json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。"}),
+            json!({"code": "unavailable", "message_zh": "Flick 服务暂时不可用。", "message_en": "The Flick service is temporarily unavailable."}),
             "HOST_STARTUP_VISIBLE failed service still has unavailable backend"
         );
     }
@@ -2970,7 +3251,7 @@ fn host_service_wiring() {
             .unwrap_err()
         )
         .unwrap(),
-        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。"}),
+        json!({"code": "unavailable", "message_zh": "这一版只做体检，清理功能会在下一版开放。", "message_en": "This version only runs checkups. Cleaning will be available in the next version."}),
         "HOST_CLEAN_ENABLED exact failure"
     );
     let invalid = serde_json::to_value(backend.call("unknown", json!({})).unwrap_err()).unwrap();
@@ -2988,20 +3269,20 @@ fn host_service_wiring() {
     assert!(picker.begin().is_none(), "HOST_PICKER second guard refused");
     assert_eq!(
         serde_json::to_value(picker.pick().unwrap_err()).unwrap(),
-        json!({"code": "busy", "message_zh": "正在进行另一项任务，请稍候。"}),
+        json!({"code": "busy", "message_zh": "正在进行另一项任务，请稍候。", "message_en": "Another task is in progress. Please wait."}),
         "HOST_PICKER busy"
     );
     drop(guard);
     for _ in 0..2 {
         assert_eq!(
             serde_json::to_value(picker.pick().unwrap_err()).unwrap(),
-            json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。"}),
+            json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。", "message_en": "This folder cannot be added to the checkup. Choose another folder."}),
             "HOST_PICKER releases after error without opening a dialog"
         );
     }
     assert_eq!(
         serde_json::to_value(config.picker.pick().unwrap_err()).unwrap(),
-        json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。"}),
+        json!({"code": "invalid", "message_zh": "这个文件夹不能加入体检，请换一个。", "message_en": "This folder cannot be added to the checkup. Choose another folder."}),
         "HOST_PICKER config initial directory"
     );
     drop(backend);

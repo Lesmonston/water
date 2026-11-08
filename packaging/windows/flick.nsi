@@ -39,15 +39,31 @@ ShowUninstDetails nevershow
 !define MUI_UNICON "${ICON}"
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\flick.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "打开 Flick"
+!define MUI_FINISHPAGE_RUN_TEXT "$(OpenFlick)"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_LANGUAGE "SimpChinese"
 
+LangString OpenFlick ${LANG_ENGLISH} "Open Flick"
+LangString OpenFlick ${LANG_SIMPCHINESE} "打开 Flick"
+LangString WebView2Missing ${LANG_ENGLISH} "Microsoft Edge WebView2 Runtime was not found on this computer. Flick needs it to open.$\r$\nAfter installation, download and install the WebView2 Evergreen Runtime from Microsoft's website."
+LangString WebView2Missing ${LANG_SIMPCHINESE} "这台电脑上没有找到 Microsoft Edge WebView2 运行库，Flick 需要它才能打开。$\r$\n安装完成后，请从微软官网下载“WebView2 运行库”（Evergreen）装上。"
+LangString InstallRunning ${LANG_ENGLISH} "Flick is running. Close it, then click Retry."
+LangString InstallRunning ${LANG_SIMPCHINESE} "Flick 正在运行。请先关闭它，然后点“重试”。"
+LangString UninstallRunning ${LANG_ENGLISH} "Flick is running. Close it before uninstalling."
+LangString UninstallRunning ${LANG_SIMPCHINESE} "Flick 正在运行。请先关闭它，再卸载。"
+
 VIProductVersion "${VERSION}.0"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "Flick"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "Flick"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Flick Setup"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${VERSION}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "${VERSION}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Copyright (c) 2026 Flick contributors"
 VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "ProductName" "Flick"
 VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "CompanyName" "Flick"
 VIAddVersionKey /LANG=${LANG_SIMPCHINESE} "FileDescription" "Flick 安装程序"
@@ -61,7 +77,7 @@ Function .onInit
   StrCmp $0 "" 0 done
   ReadRegStr $0 HKCU "Software\Microsoft\EdgeUpdate\Clients\${WEBVIEW2_ID}" "pv"
   StrCmp $0 "" 0 done
-  MessageBox MB_OK|MB_ICONINFORMATION "这台电脑上没有找到 Microsoft Edge WebView2 运行库，Flick 需要它才能打开。$\r$\n安装完成后，请从微软官网下载“WebView2 运行库”（Evergreen）装上。" /SD IDOK
+  MessageBox MB_OK|MB_ICONINFORMATION "$(WebView2Missing)" /SD IDOK
   done:
 FunctionEnd
 
@@ -71,7 +87,7 @@ Section "Flick"
     ClearErrors
     Delete "$INSTDIR\flick.exe"
     IfErrors 0 copy
-    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Flick 正在运行。请先关闭它，然后点“重试”。" /SD IDCANCEL IDRETRY retry
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallRunning)" /SD IDCANCEL IDRETRY retry
     Abort
   copy:
   File "/oname=flick.exe" "${EXE}"
@@ -98,7 +114,7 @@ Section "Uninstall"
   ClearErrors
   Delete "$INSTDIR\flick.exe"
   IfErrors 0 removed
-    MessageBox MB_OK|MB_ICONEXCLAMATION "Flick 正在运行。请先关闭它，再卸载。" /SD IDOK
+    MessageBox MB_OK|MB_ICONEXCLAMATION "$(UninstallRunning)" /SD IDOK
     Abort
   removed:
   Delete "$INSTDIR\LICENSE-MIT"

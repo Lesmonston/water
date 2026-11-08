@@ -7,6 +7,7 @@ fn unavailable() -> IpcFailure {
     IpcFailure {
         code: "unavailable".into(),
         message_zh: "系统文件夹选择框暂时打不开。".into(),
+        message_en: "The system folder picker is temporarily unavailable.".into(),
     }
 }
 
@@ -25,6 +26,7 @@ fn invalid() -> IpcFailure {
     IpcFailure {
         code: "invalid".into(),
         message_zh: "这个文件夹不能加入体检，请换一个。".into(),
+        message_en: "This folder cannot be added to the checkup. Choose another folder.".into(),
     }
 }
 

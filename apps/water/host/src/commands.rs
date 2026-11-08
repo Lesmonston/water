@@ -592,10 +592,12 @@ pub fn cmd_quarantine_reveal(
         .ok_or_else(|| IpcFailure {
             code: "invalid".into(),
             message_zh: "这个隔离区文件夹不能打开。".into(),
+            message_en: "This quarantine folder cannot be opened.".into(),
         })?;
     opener.open_folder(path).map_err(|_| IpcFailure {
         code: "unavailable".into(),
         message_zh: "隔离区文件夹暂时打不开。".into(),
+        message_en: "The quarantine folder is temporarily unavailable.".into(),
     })?;
     Ok(json!({}))
 }
