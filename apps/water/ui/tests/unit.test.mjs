@@ -65,6 +65,7 @@ test('ui_format_bytes_time', () => {
     assert.equal(relativeTime(local, reference), expected[0], 'UI_W14_STRINGS: over a day uses a local date');
     assert.equal(formatBytes('1288490189'), '1.2 GB', 'UI_W14_STRINGS: exact bytes in both languages');
     assert.equal(count(369510), '369,510', 'UI_W14_STRINGS: grouped counts');
+    assert.equal(driveName('f:\\'), lang === 'en' ? 'Drive F:' : 'F 盘', 'UI_W14_STRINGS: drive letters are uppercase');
     assert.equal(relativeTime(local, local.getTime() + 5 * 60000), lang === 'en' ? '5 min ago' : '5 分钟前', 'UI_W14_STRINGS: minutes');
     assert.equal(relativeTime(local, local.getTime() + 3 * 3600000), lang === 'en' ? '3 h ago' : '3 小时前', 'UI_W14_STRINGS: hours');
     assert.equal(relativeTime(local, local.getTime()), lang === 'en' ? 'just now' : '刚刚', 'UI_W14_STRINGS: now');
@@ -95,11 +96,40 @@ test('ui_format_bytes_time', () => {
 
 test('ui_v2_view_rules', () => {
   assert.deepEqual(Object.keys(strings.zh), Object.keys(strings.en), 'UI_W14_STRINGS: identical keys');
-  for (const [lang, values] of Object.entries(strings)) for (const [key, value] of Object.entries(values)) {
+  function checkText(lang, key, value) {
+    if (typeof value === 'object') {
+      assert.equal(lang, 'en', `UI_W14_STRINGS: only English needs plural variants ${key}`);
+      assert.deepEqual(Object.keys(value).sort(), ['count', 'one', 'other'], `UI_W14_STRINGS: complete plural ${key}`);
+      assert.equal(typeof value.count, 'string', `UI_W14_STRINGS: count parameter ${key}`);
+      checkText(lang, key, value.one); checkText(lang, key, value.other); return;
+    }
     assert.equal(typeof value, 'string', `UI_W14_STRINGS: ${lang}.${key}`);
     assert(value.trim().length, `UI_W14_STRINGS: nonempty ${lang}.${key}`);
-    if (lang === 'en') assert(!/\p{Script=Han}/u.test(value), `UI_W14_STRINGS: English ${key}`);
+    // The language picker's native Chinese name is the sole UI-copy exception.
+    if (lang === 'en' && key === 'chinese') assert.equal(value, '中文', 'UI_W14_STRINGS: native language name');
+    else if (lang === 'en') assert(!/\p{Script=Han}/u.test(value), `UI_W14_STRINGS: English ${key}`);
   }
+  for (const [lang, values] of Object.entries(strings)) for (const [key, value] of Object.entries(values)) checkText(lang, key, value);
+  for (const [key, one, two, zh] of [
+    ['quarantineBatches', '1 batch in quarantine', '2 batches in quarantine', '隔离区里有 {n} 批'],
+    ['items', '1 item', '2 items', '{n} 项'],
+    ['days', '1 day', '2 days', '{n} 天'],
+    ['processCount', '1 process · now', '2 processes · now', '{n} 个 · now'],
+    ['duplicateGroups', '1 duplicate group found', '2 duplicate groups found', '找到 {n} 组重复'],
+    ['cannotDeleteCount', '1 item could not be deleted', '2 items could not be deleted', '还剩 {n} 个删不掉'],
+    ['copiesCount', '1 copy', '2 copies', '{n} 份'],
+    ['otherItems', '1 other item', '2 other items', '另有 {n} 项']
+  ]) for (const n of [1, 2]) {
+    setLanguage('en'); assert.equal(t(key, {n, time:'now'}), n === 1 ? one : two, `UI_W14_PLURAL: ${key} ${n}`);
+    setLanguage('zh'); assert.equal(t(key, {n, time:'now'}), zh.replace('{n}', String(n)), `UI_W14_PLURAL: unchanged Chinese ${key} ${n}`);
+  }
+  setLanguage('en');
+  for (const protectedCount of [1, 2]) for (const trees of [1, 2]) assert.equal(t('declarationCounts', {protected:protectedCount, trees}), `${protectedCount} protected item${protectedCount === 1 ? '' : 's'} · ${trees} worktree${trees === 1 ? '' : 's'}`, 'UI_W14_PLURAL: independent counts');
+  assert.equal(t('itemCountShown', {shown:1, total:2}), 'Showing 1 / 2 items', 'UI_W14_PLURAL: total controls the noun');
+  assert.equal(t('itemCountShown', {shown:1, total:1}), 'Showing 1 / 1 item', 'UI_W14_PLURAL: singular total');
+  assert.equal(formatDays(1n), '1 day', 'UI_W14_PLURAL: formatted days use the count');
+  assert.equal(t('items', {n:0}), '0 items', 'UI_W14_PLURAL: zero is plural');
+  assert.equal(t('items', {n:1000n}), '1,000 items', 'UI_W14_PLURAL: grouped bigint count');
   setLanguage('en');
   assert.equal(t('checking'), 'Checking', 'UI_W14_STRINGS: UI lookup');
   assert.equal(model.clusterStates.growing, 'Keeps growing', 'UI_W14_STRINGS: small maps update immediately');

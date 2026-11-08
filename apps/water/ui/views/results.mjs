@@ -1,11 +1,11 @@
-import {t, serviceText, listText} from './strings.mjs';
+import {t, serviceText} from './strings.mjs';
 import {add, el, heading, metric, card, button, iconButton, menu, row, toggle, skipNotice} from './common.mjs';
 import {treemap, proportions} from './charts.mjs';
-import {formatBytes, relativeTime} from '../format.mjs';
+import {formatList, formatBytes, relativeTime} from '../format.mjs';
 import {viewCards, cleanLabel} from '../model.mjs';
 export function results(s, a) {
   const v = s.conclusion, p = v.plan, page = el('section', 'screen conclusion');
-  add(page, heading(BigInt(p.bytes) === 0n ? t('nothingSafe') : t('safeClean'), `${v.scope.only_folder ? t('folderOnly') : ''}${listText(serviceText(v.scope, 'labels'))} · ${relativeTime(v.finished_at)}${v.status === 'partial' ? t('partialSuffix') : ''}`, [metric(p.delete_bytes, t('recommendedDelete')), metric(p.chosen_bytes, t('yourSelection')), metric(p.bytes, t('thisPlan'))]));
+  add(page, heading(BigInt(p.bytes) === 0n ? t('nothingSafe') : t('safeClean'), `${v.scope.only_folder ? t('folderOnly') : ''}${formatList(serviceText(v.scope, 'labels'))} · ${relativeTime(v.finished_at)}${v.status === 'partial' ? t('partialSuffix') : ''}`, [metric(p.delete_bytes, t('recommendedDelete')), metric(p.chosen_bytes, t('yourSelection')), metric(p.bytes, t('thisPlan'))]));
   if (v.stale) add(page, el('p', 'warning stale', t('stale')));
   if (s.scanCancelled || v.status === 'cancelled') add(page, el('p', 'cancelled-note', t('cancelled'), {role:'status'}));
   add(page, proportions(p.categories.map(c => ({title:serviceText(c, 'title'), bytes:c.bytes, kind:c.included ? 'sky' : 'neutral'}))));
@@ -29,14 +29,14 @@ export function results(s, a) {
       if (event.target !== node || a.busy() || v.stale) return;
       if (event.key === 'Enter' || event.key === 'Delete') { event.preventDefault(); a.decide({group:c.group_id, choice:event.key === 'Enter' ? 'clean' : 'keep'}); }
     });
-    if (c.decision === 'undecided') add(node, el('p', 'sub evidence', serviceText(c, 'evidence')), metric(c.bytes), serviceText(c, 'warning') && el('p', 'warning', serviceText(c, 'warning')), serviceText(c, 'decided_before') && el('p', 'sub', serviceText(c, 'decided_before')), add(el('div', 'bottom pair'), button(t('keep'), () => a.decide({group:c.group_id, choice:'keep'}), 'btn soft', `keep-${c.group_id}`, a.busy() || v.stale), button(t('clean'), () => a.decide({group:c.group_id, choice:'clean'}), 'btn lime', `clean-${c.group_id}`, a.busy() || v.stale)));
+    if (c.decision === 'undecided') add(node, el('p', 'sub evidence', serviceText(c, 'evidence'), {title:serviceText(c, 'evidence')}), metric(c.bytes), serviceText(c, 'warning') && el('p', 'warning', serviceText(c, 'warning'), {title:serviceText(c, 'warning')}), serviceText(c, 'decided_before') && el('p', 'sub', serviceText(c, 'decided_before'), {title:serviceText(c, 'decided_before')}), add(el('div', 'bottom pair'), button(t('keep'), () => a.decide({group:c.group_id, choice:'keep'}), 'btn soft', `keep-${c.group_id}`, a.busy() || v.stale), button(t('clean'), () => a.decide({group:c.group_id, choice:'clean'}), 'btn lime', `clean-${c.group_id}`, a.busy() || v.stale)));
     else add(node, el('p', 'decided-text', c.decision === 'clean' ? t('addedClean', {size:formatBytes(c.bytes)}) : t('kept')), button(t('undo'), () => a.decide({group:c.group_id, choice:'undecided'}), 'btn soft', `undo-${c.group_id}`, a.busy() || v.stale));
     add(cards, node);
   }
   add(content, cards);
   for (const extra of [v.more_cards, v.kept_before]) if (extra) add(content, button(`${serviceText(extra, 'text')} ›`, a.details, 'summary-link', extra === v.more_cards ? 'more-cards' : 'kept-before'));
   const lower = el('div', 'result-lower');
-  if (p.categories.length || v.cards.length) add(lower, add(card(t('cleanableNow'), 'treemap-card'), treemap([...p.categories.map(c => ({title:serviceText(c, 'title'), bytes:c.bytes})), ...v.cards.map(c => ({title:serviceText(c, 'title'), bytes:c.bytes, kind:c.decision === 'clean' ? 'selected' : 'look'}))])));
+  if (p.categories.length || v.cards.length) add(lower, add(card(t('cleanableNow'), 'treemap-card'), treemap([...p.categories.map(c => ({title:serviceText(c, 'title'), bytes:c.bytes})), ...v.cards.map(c => ({title:serviceText(c, 'title'), bytes:c.bytes, kind:c.decision === 'clean' ? 'selected' : 'look'}))], {legend:false})));
   else add(lower, add(card(t('noCleanup')), el('p', 'sub', t('protectedRemain'))));
   const clues = card(t('forAgent'), 'clues');
   for (const clue of v.clues) add(clues, row(serviceText(clue, 'text'), '', iconButton(t('copyLead'), 'copy', () => a.copy(serviceText(clue, 'copy_text')), `copy-${clue.clue_id}`)));
@@ -46,9 +46,23 @@ export function results(s, a) {
   const folds = el('section', 'folds scroll-card');
   for (const fold of v.folds) {
     const details = el('details', 'fold'); details.open = s.openFolds.has(fold.kind);
-    details.addEventListener('toggle', () => details.open ? s.openFolds.add(fold.kind) : s.openFolds.delete(fold.kind));
+    details.addEventListener('toggle', () => {
+      if (!details.open) { s.openFolds.delete(fold.kind); return; }
+      const alreadyOpen = s.openFolds.has(fold.kind); s.openFolds.add(fold.kind);
+      if (!alreadyOpen) {
+        const body = details.querySelector('.fold-rows');
+        folds.scrollTop += Math.max(0, body.getBoundingClientRect().bottom - folds.getBoundingClientRect().bottom);
+      }
+    });
     add(details, el('summary', '', serviceText(fold, 'text'), {'data-key':`fold-${fold.kind}`}));
-    for (const item of fold.rows) add(details, row(serviceText(item, 'title'), serviceText(item, 'note'), item.bytes !== null && el('span', '', formatBytes(item.bytes)))); add(folds, details);
+    const body = el('div', 'fold-rows');
+    for (const item of fold.rows) {
+      const entry = row(serviceText(item, 'title'), serviceText(item, 'note'), item.bytes !== null && el('span', '', formatBytes(item.bytes)));
+      entry.querySelector('strong').title = serviceText(item, 'title');
+      if (entry.querySelector('.sub')) entry.querySelector('.sub').title = serviceText(item, 'note');
+      add(body, entry);
+    }
+    add(details, body); add(folds, details);
   }
   add(page, folds);
   add(page, button(t('allDetails'), a.details, 'summary-link', 'details-open'));

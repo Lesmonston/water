@@ -290,9 +290,9 @@ h1{font-size:34px}
 .location-list{min-height:0;overflow:auto;flex:1;scrollbar-width:thin;scrollbar-color:var(--on-dark-2) var(--dark)}
 .location-list::-webkit-scrollbar{width:6px}
 .location-list::-webkit-scrollbar-thumb{background:var(--on-dark-2);border-radius:var(--r-tag)}
+.location-list .menu{top:auto;bottom:36px}
 .tile-labels{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px}
 .tile-key{font:11px var(--mono);color:var(--sky-ink);overflow-wrap:anywhere}
-.location-list .menu{top:auto;bottom:36px}
 .location-list .location-select{padding:8px 0}
 .location-list .location-row{min-height:58px}
 
@@ -353,9 +353,9 @@ h1{font-size:32px}
 .scan-location{min-height:140px}
 .scan-location .card-head{flex-wrap:wrap}
 .scan-location .tag{font-size:13px}
-.scan-chart{flex:1;min-height:160px;overflow:auto}
-.scan-chart .treemap{flex:1;min-height:0}
-.scan-chart .treemap svg{height:100%;min-height:100px;max-height:240px}
+.scan-chart{flex:1;min-height:160px}
+.scan-chart .treemap{flex:1;min-height:0;display:flex}
+.scan-chart .treemap svg{height:100%;min-height:0;max-height:240px}
 .results-grid{grid-template-columns:270px minmax(0,1fr)}
 .results-grid>.main-card,.with-hero>.main-card{align-self:stretch;position:static;min-height:0;min-width:0}
 .results-grid>.main-card .number,.with-hero>.main-card .number{font-size:40px}
@@ -366,16 +366,27 @@ h1{font-size:32px}
 .judgments{min-height:0;flex:1;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:max-content;align-content:start}
 .scroll-card{overflow:auto;scrollbar-width:thin;border-radius:var(--r-card)}
 .judgment{min-height:0;padding:12px;gap:4px}
+.judgment>p{flex-shrink:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .judgment .pair{padding-top:6px}
 .judgment .btn{padding:6px 10px}
 .judgment.decided{padding:8px 12px}
 .result-lower{height:190px;min-height:0;gap:10px;grid-template-columns:1.2fr 1fr}
 .result-lower>.card{overflow:auto}
+.result-lower>.treemap-card{overflow:visible}
+.treemap-card .treemap{flex:1;min-height:0;display:flex}
 .result-lower .treemap svg{min-height:90px;max-height:110px}
 .result-lower .clues .row{padding:5px 0}
 .result-content>.summary-link{padding:2px 0;font-size:13px}
-.folds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:110px;flex:none}
+.folds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;flex:none;max-height:240px}
 .folds .fold{margin:0;padding:7px 12px;align-self:start}
+.fold-rows{max-height:160px;overflow:auto;scrollbar-width:thin}
+.fold-rows .row{height:32px;padding:4px 0}
+.fold-rows .grow{display:flex;align-items:center;gap:8px}
+.fold-rows strong{flex:0 1 50%}
+.fold-rows .sub{flex:1;margin:0}
+.fold-rows strong,.fold-rows .sub{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conclusion:has(.fold[open]) .result-lower{height:100px}
+.conclusion:has(.fold[open]) .treemap svg{min-height:0;max-height:50px}
 .conclusion>.summary-link{padding:2px 0;align-self:flex-start}
 .conclusion>.stale,.cancelled-note{margin:0;padding:4px 10px}
 .with-hero{grid-template-columns:minmax(0,1fr) 280px}
@@ -415,6 +426,7 @@ dialog .preview-delete,dialog .preview-chosen{min-height:0;max-height:230px;over
 .confirm .dialog-actions{margin-top:14px}
 .confirm .proportions{margin-top:8px}
 .replan-note{color:var(--sky-ink);font-size:13px}
+.replan-mode{display:block}
 .plan-summary{font-size:13px;color:var(--on-dark-2);margin-top:8px;max-height:100px;overflow:auto}
 .plan-summary summary{cursor:pointer}
 .plan-categories,.card,.settings-content,.scan-location-list,.quarantine-grid{scrollbar-width:thin;scrollbar-color:var(--grey-1) transparent}

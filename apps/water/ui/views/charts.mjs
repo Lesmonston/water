@@ -1,6 +1,6 @@
 import {t, serviceText} from './strings.mjs';
 import {add, el, svg} from './common.mjs';
-import {bytes, formatBytes, percent, localDateKey, dateOnly} from '../format.mjs';
+import {formatDays, driveName, bytes, formatBytes, percent, localDateKey, dateOnly} from '../format.mjs';
 // Geometry only: charts never derive new displayed byte quantities.
 export function dial(value, text, caption = '', size = '', gain = null) {
   const box = el('div', `dial ${size}`), drawing = svg('svg', {viewBox:'0 0 220 220', 'aria-hidden':'true'});
@@ -23,7 +23,7 @@ export function proportions(parts) {
   const node = el('div', 'proportions'), total = parts.reduce((n, p) => n + bytes(p.bytes), 0n);
   for (const part of parts) {
     const p = percent(part.bytes, total), item = el('div', 'proportion'); item.style.setProperty('--weight', String(Math.max(.1, p)));
-    add(node, add(item, el('span', 'sub', part.title), el('div', `segment-fill ${part.kind ?? 'sky'}`, formatBytes(part.bytes))));
+    add(node, add(item, el('span', 'sub', part.title, {title:part.title}), el('div', `segment-fill ${part.kind ?? 'sky'}`, formatBytes(part.bytes))));
   }
   return node;
 }
@@ -31,7 +31,7 @@ export function spaceBar(drive) {
   const free = percent(drive.free_bytes, drive.total_bytes), node = el('div', 'proportions');
   for (const [title, value, kind] of [[t('used'), 100 - free, 'ink'], [t('available'), free, 'sky']]) {
     const part = el('div', 'proportion'); part.style.setProperty('--weight', String(Math.max(.1, value)));
-    add(node, add(part, el('span', 'sub', `${t('drive', {letter:drive.root.slice(0, 1)})} · ${title}`), el('div', `segment-fill ${kind}`, `${value.toFixed(0)}%`)));
+    add(node, add(part, el('span', 'sub', `${driveName(drive.root)} · ${title}`), el('div', `segment-fill ${kind}`, `${value.toFixed(0)}%`)));
   }
   return node;
 }
@@ -55,9 +55,10 @@ export function stems(points, label = t('spaceHistory'), projectedDays = 0) {
     const x = 12 + (points.length + i - .5) / total * 696, y = 154 - (last ? percent(last.bytes, max) : 0) * 1.3 * (1 - i / projectedDays);
     add(graph, svg('line', {x1:x, y1:154, x2:x, y2:y, class:'stem projected'}), svg('circle', {cx:x, cy:y, r:2.5, class:'dot projected'}));
   }
-  return add(wrap, graph, add(el('div', 'axis'), el('span', '', points[0]?.label ?? t('noRecords')), el('span', '', projectedDays ? t('predictedFull', {n:projectedDays}) : last?.label ?? '')));
+  return add(wrap, graph, add(el('div', 'axis'), el('span', '', points[0]?.label ?? t('noRecords')), el('span', '', projectedDays ? t('predictedFull', {days:formatDays(projectedDays)}) : last?.label ?? '')));
 }
-export function treemap(items) {
+export function treemap(items, {legend = true} = {}) {
+  items = items.filter(item => bytes(item.bytes) > 0n);
   const root = el('div', 'treemap'), graph = svg('svg', {viewBox:'0 0 720 220', role:'img', 'aria-label':t('treeLabel')});
   const labels = el('div', 'tile-labels');
   const total = items.reduce((n, i) => n + bytes(i.bytes), 0n);
@@ -67,9 +68,10 @@ export function treemap(items) {
     const wide = w >= h, rw = wide ? w * fraction : w, rh = wide ? h : h * fraction;
     const g = svg('g', {class:`tile ${item.kind ?? `sky${i % 4 + 1}`}`});
     add(g, add(svg('title'), document.createTextNode(`${item.title} · ${formatBytes(item.bytes)}`)), svg('rect', {x:x + 2, y:y + 2, width:Math.max(0, rw - 4), height:Math.max(0, rh - 4), rx:3}));
-    if (rw > 75 && rh > 32) add(g, add(svg('text', {x:x + rw - 9, y:y + rh - 11, 'text-anchor':'end'}), document.createTextNode(formatBytes(item.bytes))));
-    if (rw > 120 && rh > 65) add(g, add(svg('text', {x:x + 10, y:y + 20, class:'tile-label'}), document.createTextNode(item.title.length > 14 ? item.title.slice(0, 13) + '…' : item.title)));
-    else {
+    // Use a conservative glyph width; small tiles keep their complete label in the tooltip.
+    if (rw > formatBytes(item.bytes).length * 13 + 20 && rh > 32) add(g, add(svg('text', {x:x + rw - 9, y:y + rh - 11, 'text-anchor':'end'}), document.createTextNode(formatBytes(item.bytes))));
+    if (rw > item.title.length * 13 + 20 && rh > 65) add(g, add(svg('text', {x:x + 10, y:y + 20, class:'tile-label'}), document.createTextNode(item.title)));
+    else if (legend) {
       if (rw > 20 && rh > 24) add(g, add(svg('text', {x:x + 8, y:y + 17, class:'tile-label'}), document.createTextNode(String(i + 1))));
       add(labels, el('span', 'tile-key', `${i + 1}. ${item.title}`));
     }

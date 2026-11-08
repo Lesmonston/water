@@ -6,12 +6,12 @@ export function dedupe(s, a) {
   const page = el('section', 'screen'), v = s.dedupe;
   if (s.busy === 'deduping') {
     const p = s.dedupeProgress;
-    add(page, heading(t('findingDuplicates'), t('localCompare'), p ? [metric(p.found_bytes, t('duplicateSize')), metric(p.files_listed, t('filesListed'), true)] : []));
+    add(page, heading(t('findingDuplicates'), t('localCompare'), p ? [metric(p.found_bytes, t('duplicateSize')), metric(p.files_listed, t('filesListed', {n:p.files_listed}), true)] : []));
     const main = card(t('dedupeProgress'), 'dark main-card');
     add(main, dial(p ? percent(p.bytes_hashed, p.bytes_to_hash) : 0, p ? `${percent(p.bytes_hashed, p.bytes_to_hash).toFixed(0)}%` : '…', p?.phase === 'hashing' ? t('comparing') : t('listing')), button(t('stop'), a.stopDedupe, 'btn primary bottom', 'dedupe-stop', s.pending)); return add(page, main);
   }
   if (!v) return add(page, heading(t('duplicates'), t('noDuplicatesYet')));
-  add(page, heading(v.more ? t('duplicatesFound') : t('duplicateGroups', {n:v.groups.length}), serviceText(v, 'location_label'), [metric(v.extra_bytes, t('extra')), metric(v.chosen_bytes, t('selected')), metric(v.same_name_different, t('differentContents'), true)]), button(t('back'), a.returnToCheckup, 'btn soft', 'dedupe-back', a.busy()));
+  add(page, heading(v.more ? t('duplicatesFound') : t('duplicateGroups', {n:v.groups.length}), serviceText(v, 'location_label'), [metric(v.extra_bytes, t('extra')), metric(v.chosen_bytes, t('selected')), metric(v.same_name_different, t('differentContents', {n:v.same_name_different}), true)]), button(t('back'), a.returnToCheckup, 'btn soft', 'dedupe-back', a.busy()));
   add(page, proportions(v.groups.map(g => ({title:serviceText(g, 'name'), bytes:g.size, kind:g.included ? 'lime' : 'sky'}))));
   const content = el('div', 'dedupe-content');
   add(content, add(card(t('groupSizes')), treemap(v.groups.map(g => ({title:t('copies', {name:serviceText(g, 'name'), n:g.copies}), bytes:g.size, kind:g.included ? 'selected' : 'sky2'})))));

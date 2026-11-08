@@ -1,6 +1,6 @@
 import {t, serviceText} from './strings.mjs';
 import {add, el, heading, card, button, row, toggle, tag} from './common.mjs';
-import {formatBytes, dateOnly} from '../format.mjs';
+import {formatBytes, dateOnly, formatDays} from '../format.mjs';
 import {about} from './about.mjs';
 export function locations(s, a) {
   const current = s.route.split('/')[1], titles = {content:t('scanContent'), skip:t('skipList'), decl:t('declaration'), language:t('language'), about:t('aboutPrivacy')}, page = add(el('section', 'screen'), heading(titles[current], current === 'skip' ? t('settingsSkipNote') : current === 'language' ? t('languageNote') : current === 'about' ? '' : t('settingsNextNote')));
@@ -24,9 +24,9 @@ export function locations(s, a) {
     add(sessions, el('p', 'sub', t('sessionWarning')));
     for (const session of value.sessions) {
       const days = el('select', 'days-select', undefined, {'aria-label':t('retentionDays', {name:serviceText(session, 'title')}), 'data-key':`days-${session.tool}`});
-      for (const day of [7, 30, 90]) { const option = el('option', '', t('days', {n:day}), {value:day}); option.selected = session.days === day; add(days, option); }
+      for (const day of [7, 30, 90]) { const option = el('option', '', formatDays(day), {value:day}); option.selected = session.days === day; add(days, option); }
       days.disabled = !session.enabled || a.busy(); days.addEventListener('change', () => a.session(session.tool, session.enabled, Number(days.value)));
-      add(sessions, row(serviceText(session, 'title'), [serviceText(session, 'retention'), session.largest_bytes !== null ? t('largestSession', {size:formatBytes(session.largest_bytes)}) : ''].filter(Boolean).join(' · '), session.bytes !== null && el('span', '', formatBytes(session.bytes)), days, toggle(t('allowSessions', {name:serviceText(session, 'title'), n:session.days}), session.enabled, () => a.session(session.tool, !session.enabled, session.days), `session-${session.tool}`, a.busy())));
+      add(sessions, row(serviceText(session, 'title'), [serviceText(session, 'retention'), session.largest_bytes !== null ? t('largestSession', {size:formatBytes(session.largest_bytes)}) : ''].filter(Boolean).join(' · '), session.bytes !== null && el('span', '', formatBytes(session.bytes)), days, toggle(t('allowSessions', {name:serviceText(session, 'title'), days:formatDays(session.days)}), session.enabled, () => a.session(session.tool, !session.enabled, session.days), `session-${session.tool}`, a.busy())));
     }
     add(body, categories, sessions);
   } else if (current === 'skip') {

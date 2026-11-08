@@ -39,6 +39,7 @@ mkdirSync(shots, {recursive:true}); assert(!relative(realpathSync(join(root, '.l
 let server, browser, base, injection, sequence = 0;
 const pause = ms => new Promise(ok => setTimeout(ok, ms));
 function fakeHost(f, options, english) {
+  if (options.browserLanguage) Object.defineProperty(navigator, 'language', {configurable:true, value:options.browserLanguage});
   function bilingual(value) {
     if (Array.isArray(value)) return value.map(bilingual);
     if (!value || typeof value !== 'object') return value;
@@ -58,6 +59,11 @@ function fakeHost(f, options, english) {
   else if (!options.intro) localStorage.setItem('flick.intro.v1', '1');
   if (options.intro !== 'blocked' && !options.preserveLanguage) localStorage.setItem('flick.language.v1', options.language ?? 'zh');
   const c = window.__waterTest = {calls:[], errors:[], scan:0, clean:0, dedupe:0, purge:0, busy:options.busy ?? 'idle', conclusion:copy(typeof options.conclusion === 'object' ? options.conclusion : f[options.conclusion ?? 'v2_conclusion_typical']), locations:copy(f[options.locations ?? 'w12_locations']), quarantine:copy(f[options.quarantine ?? 'v2_quarantine_list']), dup:copy(f[options.dup ?? 'v2_dedupe_result']), clipboard:[], resetting:false, skipIds:[], scanned:false, cleaned:false, cleanResult:copy(options.cleanResult ?? f.w12_clean_result)};
+  if (options.holdInfo) c.holdNext = 'app_info';
+  if (options.observePaint) {
+    c.paints = [];
+    new MutationObserver(() => { const text = document.querySelector('#shell')?.textContent.trim(); if (text) c.paints.push({language:document.documentElement.lang, text}); }).observe(document, {subtree:true, childList:true, characterData:true});
+  }
   function refreshSkippedConclusion() {
     const version = c.conclusion.version;
     c.conclusion = copy(c.nextConclusion ?? c.conclusion); c.nextConclusion = null;
@@ -96,7 +102,7 @@ function fakeHost(f, options, english) {
       case 'trends': return copy(c.trends ?? f.v2_trends);
       case 'scan_start': c.busy = 'scanning'; c.scan = 0; return copy(f.v2_scan_start);
       case 'scan_cancel': c.scan = options.progress ? f.w14_scan.length - 1 : f.v2_scan_progress_sequence.length - 1; return {};
-      case 'scan_progress': { const p = copy((options.progress ? f.w14_scan : f.v2_scan_progress_sequence)[c.scan]); if (['completed','partial','cancelled','failed'].includes(p.state)) { c.busy = 'idle'; c.scanned = true; } return p; }
+      case 'scan_progress': { const p = copy(c.scanOverride ?? (options.progress ? f.w14_scan : f.v2_scan_progress_sequence)[c.scan]); if (['completed','partial','cancelled','failed'].includes(p.state)) { c.busy = 'idle'; c.scanned = true; } return p; }
       case 'conclusion_get': return copy(c.conclusion);
       case 'conclusion_decide': {
         if (args.version !== c.conclusion.version) throw copy(f.v2_errors.conclusion_stale);
@@ -116,7 +122,10 @@ function fakeHost(f, options, english) {
         refreshSkippedConclusion(); c.conclusion.cards = c.conclusion.cards.filter(card => card.card_id !== args.unitId);
         return copy(c.locations);
       case 'diagnostics_get': return copy(f.w12_diagnostics);
-      case 'app_info': return {...copy(f.w12_app_info), system_language:options.systemLanguage ?? f.w12_app_info.system_language};
+      case 'app_info': {
+        if (options.failInfo && !c.infoFailed) { c.infoFailed = true; throw {code:'unavailable'}; }
+        return {...copy(f.w12_app_info), system_language:c.systemLanguage ?? options.systemLanguage ?? f.w12_app_info.system_language};
+      }
       case 'skip_remove': c.locations.skipped = c.locations.skipped.filter(x => x.skip_id !== args.skipId); refreshSkippedConclusion(); return copy(c.locations);
       case 'clean_prepare': {
         let p = copy(args.chosenMode === 'delete' ? f.v2_clean_prepare_delete : BigInt(c.conclusion.plan.chosen_bytes) === 0n ? f.v2_clean_prepare_delete_only : f.v2_clean_prepare_quarantine);
@@ -161,7 +170,8 @@ const q = key => `[data-key="${key}"]`;
 const click = async key => { assert(await evalJs(`!!document.querySelector(${JSON.stringify(q(key))})`), `UI_V2_PAGES: missing ${key}`); await browser.click(q(key)); };
 async function wait(expression, marker = 'UI_V2_PAGES') {
   for (let i = 0; i < 400; i++) { if (await evalJs(`(()=>{try{return !!(${expression})}catch{return false}})()`)) return; await pause(25); }
-  assert.fail(`${marker}: ${expression}`);
+  const context = await evalJs('({page:document.querySelector("#page")?.dataset.page, active:document.activeElement?.dataset.key, notice:document.querySelector("#notice")?.textContent, dialogs:document.querySelectorAll("dialog[open]").length, recentCalls:window.__waterTest.calls.slice(-4)})');
+  assert.fail(`${marker}: ${expression}; ${JSON.stringify(context)}`);
 }
 const pageIs = name => wait(`document.querySelector('#page').dataset.page===${JSON.stringify(name)}`);
 async function idle() { await wait('!document.querySelector("dialog button:disabled") && !document.querySelector("[data-key=scan-start]:disabled") || document.querySelector("#page").dataset.page!=="home"'); await pause(40); }
@@ -170,7 +180,7 @@ async function reset(options = {}, route = 'home') {
   if (injection) await browser.send('Page.removeScriptToEvaluateOnNewDocument', {identifier:injection});
   injection = (await browser.send('Page.addScriptToEvaluateOnNewDocument', {source:`(${fakeHost.toString()})(${JSON.stringify(f)},${JSON.stringify(options)},${JSON.stringify(english)})`})).identifier;
   await browser.goto(`${base}/index.html?case=${++sequence}#${route}`);
-  await wait(options.unavailable ? `document.body.textContent.includes(${JSON.stringify(options.language === 'en' ? 'Cannot connect to Flick' : '无法连接 Flick 服务')})` : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
+  await wait(options.holdInfo ? 'window.__waterTest.held==="app_info"' : options.unavailable ? `document.body.textContent.includes(${JSON.stringify(options.language === 'en' ? 'Cannot connect to Flick' : '无法连接 Flick 服务')})` : 'document.querySelectorAll(".location-select").length>0 || window.__waterTest.calls.some(x=>x.command==="locations_get")');
   await pause(100);
 }
 async function key(value, shift = false) {
@@ -204,7 +214,10 @@ async function oneScreen(label) {
   assert(dimensions.document <= dimensions.window && dimensions.main <= dimensions.available, `UI_W14_ONESCREEN: ${label} ${JSON.stringify(dimensions)}`);
 }
 async function englishPage(label, exceptions = []) {
-  const text = await evalJs('document.body.textContent + [...document.querySelectorAll("[aria-label],[title],[placeholder]")].map(n=>[n.getAttribute("aria-label"),n.getAttribute("title"),n.getAttribute("placeholder")]).flat().join(" ")');
+  // Only this exact option may use the native Chinese name; all other UI text and attributes stay checked.
+  const nativeNames = await evalJs('[...document.querySelectorAll("[data-key=language] option[value=zh]")].map(n=>n.textContent)');
+  if (nativeNames.length) assert.deepEqual(nativeNames, ['中文'], 'UI_W14_EN: sole native-name exception');
+  const text = await evalJs('(()=>{const body=document.body.cloneNode(true);body.querySelectorAll("[data-key=language] option[value=zh]").forEach(n=>n.textContent="");return body.textContent + [...body.querySelectorAll("[aria-label],[title],[placeholder]")].map(n=>[n.getAttribute("aria-label"),n.getAttribute("title"),n.getAttribute("placeholder")]).flat().join(" ")})()');
   let remaining = text; for (const exception of exceptions) remaining = remaining.replaceAll(exception, '');
   assert(!/\p{Script=Han}/u.test(remaining), `UI_W14_EN: ${label}: ${remaining.match(/[^\n]{0,30}[\p{Script=Han}][^\n]{0,50}/u)?.[0] ?? ''}`);
 }
@@ -317,14 +330,20 @@ test('ui_v2_home_scan', async () => {
   await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS');
   const areas = await evalJs('[...document.querySelectorAll(".scan-chart .tile rect")].map(r=>Number(r.getAttribute("width"))*Number(r.getAttribute("height")))');
   assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在体检', 'UI_W14_PROGRESS: running heading');
-  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .tile").length'), f.w14_scan[0].categories.length, 'UI_W14_PROGRESS: every category has a block');
+  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .tile").length'), f.w14_scan[0].categories.filter(c => c.found_bytes !== '0').length, 'UI_W14_PROGRESS: every positive category has a block');
+  assert(!(await evalJs('document.querySelector(".scan-chart").textContent')).includes(f.w14_scan[0].categories.find(c => c.found_bytes === '0').title_zh), 'UI_W14_PROGRESS: zero-byte category has no name or tooltip');
+  assert.equal(await evalJs('document.querySelectorAll(".scan-chart .tile-key").length'), 0, 'UI_W14_PROGRESS: no numbered legend');
+  for (const [width, height] of [[1240, 820], [1040, 720]]) {
+    await browser.size(width, height);
+    assert(await evalJs('(()=>{const c=document.querySelector(".scan-chart");return c.scrollHeight<=c.clientHeight && c.scrollWidth<=c.clientWidth})()'), 'UI_W14_PROGRESS: block chart card has no scrolling');
+  }
   assert.equal(await evalJs('document.querySelectorAll(".scan-chart .stem").length'), 0, 'UI_W14_PROGRESS: no stems');
   await browser.size(1040, 720); await shot('scan', true); await browser.size(1240, 820);
   await control('c.scan=1'); await wait('document.querySelector(".dial-value")?.textContent==="82%"', 'UI_W14_PROGRESS');
   assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在统计整盘空间', 'UI_W14_PROGRESS: space heading');
   assert.equal(await evalJs('document.querySelector("[data-location=drive-f] .tag").textContent'), '统计整盘空间', 'UI_W14_PROGRESS: space location stays in progress');
   assert(await evalJs(`Number(document.querySelector('.scan-chart .tile rect').getAttribute('width'))*Number(document.querySelector('.scan-chart .tile rect').getAttribute('height'))>${areas[0]}`), 'UI_W14_PROGRESS: the growing category gets more area');
-  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile title")].map(n=>n.textContent)'), f.w14_scan[1].categories.map(c => `${c.title_zh} · ${formatBytes(c.found_bytes)}`), 'UI_W14_PROGRESS: category amounts come from service');
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile title")].map(n=>n.textContent)'), f.w14_scan[1].categories.filter(c => c.found_bytes !== '0').map(c => `${c.title_zh} · ${formatBytes(c.found_bytes)}`), 'UI_W14_PROGRESS: positive category amounts come from service');
   assert.deepEqual(await evalJs('[...document.querySelectorAll(".scan-chart .tile rect")].slice(0,4).map(n=>getComputedStyle(n).fill)'), ['rgb(124, 203, 241)','rgb(166, 220, 247)','rgb(200, 234, 251)','rgb(226, 243, 253)'], 'UI_W14_PROGRESS: four existing sky colors');
   await shot('scan-space'); await control('c.scan=2'); await wait('document.querySelector(".dial-value")?.textContent==="95%"', 'UI_W14_PROGRESS');
   assert.equal(await evalJs('document.querySelector("h1").textContent'), '正在整理结论', 'UI_W14_PROGRESS: finishing heading');
@@ -334,6 +353,22 @@ test('ui_v2_home_scan', async () => {
   await reset({progress:true}); await click('scan-start'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS'); await click('scan-stop'); await pageIs('results');
   assert.equal(await evalJs('document.querySelector(".cancelled-note").textContent'), '已停止，下面是停之前查到的', 'UI_W14_PROGRESS: cancelled results explain scope');
   assert(await evalJs('!!document.querySelector("[data-key=rescan]")'), 'UI_W14_PROGRESS: stopped has a next step');
+  await reset({progress:true}); await click('scan-start'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS');
+  const unknown = structuredClone(f.w14_scan[0]); unknown.locations[1].state = 'future-phase'; unknown.percent = 38;
+  await control(`c.scanOverride=${JSON.stringify(unknown)}`);
+  await wait('document.querySelector(".dial-value")?.textContent==="38%"', 'UI_W14_PROGRESS');
+  assert.equal(await evalJs('document.querySelector("[data-location=drive-f] .tag").textContent'), '扫描中', 'UI_W14_PROGRESS: unknown state stays in progress');
+  assert.deepEqual(await control('return c.errors'), [], 'UI_W14_PROGRESS: unknown state does not throw');
+  const polls = await callCount('scan_progress');
+  await wait(`window.__waterTest.calls.filter(x=>x.command==='scan_progress').length>${polls}`, 'UI_W14_PROGRESS');
+  // Throw once from the DOM call used by the real renderer, then account for that exact injected error.
+  await evalJs(`(()=>{const original=document.createElement.bind(document);document.createElement=function(...args){document.createElement=original;window.__waterTest.renderFault=true;throw new Error('synthetic render failure')}})()`);
+  await wait('window.__waterTest.renderFault', 'UI_W14_PROGRESS');
+  await control('c.scanOverride=null;c.scan=1');
+  await wait('document.querySelector(".dial-value")?.textContent==="82%"', 'UI_W14_PROGRESS: polling survives a renderer exception');
+  assert.deepEqual(await control('return c.errors'), ['Error: synthetic render failure'], 'UI_W14_PROGRESS: only the deliberate render failure was reported');
+  await control('c.errors.shift()');
+  await control('c.scan=3'); await pageIs('results');
 });
 
 test('ui_v2_conclusion', async () => {
@@ -520,7 +555,28 @@ test('ui_v2_confirm_done', async () => {
       assert.equal(await callCount('clean_start'), starts + 1, 'UI_W14_REPLAN: never starts the new plan automatically');
       assert.equal(await evalJs('document.querySelectorAll(".stale").length'), 0, 'UI_W14_REPLAN: fresh result is not marked stale');
       await shot('results-replanned'); await key('Escape');
+      assert.equal(await evalJs('document.activeElement.dataset.key'), 'clean-prepare', 'UI_W14_REPLAN: reopened dialog returns focus to cleanup');
     }
+  }
+  for (const language of ['zh', 'en']) {
+    await results({language, conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('!!document.querySelector("[data-key=mode-delete]")');
+    await click('mode-delete'); await wait('document.querySelector("[data-key=mode-delete]").checked && !document.querySelector("[data-key=confirm-start]").disabled');
+    await control('c.conclusion.version="cv-new-skip"'); await click('confirm-start');
+    await wait('!!document.querySelector(".replan-mode")', 'UI_W14_REPLAN');
+    assert.equal(await evalJs('document.querySelector(".replan-mode").textContent'), language === 'zh' ? '已改回先放进隔离区' : 'Switched back to moving items to quarantine first', 'UI_W14_REPLAN: direct deletion reset is explicit');
+    assert(await evalJs('document.querySelector("[data-key=mode-quarantine]").checked'), 'UI_W14_REPLAN: reset uses quarantine');
+    await key('Escape'); assert.equal(await evalJs('document.activeElement.dataset.key'), 'clean-prepare', 'UI_W14_REPLAN: original cleanup opener retained after a mode change');
+    await click('clean-prepare'); await wait('!!document.querySelector("[data-key=confirm-start]")');
+    assert.equal(await evalJs('document.querySelectorAll(".replan-note").length'), 0, 'UI_W14_REPLAN: ordinary cleanup has no old notice'); await key('Escape');
+  }
+  for (const held of ['conclusion_get', 'clean_prepare']) {
+    await results({conclusion:'v2_conclusion_after_decide'}); await click('clean-prepare'); await wait('!!document.querySelector("[data-key=confirm-start]")');
+    await control(`c.conclusion.version='cv-navigation';c.holdNext=${JSON.stringify(held)}`); await click('confirm-start');
+    await wait(`window.__waterTest.held===${JSON.stringify(held)}`, 'UI_W14_REPLAN');
+    await evalJs('location.hash="history"'); await pageIs('history'); await control('c.release()');
+    await wait('!window.__waterTest.held'); await click('nav-home'); await pageIs('results');
+    await wait('!document.querySelector("[data-key=clean-prepare]").disabled'); await click('clean-prepare'); await wait('!!document.querySelector("[data-key=confirm-start]")');
+    assert.equal(await evalJs('document.querySelectorAll(".replan-note").length'), 0, 'UI_W14_REPLAN: navigating away cannot leave a notice for a normal cleanup'); await key('Escape');
   }
 });
 
@@ -764,6 +820,7 @@ test('ui_v2_pages_layout_a11y', async () => {
     await reset(options); await inspect('home');
     if (language === 'en') await shot('home', !wide);
     await click('scan-start'); await pageIs('scan'); await wait('document.querySelector(".dial-value")?.textContent==="37%"', 'UI_W14_PROGRESS'); await inspect('scan');
+    assert(await evalJs('(()=>{const c=document.querySelector(".scan-chart");return c.scrollHeight<=c.clientHeight && c.scrollWidth<=c.clientWidth && !c.querySelector(".tile-key")})()'), 'UI_W14_PROGRESS: chart fits both languages and windows without a legend');
     if (language === 'en') await shot('scan', !wide);
     for (const [index, label, percent] of [[1,'Measuring the whole drive',82],[2,'Putting the results together',95]]) {
       await control(`c.scan=${index}`); await wait(`document.querySelector('.dial-value')?.textContent==='${percent}%'`, 'UI_W14_PROGRESS');
@@ -772,6 +829,14 @@ test('ui_v2_pages_layout_a11y', async () => {
     }
     await control('c.scan=3'); await pageIs('results'); await inspect('results');
     if (language === 'en' || !wide) await shot('results', !wide);
+    assert(await evalJs('(()=>{const c=document.querySelector(".treemap-card");return c.scrollHeight<=c.clientHeight && c.scrollWidth<=c.clientWidth && !c.querySelector(".tile-key")})()'), 'UI_W14_ONESCREEN: result block card has no scrolling or numbered legend');
+    assert(await evalJs('[...document.querySelectorAll(".judgment>p,.conclusion>.proportions .sub")].every(n=>n.title===n.textContent && (getComputedStyle(n).textOverflow==="ellipsis" || getComputedStyle(n).webkitLineClamp==="2"))'), 'UI_W14_ONESCREEN: clamped text keeps complete tooltips');
+    for (const kind of ['advisory', 'protected', 'space', 'system']) {
+      await click('fold-' + kind);
+      await wait(`(()=>{const b=document.querySelector('[data-key=fold-${kind}]').parentElement.querySelector('.fold-rows');return b.getBoundingClientRect().bottom<=document.querySelector('.folds').getBoundingClientRect().bottom})()`, 'UI_W14_ONESCREEN: expanded rows are visible inside the fold viewport');
+      assert(await evalJs(`(()=>{const b=document.querySelector('[data-key=fold-${kind}]').parentElement.querySelector('.fold-rows'),r=[...b.children];return r.length>=5 && r[4].getBoundingClientRect().bottom<=b.getBoundingClientRect().bottom && b.clientHeight>=160})()`), 'UI_W14_ONESCREEN: expanded fold fully displays five rows');
+      await inspect('expanded fold'); await click('fold-' + kind);
+    }
     if (language === 'en' && wide) {
       await click('copy-' + f.v2_conclusion_typical.clues[0].clue_id);
       assert.equal(await control('return c.clipboard.at(-1)'), english[f.v2_conclusion_typical.clues[0].copy_text], 'UI_W14_EN: copy the exact English lead');
@@ -801,6 +866,23 @@ test('ui_v2_pages_layout_a11y', async () => {
       await reset({preserveLanguage:true}); assert.equal(await evalJs('document.title'), 'Flick · Disk checkup', 'UI_W14_EN: saved choice survives a new launch');
       await reset({language:'system', systemLanguage:'en-GB'}); await englishPage('system English');
       await reset({language:'system', systemLanguage:'zh-TW'}); assert.equal(await evalJs('document.documentElement.lang'), 'zh-CN', 'UI_W14_EN: host language takes priority');
+      for (const [host, navigatorLanguage, expected] of [['zh-TW','en-US','zh-CN'], ['en-GB','zh-CN','en']]) {
+        await reset({language:'system', systemLanguage:host, browserLanguage:navigatorLanguage, holdInfo:true, observePaint:true});
+        assert.equal(await evalJs('document.querySelector("#shell").textContent.trim()'), '', 'UI_W14_EN: startup has no text before app_info settles');
+        assert.deepEqual(await control('return c.paints'), [], 'UI_W14_EN: no interim language paint');
+        await control('c.release()'); await wait('!!document.querySelector(".location-select")', 'UI_W14_EN');
+        const paints = await control('return c.paints');
+        assert(paints.length > 0 && paints.every(p => p.language === expected), 'UI_W14_EN: every first-launch paint uses host language');
+        assert(paints.every(p => p.text.includes(expected === 'en' ? 'Where should we check?' : '这次检查哪里？')), 'UI_W14_EN: first visible copy matches host language');
+      }
+      await reset({language:'system', systemLanguage:'zh-TW', browserLanguage:'en-US', failInfo:true, observePaint:true});
+      assert.equal(await evalJs('document.documentElement.lang'), 'en', 'UI_W14_EN: failed first app_info uses browser language');
+      await click('nav-settings'); await wait('!!document.querySelector("[data-key=settings-about]")'); await click('settings-about'); await wait('!!document.querySelector("[data-key=about-copy-homepage]")');
+      assert.equal(await callCount('app_info'), 2, 'UI_W14_EN: about retries app_info');
+      assert(await control('return c.paints.every(p=>p.language==="en")'), 'UI_W14_EN: successful later app_info does not change session language');
+      await click('settings-language'); await wait('!!document.querySelector("[data-key=language]")');
+      assert.deepEqual(await evalJs('[...document.querySelectorAll("[data-key=language] option")].map(n=>n.textContent)'), ['Follow system', '中文', 'English'], 'UI_W14_EN: language options use native names');
+      await englishPage('native language name only');
       // Explicit legacy exception: a stored history entry with no English sibling.
       const legacy = {...f.v2_history[0], summary_zh:'旧记录只有中文', summary_en:'旧记录只有中文'};
       await reset({language:'en',history:[legacy]}, 'history'); await wait('!!document.querySelector(".heatmap")'); await englishPage('legacy record', ['旧记录只有中文']);
@@ -823,5 +905,10 @@ test('ui_v2_pages_layout_a11y', async () => {
       await reset({intro:'blocked'}, 'settings/language'); await wait('!!document.querySelector("[data-key=language]")'); await switchLanguage('en'); await englishPage('storage blocked');
     }
   }
+  const zeroConclusion = structuredClone(f.v2_conclusion_typical);
+  zeroConclusion.plan.categories.push({...zeroConclusion.plan.categories[0], category_id:'empty-category', title_zh:'空类别', title_en:'Empty category', bytes:'0'});
+  await results({language:'en', conclusion:zeroConclusion});
+  assert.deepEqual(await evalJs('[...document.querySelectorAll(".treemap-card .tile title")].map(n=>n.textContent)'), [...f.v2_conclusion_typical.plan.categories, ...f.v2_conclusion_typical.cards].filter(c => c.bytes !== '0').map(c => `${english[c.title_zh] ?? c.title_zh} · ${formatBytes(c.bytes)}`), 'UI_W14_PROGRESS: result chart includes exactly positive categories and cards');
+  assert(!(await evalJs('document.querySelector(".treemap-card").textContent')).includes('Empty category'), 'UI_W14_PROGRESS: result chart omits the zero category name');
   await browser.size(1240, 820);
 });

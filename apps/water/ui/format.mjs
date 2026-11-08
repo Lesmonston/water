@@ -41,7 +41,7 @@ export function dateTime(value, now = Date.now()) {
 }
 export const driveName = root => t('drive', {letter:root?.slice(0, 1).toUpperCase() ?? ''});
 export const approximate = value => t('about', {value});
-export const formatDays = value => t('days', {n:count(value)});
+export const formatDays = value => t('days', {n:BigInt(value)});
 export const formatList = values => listText(values);
 export function localDateKey(value) {
   const date = new Date(value), pad = n => String(n).padStart(2, '0');

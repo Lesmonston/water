@@ -17,7 +17,7 @@ import {history as records} from './views/history.mjs';
 import {locations} from './views/locations.mjs';
 import {intro} from './views/intro.mjs';
 
-const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false, intro:false, appInfo:null, language:readLanguage(), scanCancelled:false, replanNotice:false};
+const s = {app:null, locations:null, busy:'idle', pending:false, connecting:true, error:'', route:'home', mode:'home', selectedLocations:new Set(), conclusion:null, openFolds:new Set(), detailMode:'category', detailQuery:'', openSection:null, modal:null, historyDetails:new Map(), pollPaused:false, intro:false, appInfo:null, language:readLanguage(), languageReady:false, systemLanguage:null, scanCancelled:false, replanNotice:false};
 const page = document.getElementById('page'), main = document.getElementById('main');
 let timer, polling = false, stopped = false, routeEpoch = 0, quarantineRevision = 0, overlay, opener, checkupQueued = false;
 const busy = () => s.pending || s.busy !== 'idle' || !s.app;
@@ -88,6 +88,7 @@ async function connect() {
     s.connecting = true;
     try {
       try { s.appInfo = await ipc.app_info(); } catch {}
+      if (!s.languageReady) { s.systemLanguage = s.appInfo?.system_language || navigator.language; s.languageReady = true; }
       s.app = await ipc.app_state(); s.busy = s.app.busy;
       s.locations = await ipc.locations_get();
       s.selectedLocations = new Set(s.locations.home.filter(l => l.default_selected).map(l => l.location_id));
@@ -124,7 +125,7 @@ async function poll() {
     if (kind === 'deduping' && error?.code === 'stale') await recoverDedupe();
     else { fail(error); s.pollReason = s.error; s.pollPaused = true; }
   }
-  finally { polling = false; render(); schedule(); }
+  finally { polling = false; try { render(); } finally { schedule(); } }
 }
 async function beginScan() {
   if (s.busy !== 'idle') return;
@@ -141,7 +142,14 @@ async function prepare(chosenMode = 'quarantine') {
   const epoch = routeEpoch;
   const value = await ipc.clean_prepare(s.prepareSource === 'dedupe' ? {dedupeId:s.dedupe.dedupe_id, dedupeVersion:s.dedupe.version} : {conclusionVersion:s.conclusion.version, chosenMode});
   if (epoch !== routeEpoch) return;
-  s.preview = value; show('confirm');
+  s.preview = value; show('confirm'); return true;
+}
+function beginPrepare(source) {
+  const returnFocus = document.activeElement?.dataset.key;
+  return run(async () => {
+    s.replanNotice = false; s.prepareSource = source;
+    if (await prepare()) opener = returnFocus;
+  }, source);
 }
 function show(kind) { if (!s.modal) opener = document.activeElement?.dataset.key; s.modal = kind; }
 function close() { if (s.pending) return; s.modal = null; s.preview = null; s.replanNotice = false; render(); }
@@ -176,13 +184,13 @@ const a = {
   detailsMode:mode => run(async () => { s.detailsView = await ipc.detail_get(s.conclusion.version, mode); s.detailMode = mode; s.openSection = null; }, 'conclusion'),
   openSection:id => { s.openSection = s.openSection === id ? null : id; render(); },
   searchDetails:query => { s.detailQuery = query; render(); },
-  prepare:() => run(async () => { s.prepareSource = 'conclusion'; await prepare(); }, 'conclusion'),
-  prepareDedupe:() => run(async () => { s.prepareSource = 'dedupe'; await prepare(); }, 'dedupe'),
+  prepare:() => beginPrepare('conclusion'),
+  prepareDedupe:() => beginPrepare('dedupe'),
   changeMode:mode => run(() => prepare(mode), s.prepareSource),
   startClean:() => run(async () => {
     const p = s.preview; if (!p || s.busy !== 'idle') return;
-    const epoch = routeEpoch;
-    s.preview = null; s.modal = null;
+    const epoch = routeEpoch, returnFocus = opener;
+    s.preview = null; s.modal = null; s.replanNotice = false;
     let v;
     try { v = await ipc.clean_start(p.plan_id, p.confirm_token); }
     catch (error) {
@@ -191,7 +199,11 @@ const a = {
       if (s.conclusion.stale) return;
       // A changed skip list invalidates the plan, not necessarily the checkup.
       // Prepare conservatively and require a new explicit confirmation.
-      await prepare(); s.replanNotice = true; return;
+      if (await prepare()) {
+        opener = returnFocus;
+        s.replanNotice = p.chosen?.mode === 'delete' && s.preview.chosen?.mode === 'quarantine' ? 'quarantine' : true;
+      }
+      return;
     }
     s.replanNotice = false; s.cleanId = v.clean_id; s.cleanProgress = null; s.busy = 'cleaning'; s.pollPaused = false; navigate('home'); schedule();
   }, s.prepareSource),
@@ -281,10 +293,11 @@ function paintOverlay(activeKey) {
   (focus ?? overlay.querySelector(s.modal === 'confirm' ? '[data-key=confirm-cancel]' : 'button, input, textarea'))?.focus({preventScroll:true});
 }
 function render() {
+  if (!s.languageReady) return;
   const activeKey = document.activeElement?.dataset.key, scroll = main.scrollTop, drawerScroll = overlay?.querySelector('.drawer-list')?.scrollTop ?? 0;
-  const scrollSelector = '.scroll-card,.plan-categories,.settings-content,.location-list,.scan-location-list,.scan-chart,.result-lower>.card,.with-hero .card,.quarantine-grid,.quarantine-grid>.card';
+  const scrollSelector = '.scroll-card,.fold-rows,.plan-categories,.settings-content,.location-list,.scan-location-list,.scan-chart,.result-lower>.card,.with-hero .card,.quarantine-grid,.quarantine-grid>.card';
   const cardScroll = [...page.querySelectorAll(scrollSelector)].map(n => n.scrollTop), previousPage = page.dataset.page;
-  setLanguage(s.language, s.appInfo?.system_language);
+  setLanguage(s.language, s.systemLanguage);
   document.documentElement.lang = currentLanguage() === 'zh' ? 'zh-CN' : 'en'; document.title = t('appTitle');
   top(); const notice = document.getElementById('notice'); notice.hidden = !s.error && !s.pollPaused; notice.replaceChildren();
   if (!notice.hidden) add(notice, el('span', '', s.error || s.pollReason ? errorText(s.error || s.pollReason) : t('paused')), s.pollPaused ? button(t('reconnect'), () => { resumePolling(); render(); }, 'btn soft', 'poll-retry', s.pending) : null);
@@ -306,7 +319,7 @@ function render() {
 }
 function routeChanged() {
   routeEpoch++; s.route = canonicalRoute(location.hash); if (location.hash !== `#${s.route}`) history.replaceState(null, '', `#${s.route}`);
-  s.modal = null; s.error = ''; main.scrollTop = 0; checkupQueued = false;
+  s.modal = null; s.error = ''; s.replanNotice = false; main.scrollTop = 0; checkupQueued = false;
   try { localStorage.setItem('water-last-page', s.route); } catch {}
   render(); void loadRoute();
 }

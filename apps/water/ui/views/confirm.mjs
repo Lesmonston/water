@@ -1,10 +1,10 @@
-import {t, serviceText, listText} from './strings.mjs';
+import {t, serviceText} from './strings.mjs';
 import {add, el, button, row, skipNotice} from './common.mjs';
 import {proportions} from './charts.mjs';
-import {formatBytes} from '../format.mjs';
+import {formatList, driveName, formatBytes} from '../format.mjs';
 export function confirm(s, a) {
   const p = s.preview, panel = el('dialog', 'confirm', undefined, {'aria-labelledby':'confirm-title'});
-  add(panel, el('h2', '', t('cleanQuestion', {size:formatBytes(p.total_bytes)}), {id:'confirm-title'}), s.replanNotice && el('p', 'replan-note', t('replanned'), {role:'status'}), el('p', 'sub', `${t('items', {n:p.item_count})} · ${listText(p.by_drive.map(d => `${t('drive', {letter:d.root.slice(0, 1)})} ${formatBytes(d.bytes)}`))}`), proportions([{title:t('directDelete'), bytes:p.delete.bytes, kind:'lime'}, ...(p.chosen ? [{title:t('yourSelection'), bytes:p.chosen.bytes, kind:'sky'}] : [])]));
+  add(panel, el('h2', '', t('cleanQuestion', {size:formatBytes(p.total_bytes)}), {id:'confirm-title'}), s.replanNotice && add(el('p', 'replan-note', t('replanned'), {role:'status'}), s.replanNotice === 'quarantine' && el('span', 'replan-mode', t('replannedQuarantine'))), el('p', 'sub', `${t('items', {n:p.item_count})} · ${formatList(p.by_drive.map(d => `${driveName(d.root)} ${formatBytes(d.bytes)}`))}`), proportions([{title:t('directDelete'), bytes:p.delete.bytes, kind:'lime'}, ...(p.chosen ? [{title:t('yourSelection'), bytes:p.chosen.bytes, kind:'sky'}] : [])]));
   const direct = el('section', 'preview-delete');
   add(direct, el('h3', '', t('regenerates')));
   for (const c of p.delete.categories) add(direct, row(serviceText(c, 'title'), '', el('span', '', formatBytes(c.bytes)))); add(panel, direct);

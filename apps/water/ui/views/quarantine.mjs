@@ -1,14 +1,14 @@
 import {t, serviceText} from './strings.mjs';
 import {add, el, heading, metric, card, button, row, menu, tag} from './common.mjs';
 import {daysBlocks, proportions} from './charts.mjs';
-import {formatBytes, dateTime} from '../format.mjs';
+import {driveName, formatBytes, dateTime} from '../format.mjs';
 export function quarantine(s, a) {
   const v = s.quarantine, page = add(el('section', 'screen'), heading(v ? t('quarantineBatches', {n:v.cards.length}) : t('quarantine'), t('quarantineSubtitle'), v ? [metric(v.bytes, t('total'))] : []));
   if (!v) return add(page, el('p', 'sub', t('loadingQuarantine')));
   if (!v.cards.length) return add(page, add(card(t('quarantineEmpty')), el('p', 'sub', t('nothingPending'))));
   add(page, proportions(v.cards.map(c => ({title:dateTime(c.created_at), bytes:c.bytes, kind:serviceText(c, 'reminder') ? 'look' : 'sky'}))));
   const roots = el('div', 'root-actions');
-  for (const root of v.roots) add(roots, button(t('openDriveQuarantine', {drive:t('drive', {letter:root.display_path[0].toUpperCase()})}), () => a.reveal(root.target_id), 'btn soft', `root-${root.target_id}`)); add(page, roots);
+  for (const root of v.roots) add(roots, button(t('openDriveQuarantine', {drive:driveName(root.display_path)}), () => a.reveal(root.target_id), 'btn soft', `root-${root.target_id}`)); add(page, roots);
   const grid = el('div', 'quarantine-grid');
   for (const [index, c] of v.cards.entries()) {
     const node = card(dateTime(c.created_at), index === 0 ? 'dark main-card' : '', [menu(t('quarantineMenu'), [[t('openFolder'), () => a.reveal(c.quarantine_id)]], `quarantine-menu-${c.quarantine_id}`)]);
