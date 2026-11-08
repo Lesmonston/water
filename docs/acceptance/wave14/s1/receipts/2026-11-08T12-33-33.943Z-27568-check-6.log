@@ -1,0 +1,19 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["clippy","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--all-targets","--","-D","warnings"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+    Checking water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-s1\packages\water-service)
+error[E0063]: missing field `message_en` in initializer of `water_service::IpcError`
+  --> examples\service_smoke.rs:27:20
+   |
+27 |         return Err(IpcError {
+   |                    ^^^^^^^^ missing `message_en`
+
+error[E0063]: missing field `message_en` in initializer of `water_service::IpcError`
+  --> examples\service_smoke.rs:49:24
+   |
+49 |             return Err(IpcError {
+   |                        ^^^^^^^^ missing `message_en`
+
+For more information about this error, try `rustc --explain E0063`.
+error: could not compile `water-service` (example "service_smoke") due to 2 previous errors

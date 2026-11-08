@@ -1,0 +1,175 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... FAILED
+test m35_conclusion_cards ... FAILED
+test m35_quarantine ... FAILED
+test m35_rows_and_detail ... FAILED
+test m35_scope_and_plan ... FAILED
+test m35_trends_history ... FAILED
+test service_clean_flow ... ok
+test service_hardening ... FAILED
+test service_ipc_contract ... ok
+test service_scan_views ... ok
+test service_storage_safety ... ok
+test service_trends_locations ... ok
+
+failures:
+
+---- m35_clean_split stdout ----
+
+thread 'm35_clean_split' (40328) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_conclusion_cards stdout ----
+
+thread 'm35_conclusion_cards' (41744) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+
+---- m35_quarantine stdout ----
+
+thread 'm35_quarantine' (4384) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+
+---- m35_rows_and_detail stdout ----
+
+thread 'm35_rows_and_detail' (5956) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+
+---- m35_scope_and_plan stdout ----
+
+thread 'm35_scope_and_plan' (33800) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (18032) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+
+---- service_hardening stdout ----
+
+thread 'service_hardening' (36160) panicked at tests\service_v1.rs:708:44:
+SERVICE_W14_EN: missing title_en
+
+
+failures:
+    m35_clean_split
+    m35_conclusion_cards
+    m35_quarantine
+    m35_rows_and_detail
+    m35_scope_and_plan
+    m35_trends_history
+    service_hardening
+
+test result: FAILED. 5 passed; 7 failed; 0 ignored; 0 measured; 0 filtered out; finished in 50.38s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-s1\packages\water-service)
+warning: variable `title_en` is assigned to, but never used
+    --> src\conclusion.rs:1099:9
+     |
+1099 |     let mut title_en = format!("{} · {}", u.title_en, m35::amount_en(n));
+     |         ^^^^^^^^^^^^
+     |
+     = note: consider using `_title_en` instead
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `title_en` is never read
+    --> src\conclusion.rs:1119:9
+     |
+1119 |         title_en = format!(
+     |         ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+     = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `title_en` is never read
+    --> src\conclusion.rs:1197:17
+     |
+1197 |                 title_en = t.clone();
+     |                 ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: value assigned to `title_en` is never read
+    --> src\conclusion.rs:1201:13
+     |
+1201 |             title_en = (*t).into();
+     |             ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: value assigned to `title_en` is never read
+    --> src\conclusion.rs:1168:9
+     |
+1168 |         title_en = format!(
+     |         ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: value assigned to `title_en` is never read
+    --> src\conclusion.rs:1154:9
+     |
+1154 |         title_en = format!(
+     |         ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: `water-service` (lib) generated 6 warnings
+warning: variable `title_en` is assigned to, but never used
+    --> tests\..\src\conclusion.rs:1099:9
+     |
+1099 |     let mut title_en = format!("{} · {}", u.title_en, m35::amount_en(n));
+     |         ^^^^^^^^^^^^
+     |
+     = note: consider using `_title_en` instead
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `title_en` is never read
+    --> tests\..\src\conclusion.rs:1119:9
+     |
+1119 |         title_en = format!(
+     |         ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+     = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `title_en` is never read
+    --> tests\..\src\conclusion.rs:1197:17
+     |
+1197 |                 title_en = t.clone();
+     |                 ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: value assigned to `title_en` is never read
+    --> tests\..\src\conclusion.rs:1201:13
+     |
+1201 |             title_en = (*t).into();
+     |             ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: value assigned to `title_en` is never read
+    --> tests\..\src\conclusion.rs:1168:9
+     |
+1168 |         title_en = format!(
+     |         ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: value assigned to `title_en` is never read
+    --> tests\..\src\conclusion.rs:1154:9
+     |
+1154 |         title_en = format!(
+     |         ^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: `water-service` (test "service_v1") generated 6 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.42s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-8847eb5f0798e69d.exe)
+error: test failed, to rerun pass `--test service_v1`

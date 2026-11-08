@@ -1,0 +1,13 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-s1\packages\water-service)
+error[E0599]: no method named `as_str` found for enum `water_junk_scan::Category` in the current scope
+  --> tests\service_v1.rs:60:42
+   |
+60 |                     category: t.category.as_str().into(),
+   |                                          ^^^^^^ method not found in `water_junk_scan::Category`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `water-service` (test "service_v1") due to 1 previous error

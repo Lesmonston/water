@@ -1,8 +1,8 @@
-WATER-W14-S1 补单 01 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w14-s1/docs/dispatch/reports/WATER-W14-S1-REPORT.md
+WATER-W14-S1 补单 02 任务已完成，任务报告在 F:/new/smaltalk/water/.worktrees/w14-s1/docs/dispatch/reports/WATER-W14-S1-REPORT.md
 
-# WATER-W14-S1 回执（原单与补单 01）
+# WATER-W14-S1 回执（原单与补单 01、02）
 
-当前结论见文末“第 5 节补充续做：第 A 段已完成”。原单和此前补单的受阻记录保留为历史。
+当前结论见文末“补单 02（第 B 段）”。原单和此前补单的受阻记录保留为历史。
 
 2026-11-08。实际执行模型：Codex（GPT-6）；未使用子代理或其它执行者。
 
@@ -246,3 +246,110 @@ node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --
 补单 02 仍需在总控合入 J2 后接 `on_root_done`，按根目录完成数计算规则阶段，处理兜底目标及提前结束，更新位置和类别的完成状态，完成原单三条负控、全部 final、真实只读冒烟与 `archive`。本段沿用获准的阶段终点过渡做法。
 
 本轮未运行 `real`、负控、任何 final 或 archive，未向归档证据目录写文件。真实机器冒烟及 macOS 保持未验证；示例通过全目标编译，其真实运行留待后续验证。没有改宿主、扫描包、规则包、契约、依赖、锁文件或检查器，没有开窗口、对话框、浏览器或下载，没有真实清理。只新增本分支提交，未推送或改写历史。测试已正常退出，结束核对未发现剩余 Cargo、Rustc 或本票 service_v1 进程。第 A 段执行完成，提交本报告后停止本票修改，等待总控收单及补单 02。
+
+## 补单 02（第 B 段）
+
+2026-11-08。实际模型：Codex（GPT-6）；没有使用子代理。本段执行完成，交回总控独立验收，未自行更改台账或宣称 VERIFIED。
+
+### 基线、提交与实际改动
+
+- 原工作树：`F:/new/smaltalk/water/.worktrees/w14-s1`；原分支：`worker/water-w14-s1`。
+- 开工 HEAD 与标签 `water-w14-s1-b-base-20261108` 均为 `dd7ac13a975b7dac29a85c95cdb94c004bec8c81`，工作树干净；本段 baseline 在该提交上通过。
+- **第 B 段实现提交：`097f8630bba5039f635fd8e66e84c6353e19f952`。** 三个通过的 final 均绑定这个实现提交，前后状态均干净。随后只提交本报告与检查器归档产物。
+- 实际产品及测试改动仅四份文件：`packages/water-service/src/service.rs`、`src/m35.rs`、`tests/service_v1.rs`、`README.md`。
+- `IpcError` 三个字段、公开函数与类型签名、IPC 命令名与键保持第 A 段接口；示例文件保持第 A 段已验收的字节。宿主、扫描、规则、其它包、共享样例、契约、Cargo 清单与锁文件均未改。
+
+### 逐条对照
+
+1. `Progress::on_root_done` 接入已合入的扫描接口。规则百分比按 `roots_done × 90 / roots_total` 或 `roots_done × 40 / roots_total` 向下取整；更新时保留已有较大值。空计划或提前返回时，生产调用处仍执行 `rules_done()`，进入规则阶段终点。
+2. 目标完成只来自已报告的根目录集合：`Pattern.base`、`Marker.root`、`Discovery.root` 按扫描包相同的 ASCII 大小写规则匹配。兜底 Marker 查它的主目标，跟随主目标的根目录完成，不另外数一次。
+3. 位置和类别按各自全部目标完成判断；部分目标完成或组已活动则 `running`，尚未触及时 `waiting`。整盘目标完成进入 `space`，仍由原空间统计返回路径标 `done`。自定义类别的根映射也覆盖 Pattern；声明目标按所在 scope 根归属位置，避免遗漏它的完成状态。
+4. `on_progress` 只更新累计字节、条目数、耗时和活动组，不增加根目录完成集合或百分比。状态沿用根目录集合计算，重复或强制回调不能伪造完成；空间字节仍独立于 `found_bytes`。
+5. 测试替身从计划取根、排除兜底 Marker、不分 ASCII 大小写去重，按 1 到固定 `roots_total` 报回调。为验证服务匹配，回调中另用根目录的大写等价形式。通道逐步放行，不新增睡眠或墙钟时限。
+6. 在原 `service_scan_views` 内覆盖完整三根、提前只报一根、无根三类计划；前两类各覆盖有、无整盘位置。完整三根分属两个位置，包含同组两根的 Pattern/Discovery 和另一位置的主 Marker/兜底 Marker。精确核对 30、60、90 与 13、26、40，位置分别完成、类别完成、重复回调不推进、根回调的条目计数、空间 40/53/67/94、finishing 95、最终 100、字节及名称不变。
+7. 提前返回的整盘用例观察到从规则 13 进入空间 40；无整盘提前返回从 30 进入可观察的 finishing 95。空计划没有根回调，仍到 95、100。无整盘扫描返回瞬间的阶段终点没有额外测试停顿点，规则终点由三根完整用例的 90 和生产调用处复核覆盖，未宣称捕获该瞬间快照。
+8. 测试函数名与数量逐项和基线核对一致，仍为 12；原单其它双语、旧记录、原因代码、趋势时钟、空间与清理保护断言保留。
+
+### 旧断言迁移（第 A 段过渡断言）
+
+| 原值 / 写法 | 新值 / 写法 | 为什么 |
+|---|---|---|
+| 规则阶段只断言 `percent <= 40/90` | 第 k 根报告后精确为 `floor(k × 40/90 ÷ 3)`；最后为 40/90 | 现在有独立根目录完成信号，改为核对冻结公式，不再仅核范围 |
+| 最后一批规则字节回调后的百分比等于中途回调 | 每一根前重复/强制回调等于前一个已完成根的百分比；根回调后才增加 | 保留原来“重复回调不推进”的强度，同时区分真实完成事件 |
+| 中途回调百分比仅要求小于阶段终点 | 尚无根完成时精确为 0，并核对活动位置 `running`、另一位置 `waiting` | 精确约束没有完成事件的情形，不冻结旧的全阶段停 0 过渡做法 |
+| 整盘规则结束前仅断言不是 `done` | 第三根后精确为 `space`；空间期间也精确为 `space`，结束后 `done` | 直接验证新契约的完成边界；原“不提前 done”约束仍保留 |
+| 无整盘样本只有 common 位置 | common 两根与另一个自定义位置一根；分别核对状态、类别及稳定名称 | 覆盖位置独立完成和兜底目标，不减少原有空间、95/100、单调性与字节断言 |
+
+没有删除测试、ignore、过滤、降低精确断言或放宽任何既有时限。
+
+### 命令、final 与归档
+
+所有命令均从本工作树根执行，统一入口：
+
+```powershell
+node F:/new/smaltalk/water/scripts/desktop-wave-check.mjs --task WATER-W14-S1 --mode <mode>
+```
+
+下列回执原件位于本树 `.local/checks/WATER-W14-S1/`；归档副本位于 `docs/acceptance/wave14/s1/receipts/`。
+
+| 命令 / 阶段 | 退出码与结果 | 回执文件 |
+|---|---|---|
+| baseline，干净 dd7ac13a | 0，passed | `2026-11-08T13-56-29.405Z-11384-baseline-result.json` |
+| lock | 0，passed | `2026-11-08T14-10-09.150Z-42916-lock-result.json` |
+| check，非 final | 0，passed | `2026-11-08T14-10-19.471Z-27424-check-result.json` |
+| 实现完成后的 test，非 final | 0，12/12 通过 | `2026-11-08T14-08-02.656Z-7160-test-result.json` |
+| **check --final** | **0，passed；fmt、Clippy 全目标通过** | `2026-11-08T14-28-35.213Z-5700-check-result.json` |
+| **test --final（原样重跑）** | **0，12 通过、0 失败、0 ignored、0 filtered；108.17 秒；三条 proofAudit 通过** | `2026-11-08T14-31-57.690Z-32424-test-result.json` |
+| **real --final** | **0，passed；只读、清理关闭** | `2026-11-08T14-33-56.682Z-38656-real-result.json` |
+| archive | 0，passed | `2026-11-08T14-36-55.594Z-14364-archive-result.json`（本树原件） |
+
+final 的生产快照摘要为 `4d71cddc905e1f323db089e9ff751f5ad702c33c9d52f3b79f9486f746065a1f`，测试摘要为 `85490cb767d562551f997a367507f85f639bdf7b35a50801572ce2e5d85170d1`。
+
+`archive` 自动生成 `ARCHIVE.json`、`.gitattributes` 与回执/日志/源快照，保留原单和第 A 段历史；共 **750 个归档条目、26,863,582 字节**。归档后逐项重算大小与 SHA-256，全部等于索引。没有手工编造或修改归档证据。
+
+### 三条有效负控及逐字节恢复
+
+每条仅临时改一个生产位置，使用原测试；红后立即对该文件执行 `git checkout -- <文件>`，验证 SHA-256 恢复，再立即执行 `--mode test`。三次 red 包装器均退出 0、`observedExpectedFailure: true`，其 Cargo 测试退出 101；不是编译失败或超时造红。
+
+| 负控 | 临时破坏与实际目标失败 | red 回执 | 恢复后通过的 test 回执 |
+|---|---|---|---|
+| nc1 | `src/conclusion.rs` 卡片移除 `title_en`；`SERVICE_W14_EN: missing title_en`；5 过、7 失败 | `2026-11-08T14-11-35.452Z-31260-red-nc1-result.json` | `2026-11-08T14-12-52.351Z-15928-test-result.json`；12/12 |
+| nc2 | `src/service.rs` 空间回调把空间字节写回 `found_bytes`；`SERVICE_W14_PROGRESS: overview bytes excluded`；11 过、1 失败 | `2026-11-08T14-15-14.522Z-9296-red-nc2-result.json` | `2026-11-08T14-17-16.807Z-22116-test-result.json`；12/12 |
+| nc3 | `src/service.rs` 整盘目标全部完成时把 `space` 改为 `done`；`SERVICE_W14_PROGRESS: independent location and fallback completion`；11 过、1 失败 | `2026-11-08T14-19-52.730Z-38028-red-nc3-result.json` | `2026-11-08T14-25-57.199Z-32960-test-result.json`；12/12；首次恢复测试仅计时失败，见下 |
+
+恢复文件的 SHA-256：
+
+- `src/conclusion.rs`：`5fed832d0e21a6f5797fd11408d819abba940e5a6fcf1799b328589a949892de`。
+- `src/service.rs`：`1a79190ccb0c64f5604d7923612a7d328da3c230240c38a3eb4a200a6dbacef5`（nc2、nc3 均核对一致）。
+
+通过的 test final 独立核对了这三对 red/restore 的生产与测试快照、恢复次序及快照文件哈希。
+
+### 开发中失败与计时重跑
+
+- `2026-11-08T14-00-34.133Z-37624-test-result.json`：替身最初引用扫描包未导出的 `Match` 类型，编译失败。改用现有 match 值的序列化字段取根，未扩大扫描包或公开接口；该编译红不算负控。
+- `2026-11-08T14-01-36.229Z-9432-test-result.json`：生产实现前的回归，11 过、1 失败，准确落在 `SERVICE_W14_PROGRESS: untouched locations wait`；证明旧过渡行为被新断言拒绝。
+- `2026-11-08T14-05-32.787Z-35116-test-result.json` 与原样重跑的 `2026-11-08T14-06-50.943Z-34936-test-result.json`：均为 12 条既有 `SERVICE_RETURN_BUDGET: scan_progress` 失败，测试分别运行 6.20、8.47 秒。新行计算当时放在服务互斥锁内；改回锁外计算、短锁发布，规则回调另用内部互斥锁串行，不修改测试预算。随后实现完成测试 12/12 通过，运行 107.04 秒；该修正已包含在实现提交中。
+- nc3 首次逐字节恢复后的 `2026-11-08T14-22-24.808Z-9656-test-result.json`：11 过、1 失败，仅 `m35_clean_split` 的原有 `SERVICE_RETURN_BUDGET: conclusion_decide`，测试运行 147.02 秒。代码、断言和时限均不变，原样重跑一次，在 `2026-11-08T14-25-57.199Z-32960-test-result.json` 12/12 通过，运行 136.97 秒。
+- 首次 test final `2026-11-08T14-29-17.513Z-40348-test-result.json`：11 过、1 失败，仅 `service_hardening` 的原有 `SERVICE_RETURN_BUDGET: skip_remove`，测试运行 114.20 秒。原样重跑一次，即上表通过的 test final。两次偶发计时失败的断言没有输出单调用实际毫秒，未编造该数值；没有放宽 50/200 ms 预算或其它时限。
+
+### real 结果（只记录计数）
+
+真实常用位置只读冒烟通过，示例保持清理关闭。输出只有：
+
+| 计数 | 值 |
+|---|---:|
+| cards | 5 |
+| folds | 3 |
+| clues | 3 |
+| conclusion_rows | 13 |
+| quarantine_cards | 0 |
+| drives | 4 |
+
+未记录真实扫描对象的路径或名字。Windows 完成上述验证；macOS 未验证。整盘空间阶段由受控替身验证，本次真实冒烟仍只读常用位置，没有扩大真实扫描范围。
+
+### 边界与交付
+
+- 只在原分支末端新增提交；没有 push、修改远端或持久 Git 配置，没有 merge、rebase、reset、amend 或改写历史。提交使用进程内 Codex GPT-6 身份。
+- 没有改检查器或台账，没有下载依赖、新增系统调用、运行上游项目、启用窗口、选择框或浏览器，没有真实清理。测试仍只由既有夹具机制回收本树 `.local` 下本次新建的随机目录，没有手工清理旧目录。
+- 没有越界申请，没有新增需要统一的英文译法。采用既有公开接口和锁外进度计算，未添加生产测试开关或额外公开观察接口。
+- 三个 final 与 archive 已退出。报告和归档单独提交后停止本票测试及产品修改，交回总控验收；不把执行者完成视为主线集成、跨平台验证或发布通过。

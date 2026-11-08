@@ -1,0 +1,1155 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    IpcError, clean, conclusion, dedupe, language, quarantine,
+    service::{Core, Record, Settings, State, lock},
+    util,
+};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::os::windows::fs::MetadataExt;
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+    time::{Duration, UNIX_EPOCH},
+};
+use water_cleanup_manifest as manifest;
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Session {
+    pub tool: String,
+    pub enabled: bool,
+    pub days: u16,
+}
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Trust {
+    pub path: String,
+    pub hash: String,
+    pub trusted_at: String,
+}
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Fixed {
+    pub group_id: String,
+    pub fixed_at: String,
+}
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Keep {
+    pub key: String,
+    pub bytes: u64,
+    pub decided_at: String,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum StaleReason {
+    NewScan,
+    Consumed,
+    SettingsChanged,
+}
+impl StaleReason {
+    pub(crate) fn text(self) -> (&'static str, &'static str) {
+        match self {
+            Self::NewScan => ("有了更新的体检", "A newer checkup is available"),
+            Self::Consumed => (
+                "这次体检已被清理用掉",
+                "This checkup has already been used for cleaning",
+            ),
+            Self::SettingsChanged => (
+                "会话开关或项目声明的信任变了",
+                "Session cleanup settings or trust in the project declaration changed",
+            ),
+        }
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct Extension {
+    pub conclusion: Option<conclusion::Model>,
+    pub stale: BTreeMap<String, StaleReason>,
+    pub quarantine: quarantine::Cache,
+    pub dedupes: BTreeMap<String, dedupe::Record>,
+    pub dedupe_progress: Value,
+    pub dedupe_cancel: Option<water_dup_finder::CancelFlag>,
+    pub purge_progress: Value,
+    pub events: Vec<Value>,
+    pub plan_sources: BTreeMap<String, Arc<Record>>,
+    pub failures: BTreeMap<String, IpcError>,
+    pub quarantine_ids: BTreeSet<String>,
+}
+
+pub(crate) fn keys_with(v: &Value, required: &[&str], optional: &[&str]) -> bool {
+    v.as_object().is_some_and(|m| {
+        required.iter().all(|k| m.contains_key(*k))
+            && m.keys().all(|k| {
+                required.contains(&k.as_str())
+                    || optional.contains(&k.as_str())
+                    || k.strip_suffix("_en").is_some_and(|stem| {
+                        let zh = format!("{stem}_zh");
+                        required.contains(&zh.as_str()) || optional.contains(&zh.as_str())
+                    })
+            })
+    })
+}
+
+pub(crate) fn startup(core: &Arc<Core>) -> Result<(), IpcError> {
+    let mut s = lock(core)?;
+    s.m35.dedupe_progress = dedupe::idle();
+    s.m35.purge_progress = quarantine::idle();
+    s.m35.events = core
+        .store
+        .records("events")
+        .into_iter()
+        .map(|(_, v)| v)
+        .collect();
+    dedupe::load(core, &mut s);
+    drop(s);
+    quarantine::refresh(core)
+}
+
+pub(crate) fn invalidate(s: &mut State, reason: StaleReason) {
+    if let Some(id) = &s.last {
+        s.m35.stale.insert(id.clone(), reason);
+    }
+    s.stale_plans.extend(s.plans.keys().cloned());
+}
+
+pub(crate) fn valid_in_use(spec: &water_junk_scan::InUse) -> bool {
+    let v = json!({"mode":spec.mode,"processes":spec.processes});
+    serde_json::from_value::<water_process_scan::InUseSpec>(v).is_ok()
+        && spec
+            .root_levels
+            .is_none_or(|k| (1..=6).contains(&k) && spec.mode == "runs_from_or_references_item")
+}
+
+pub(crate) fn in_use_path(path: &str, levels: Option<u8>) -> String {
+    let mut path = path.to_owned();
+    for _ in 0..levels.unwrap_or(0) {
+        if let Some((parent, _)) = path.rsplit_once('\\')
+            && parent.len() > 3
+        {
+            path = parent.to_owned();
+        } else {
+            break;
+        }
+    }
+    path
+}
+
+pub(crate) fn local_path(path: &str) -> Option<String> {
+    let path = path.strip_prefix(r"\\?\").unwrap_or(path);
+    let b = path.as_bytes();
+    (b.len() >= 3
+        && b[0].is_ascii_alphabetic()
+        && &b[1..3] == b":\\"
+        && !path.contains('/')
+        && !path[3..]
+            .split('\\')
+            .any(|s| s == "." || s == ".." || s.contains(':')))
+    .then(|| path.to_owned())
+}
+
+pub(crate) fn collected_at(value: &str) -> Option<String> {
+    let seconds = value.parse::<i64>().ok()?;
+    if !(-62_135_596_800..=253_402_300_799).contains(&seconds) {
+        return None;
+    }
+    let at = if seconds < 0 {
+        UNIX_EPOCH.checked_sub(Duration::from_secs(seconds.unsigned_abs()))?
+    } else {
+        UNIX_EPOCH.checked_add(Duration::from_secs(seconds as u64))?
+    };
+    let out = util::timestamp(at);
+    util::parse_time(&out).map(|_| out)
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub(crate) struct Location {
+    pub location_id: String,
+    pub kind: String,
+    pub label_zh: String,
+    #[serde(default)]
+    pub label_en: String,
+    pub path: Option<String>,
+}
+
+impl Location {
+    pub(crate) fn english(&self) -> &str {
+        if self.label_en.is_empty() {
+            &self.label_zh
+        } else {
+            &self.label_en
+        }
+    }
+}
+
+pub(crate) fn home(core: &Core, s: &State) -> Vec<Value> {
+    let mut drives = core.platform.drives();
+    drives.sort_by(|a, b| a.root.cmp(&b.root));
+    let system = drives
+        .iter()
+        .find(|d| d.is_system)
+        .map(|d| d.root.clone())
+        .unwrap_or_else(|| util::drive(&core.folders.windows));
+    let mut rows = vec![
+        json!({"location_id":"common","kind":"common","label_zh":format!("{} 盘常用位置", &system[..1]),"label_en":format!("Common locations on drive {}:",&system[..1]),"display_path":null,"default_selected":true,"free_bytes":null,"total_bytes":null}),
+    ];
+    rows.extend(drives.into_iter().filter(|d|!d.is_system).map(|d| json!({"location_id":format!("drive-{}", d.root[..1].to_ascii_lowercase()),"kind":"drive","label_zh":format!("{} 盘",&d.root[..1]),"label_en":format!("Drive {}:",&d.root[..1]),"display_path":d.root,"default_selected":false,"free_bytes":d.free_bytes.to_string(),"total_bytes":d.total_bytes.to_string()})));
+    let mut folders: Vec<_> = s
+        .settings
+        .custom_roots
+        .iter()
+        .filter(|r| r.path.len() != 3)
+        .collect();
+    folders.sort_by(|a, b| a.added_at.cmp(&b.added_at));
+    rows.extend(folders.into_iter().map(|r|json!({"location_id":r.root_id,"kind":"folder","label_zh":name(&r.path),"label_en":name(&r.path),"display_path":r.path,"default_selected":false,"free_bytes":null,"total_bytes":null})));
+    rows
+}
+
+pub(crate) fn scope(core: &Core, s: &State, args: &Value) -> Result<Vec<Location>, IpcError> {
+    let home = home(core, s);
+    let ids: Vec<String> = if let Some(ids) = args["locationIds"].as_array() {
+        ids.iter()
+            .map(|v| v.as_str().expect("validated").to_owned())
+            .collect()
+    } else {
+        std::iter::once("common".to_owned())
+            .chain(s.settings.custom_roots.iter().map(|r| r.root_id.clone()))
+            .filter(|id| home.iter().any(|row| row["location_id"] == *id))
+            .collect()
+    };
+    ids.into_iter()
+        .map(|id| {
+            let row = home
+                .iter()
+                .find(|v| v["location_id"] == id)
+                .ok_or_else(|| IpcError::new("invalid"))?;
+            Ok(Location {
+                location_id: id,
+                kind: row["kind"].as_str().unwrap().into(),
+                label_zh: row["label_zh"].as_str().unwrap().into(),
+                label_en: row["label_en"].as_str().unwrap().into(),
+                path: row["display_path"].as_str().map(str::to_owned),
+            })
+        })
+        .collect()
+}
+
+pub(crate) fn scope_roots(scope: &[Location]) -> Vec<water_junk_rules::CustomRoot> {
+    scope
+        .iter()
+        .filter_map(|l| {
+            l.path.as_ref().map(|p| water_junk_rules::CustomRoot {
+                root_id: l.location_id.clone(),
+                path: p.clone(),
+            })
+        })
+        .collect()
+}
+pub(crate) fn progress_locations(scope: &[Location]) -> Vec<Value> {
+    scope.iter().map(|l|json!({"location_id":l.location_id,"label_zh":l.label_zh,"label_en":l.english(),"state":"waiting","found_bytes":"0"})).collect()
+}
+
+pub(crate) fn trusted_plan(
+    settings: &Settings,
+    scope: &[Location],
+    plan: &mut water_junk_rules::ScanPlan,
+) -> Result<Vec<manifest::Loaded>, IpcError> {
+    let mut loaded = Vec::new();
+    let mut paths = settings
+        .trusts
+        .iter()
+        .filter(|t| {
+            scope
+                .iter()
+                .filter_map(|l| l.path.as_ref())
+                .any(|p| util::contains(p, &t.path))
+        })
+        .map(|t| t.path.clone())
+        .collect::<BTreeSet<_>>();
+    let trusted_dirs = paths.iter().map(|p| parent(p)).collect::<Vec<_>>();
+    for path in scope
+        .iter()
+        .filter_map(|l| l.path.as_ref())
+        .chain(trusted_dirs.iter())
+        .flat_map(|p| manifest::FILE_NAMES.map(|n| format!("{p}\\{n}")))
+    {
+        if std::fs::symlink_metadata(&path).is_ok() {
+            paths.insert(path);
+        }
+    }
+    if paths.is_empty() {
+        return Ok(loaded);
+    }
+    let mut value: Value = serde_json::from_str(&water_junk_rules::plan_to_json(plan))
+        .map_err(|_| IpcError::new("unavailable"))?;
+    for m in load_declarations(paths, &[]) {
+        let path = &m.path;
+        let trusted = settings.trusts.iter().any(|t| {
+            t.path.eq_ignore_ascii_case(path) && m.hash.as_deref() == Some(t.hash.as_str())
+        });
+        if let Some(parsed) = &m.manifest {
+            value["targets"]
+                .as_array_mut()
+                .expect("plan targets")
+                .extend(manifest::to_targets(parsed, &m.dir, trusted));
+        }
+        loaded.push(m);
+    }
+    *plan = water_junk_rules::ScanPlan::from_json(&value.to_string())
+        .map_err(|_| IpcError::new("unavailable"))?;
+    Ok(loaded)
+}
+
+// Pair by directory before reading: scanner order may interleave directories,
+// and a truncated list must not invent a shadow row for an unreported file.
+pub(crate) fn load_declarations(
+    paths: impl IntoIterator<Item = String>,
+    previous: &[manifest::Loaded],
+) -> Vec<manifest::Loaded> {
+    let mut paths = paths
+        .into_iter()
+        .filter_map(|p| local_path(&p))
+        .map(|p| (p.to_ascii_lowercase(), p))
+        .collect::<BTreeMap<_, _>>();
+    for m in previous {
+        paths
+            .entry(m.path.to_ascii_lowercase())
+            .or_insert_with(|| m.path.clone());
+    }
+    let new_dirs = paths
+        .values()
+        .filter(|p| name(p).eq_ignore_ascii_case(manifest::FILE_NAMES[0]))
+        .map(|p| parent(p).to_ascii_lowercase())
+        .collect::<BTreeSet<_>>();
+    paths
+        .into_values()
+        .map(|path| {
+            let dir = parent(&path);
+            if name(&path).eq_ignore_ascii_case(manifest::FILE_NAMES[1])
+                && new_dirs.contains(&dir.to_ascii_lowercase())
+            {
+                manifest::Loaded {
+                    path,
+                    dir,
+                    size: 0,
+                    hash: None,
+                    manifest: None,
+                    error: Some(manifest::Invalid {
+                        code: "MANIFEST_SHADOWED".into(),
+                        pointer: String::new(),
+                    }),
+                }
+            } else if let Some(m) = previous.iter().find(|m| m.path.eq_ignore_ascii_case(&path)) {
+                m.clone()
+            } else {
+                manifest::read_manifest(&path)
+            }
+        })
+        .collect()
+}
+
+pub(crate) fn declaration_value(m: &manifest::Loaded) -> Value {
+    json!({"path":m.path,"hash":m.hash,"size":m.size,"valid":m.manifest.is_some(),"error_code":m.error.as_ref().map(|e|&e.code),"manifest":m.manifest})
+}
+
+pub(crate) fn supplement(
+    core: &Core,
+    result: &mut water_junk_scan::ScanResult,
+    declarations: &[manifest::Loaded],
+    unfinished: &BTreeMap<String, String>,
+) -> Value {
+    let apps = core.platform.installed_apps();
+    let mut uninstallers = BTreeMap::new();
+    let mut notes = serde_json::Map::new();
+    let mut notes_en = serde_json::Map::new();
+    let mut codes = serde_json::Map::new();
+    let mut reasons_en = serde_json::Map::new();
+    let mut reasons_zh = serde_json::Map::new();
+    let mut resumed = serde_json::Map::new();
+    let mut resumed_en = serde_json::Map::new();
+    let mut created = serde_json::Map::new();
+    for item in &mut result.items {
+        if let Ok(meta) = std::fs::symlink_metadata(&item.path)
+            && meta.file_attributes() & 0x400 == 0
+            && let Ok(at) = meta.created()
+        {
+            created.insert(item.item_id.clone(), json!(util::timestamp(at)));
+        }
+        let Some(g) = result.groups.iter().find(|g| g.group_id == item.group_id) else {
+            continue;
+        };
+        let rule = core.rules.rule(&g.rule_id);
+        let mut messages = Vec::new();
+        let mut blocked = Vec::new();
+        let mut messages_en = Vec::<String>::new();
+        let mut note_codes = Vec::<&str>::new();
+        let mut blocked_en = Vec::<String>::new();
+        let mut blocked_codes = Vec::<&str>::new();
+        let path = local_path(&item.path);
+        if (g.rule_id == "installer-files" || g.cluster.is_some())
+            && let Some(reason) = program_directory(
+                &item.path,
+                g.cluster.as_ref().map(|c| c.parent.as_str()),
+                apps.as_ref(),
+                &mut uninstallers,
+            )
+        {
+            // This explanation takes priority even when the scanner already blocked the item.
+            item.ineligible_reason = Some(reason.2.into());
+            reasons_zh.insert(item.item_id.clone(), json!(reason.0));
+            reasons_en.insert(item.item_id.clone(), json!(reason.1));
+            blocked.push(reason.0);
+            blocked_en.push(reason.1);
+            blocked_codes.push(reason.2);
+        }
+        if path.is_none() {
+            blocked.push("路径格式无法核对项目声明".to_owned());
+            blocked_en.push("Cannot verify the project declaration for this path format".into());
+            blocked_codes.push("path_unverifiable");
+        }
+        if let Some(path) = &path {
+            if declarations
+                .iter()
+                .any(|d| local_path(&d.dir).is_some_and(|dir| util::contains(path, &dir)))
+            {
+                blocked.push("里面有项目的声明文件，不能整块清理".into());
+                blocked_en.push(
+                    "Contains a project declaration; the whole folder cannot be cleaned".into(),
+                );
+                blocked_codes.push("contains_declaration");
+            }
+            if declarations.iter().any(|d| {
+                d.manifest.as_ref().is_some_and(|m| {
+                    local_path(&d.dir)
+                        .is_some_and(|dir| manifest::protects(m, &dir, path).is_some())
+                })
+            }) {
+                blocked.push("项目声明为不能碰".into());
+                blocked_en.push("Protected by the project declaration".into());
+                blocked_codes.push("declaration_protected");
+            }
+            if g.rule_id == "git-worktrees" {
+                let link = manifest::read_git_link(path);
+                if link.state == "detached" {
+                    messages.push("已脱离 git".into());
+                    messages_en.push("Detached from git".into());
+                    note_codes.push("git_detached");
+                }
+                if let Some(gitdir) = link.gitdir.filter(|_| link.state == "valid") {
+                    let p = parent(&parent(&gitdir));
+                    messages.push(format!("仍登记在 {p}"));
+                    messages_en.push(format!("Still registered in {p}"));
+                    note_codes.push("git_registered");
+                }
+            }
+        }
+        if item.referenced_count > 0 {
+            blocked.push(format!(
+                "被 {} 引用，改指别处后可清",
+                item.referenced_by
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("联接")
+            ));
+        }
+        // Reference names come from the user's filesystem.
+        if item.referenced_count > 0 {
+            blocked_en.push(format!(
+                "Referenced by {}; repoint it before cleaning",
+                item.referenced_by
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("a junction")
+            ));
+            blocked_codes.push("junction_referenced");
+        }
+        if g.level == water_junk_scan::Level::Recommended && item.valuable_count > 0 {
+            blocked.push(format!(
+                "含签名、密钥等贵重文件：{}",
+                item.valuable_names
+                    .iter()
+                    .take(3)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join("、")
+            ));
+        }
+        if g.level == water_junk_scan::Level::Recommended && item.valuable_count > 0 {
+            blocked_en.push(format!(
+                "Contains valuable files such as signatures or keys: {}",
+                language::list(
+                    &item
+                        .valuable_names
+                        .iter()
+                        .take(3)
+                        .cloned()
+                        .collect::<Vec<_>>()
+                )
+            ));
+            blocked_codes.push("valuable_files");
+        }
+        if item
+            .odd_names
+            .iter()
+            .any(|n| n.eq_ignore_ascii_case(name(&item.path)))
+        {
+            blocked.push("名字特殊（如 nul），这一版只能清理它所在的文件夹".into());
+            blocked_en.push("This reserved name (such as nul) can only be cleaned through its containing folder in this version".into());
+            blocked_codes.push("reserved_name");
+        } else if item.odd_count > 0 {
+            messages.push(format!(
+                "里面有名为 {} 的文件，资源管理器删不掉，Flick 能删",
+                item.odd_names
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("特殊名字")
+            ));
+        }
+        if !item
+            .odd_names
+            .iter()
+            .any(|n| n.eq_ignore_ascii_case(name(&item.path)))
+            && item.odd_count > 0
+        {
+            messages_en.push(format!(
+                "Contains a file named {}; File Explorer cannot delete it, but Flick can",
+                item.odd_names
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("a reserved name")
+            ));
+            note_codes.push("odd_name");
+        }
+        if let Some(names) = rule.and_then(|r| r.installed_names.as_ref()) {
+            if let Some(list) = &apps {
+                if let Some(n) = names.iter().find(|n| {
+                    !water_installed_apps::find(list, &water_installed_apps::name_tokens(n))
+                        .is_empty()
+                        || list
+                            .apps
+                            .iter()
+                            .any(|a| compact(&a.name).contains(&compact(n)))
+                }) {
+                    blocked.push(format!("{n} 还装着，这是它的数据"));
+                    blocked_en.push(format!("{n} is still installed; this is its data"));
+                    blocked_codes.push("app_installed");
+                } else {
+                    messages.push(format!("{} 似乎已卸载，这是它留下的数据", names[0]));
+                    messages_en.push(format!(
+                        "{} appears to have been uninstalled; this is its leftover data",
+                        names[0]
+                    ));
+                    note_codes.push("app_uninstalled");
+                }
+            } else {
+                blocked.push("查不到已安装程序列表".into());
+                blocked_en.push("The installed app list is unavailable".into());
+                blocked_codes.push("apps_unavailable");
+            }
+        }
+        if g.rule_id == "installer-files"
+            && let Some(list) = &apps
+            && let Some(app) = installer_app(list, name(&item.path))
+        {
+            messages_en.push(format!(
+                "The matching app is already installed: {} {}",
+                app.name,
+                app.version.as_deref().unwrap_or("")
+            ));
+            note_codes.push("installer_installed");
+            messages.push(format!(
+                "对应的软件已经装好：{} {}",
+                app.name,
+                app.version.as_deref().unwrap_or("")
+            ));
+        }
+        if blocked.is_empty()
+            && item.ineligible_reason.as_deref() == Some("too_recent")
+            && item.identity.is_some()
+            && g.level.cleanable()
+            && let Some(reason) = unfinished.get(&item.path.to_ascii_lowercase())
+        {
+            item.eligible = true;
+            item.ineligible_reason = None;
+            resumed.insert(item.item_id.clone(), json!(reason));
+            resumed_en.insert(
+                item.item_id.clone(),
+                json!(if reason == "上次只清了一部分" {
+                    "Only partly cleaned last time"
+                } else {
+                    "Cleaning failed last time"
+                }),
+            );
+        }
+        if !blocked.is_empty() {
+            if item.eligible {
+                item.eligible = false;
+                item.ineligible_reason = blocked_codes.first().map(|c| (*c).to_owned());
+                reasons_zh.insert(item.item_id.clone(), json!(blocked[0]));
+                reasons_en.insert(item.item_id.clone(), json!(blocked_en[0]));
+            }
+            messages.splice(0..0, blocked);
+            messages_en.splice(0..0, blocked_en);
+            note_codes.splice(0..0, blocked_codes);
+        }
+        if !messages.is_empty() {
+            notes.insert(item.item_id.clone(), json!(messages));
+            notes_en.insert(item.item_id.clone(), json!(messages_en));
+            codes.insert(item.item_id.clone(), json!(note_codes));
+        }
+    }
+    for g in &mut result.groups {
+        let items: Vec<_> = result
+            .items
+            .iter()
+            .filter(|i| i.group_id == g.group_id && i.eligible)
+            .collect();
+        g.eligible_count = items.len() as u64;
+        g.eligible_bytes = items
+            .iter()
+            .map(|i| util::number(&i.total_bytes))
+            .sum::<u64>()
+            .to_string();
+        g.eligible_unique_bytes = items
+            .iter()
+            .map(|i| util::number(&i.unique_bytes))
+            .sum::<u64>()
+            .to_string();
+        if g.eligible_disk_bytes.is_some() {
+            g.eligible_disk_bytes = Some(
+                items
+                    .iter()
+                    .map(|i| i.disk_bytes.as_deref().map(util::number).unwrap_or(0))
+                    .sum::<u64>()
+                    .to_string(),
+            );
+        }
+    }
+    json!({"item_notes":notes,"item_notes_en":notes_en,"item_note_codes":codes,"item_reason_zh":reasons_zh,"item_reason_en":reasons_en,"unfinished":resumed,"unfinished_en":resumed_en,"item_created":created,"installed_apps_at":apps.as_ref().and_then(|a|collected_at(&a.collected_at))})
+}
+
+fn installer_app<'a>(
+    list: &'a water_installed_apps::AppList,
+    file_name: &str,
+) -> Option<&'a water_installed_apps::App> {
+    let installer = water_installed_apps::installer_tokens(file_name);
+    list.apps.iter().find(|app| {
+        let words = water_installed_apps::name_tokens(&app.name)
+            .into_iter()
+            .filter(|s| !s.chars().all(char::is_numeric))
+            .collect::<Vec<_>>();
+        words.iter().any(|s| s.chars().count() >= 3)
+            && words
+                .iter()
+                .all(|s| installer.iter().any(|t| s.eq_ignore_ascii_case(t)))
+    })
+}
+
+fn program_directory(
+    item_path: &str,
+    cluster_parent: Option<&str>,
+    apps: Option<&water_installed_apps::AppList>,
+    cache: &mut BTreeMap<String, bool>,
+) -> Option<(String, String, &'static str)> {
+    let path = local_path(item_path)?;
+    if let Some(app) = apps.into_iter().flat_map(|list| &list.apps).find(|app| {
+        app.install_location
+            .as_deref()
+            .and_then(local_path)
+            .is_some_and(|root| {
+                root.trim_end_matches('\\').len() > 3 && util::contains(&root, &path)
+            })
+    }) {
+        return Some((
+            format!("在已安装程序 {} 的安装目录里", app.name),
+            format!("Inside the installation folder of {}", app.name),
+            "installed_program_directory",
+        ));
+    }
+    let mut dir = cluster_parent
+        .and_then(local_path)
+        .unwrap_or_else(|| parent(&path));
+    // The containing directory plus five ancestors; never enumerate a drive root.
+    for _ in 0..=5 {
+        if dir.len() <= 3 {
+            break;
+        }
+        let found = *cache.entry(dir.to_ascii_lowercase()).or_insert_with(|| {
+            std::fs::read_dir(&dir).is_ok_and(|entries| {
+                entries.flatten().any(|entry| {
+                    let file_name = entry.file_name().to_string_lossy().to_ascii_lowercase();
+                    file_name.ends_with(".exe")
+                        && (file_name.starts_with("unins") || file_name.starts_with("uninstall"))
+                        && entry
+                            .metadata()
+                            .is_ok_and(|m| m.is_file() && m.file_attributes() & 0x400 == 0)
+                })
+            })
+        });
+        if found {
+            return Some((
+                format!("在程序目录 {} 里（有卸载程序）", name(&dir)),
+                format!(
+                    "Inside program folder {} (an uninstaller is present)",
+                    name(&dir)
+                ),
+                "program_directory",
+            ));
+        }
+        dir = parent(&dir);
+    }
+    None
+}
+
+pub(crate) fn program_directory_blocked(item: &water_junk_scan::Item) -> bool {
+    !item.eligible
+        && item.ineligible_reason.as_deref().is_some_and(|reason| {
+            matches!(reason,"installed_program_directory"|"program_directory")
+                // Compatibility with records saved before reason codes.
+                || reason.starts_with("在已安装程序 ") || reason.starts_with("在程序目录 ")
+        })
+}
+
+fn compact(s: &str) -> String {
+    s.to_lowercase()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect()
+}
+pub(crate) fn name(path: &str) -> &str {
+    path.trim_end_matches('\\')
+        .rsplit('\\')
+        .next()
+        .unwrap_or(path)
+}
+pub(crate) fn parent(path: &str) -> String {
+    path.rsplit_once('\\')
+        .map(|(p, _)| p.to_owned())
+        .unwrap_or_default()
+}
+pub(crate) fn amount(n: u64) -> String {
+    if n >= 1 << 30 {
+        format!("{:.1} GB", n as f64 / (1u64 << 30) as f64)
+    } else if n >= 1 << 20 {
+        format!("{} MB", n / (1 << 20))
+    } else {
+        "<1 MB".into()
+    }
+}
+
+pub(crate) fn amount_en(n: u64) -> String {
+    if n >= 1 << 30 {
+        format!(
+            "{} GB",
+            language::number(format!("{:.1}", n as f64 / (1u64 << 30) as f64))
+        )
+    } else if n >= 1 << 20 {
+        format!("{} MB", language::number(n / (1 << 20)))
+    } else {
+        "<1 MB".into()
+    }
+}
+
+pub(crate) fn note_code(r: &Record, id: &str, code: &str, legacy: &str) -> bool {
+    if let Some(codes) = r.saved.get("item_note_codes") {
+        codes[id]
+            .as_array()
+            .is_some_and(|v| v.iter().any(|c| c == code))
+    } else {
+        r.saved["item_notes"][id].as_array().is_some_and(|v| {
+            v.iter()
+                .filter_map(Value::as_str)
+                .any(|s| s.contains(legacy))
+        })
+    }
+}
+
+pub(crate) fn notes_en(r: &Record, id: &str) -> Vec<String> {
+    r.saved
+        .get("item_notes_en")
+        .unwrap_or(&r.saved["item_notes"])[id]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect()
+}
+
+pub(crate) fn unfinished_paths(s: &State) -> BTreeMap<String, String> {
+    let Some(clean) = s.cleans.values().max_by(|a, b| {
+        a["view"]["finished_at"]
+            .as_str()
+            .cmp(&b["view"]["finished_at"].as_str())
+    }) else {
+        return BTreeMap::new();
+    };
+    let source = s
+        .records
+        .iter()
+        .find(|r| Some(r.result.scan_id.as_str()) == clean["scan_id"].as_str());
+    clean["report"]["items"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|i| {
+            matches!(i["status"].as_str(), Some("partial" | "failed"))
+                && !matches!(i["skip_reason"].as_str(), Some("in_use" | "cancelled"))
+        })
+        .filter_map(|i| {
+            let path = clean["plan_items"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .find(|p| p["item_id"] == i["item_id"])
+                .and_then(|p| p["path"].as_str())
+                .map(str::to_owned)
+                .or_else(|| {
+                    source.and_then(|r| {
+                        r.result
+                            .items
+                            .iter()
+                            .find(|p| Some(p.item_id.as_str()) == i["item_id"].as_str())
+                            .map(|p| p.path.clone())
+                    })
+                })?;
+            Some((
+                path.to_ascii_lowercase(),
+                if i["status"] == "partial" {
+                    "上次只清了一部分".into()
+                } else {
+                    "上次清理失败".into()
+                },
+            ))
+        })
+        .collect()
+}
+
+pub(crate) fn owns(c: &str) -> bool {
+    matches!(
+        c,
+        "conclusion_get"
+            | "conclusion_decide"
+            | "detail_get"
+            | "group_items"
+            | "quarantine_list"
+            | "quarantine_restore"
+            | "quarantine_delete"
+            | "quarantine_progress"
+            | "quarantine_locate"
+            | "dedupe_start"
+            | "dedupe_progress"
+            | "dedupe_cancel"
+            | "dedupe_result"
+            | "dedupe_decide"
+            | "locations_set_session_cleanup"
+            | "manifest_trust"
+            | "cluster_mark_fixed"
+    )
+}
+pub(crate) fn validate(c: &str, a: &Value) -> Option<Result<(), IpcError>> {
+    let keys: &[&str] = match c {
+        "conclusion_get" | "quarantine_list" | "quarantine_progress" | "dedupe_progress" => &[],
+        "conclusion_decide" => &["version", "decision"],
+        "detail_get" => &["version", "mode"],
+        "group_items" => &["groupId", "rowId", "query"],
+        "quarantine_restore" => &["quarantineId", "beside"],
+        "quarantine_delete" => &["quarantineId"],
+        "quarantine_locate" => &["targetId"],
+        "dedupe_start" => &["locationId"],
+        "dedupe_cancel" => &["dedupeId"],
+        "dedupe_result" => &["dedupeId", "expand"],
+        "dedupe_decide" => &["dedupeId", "version", "groupId", "include"],
+        "locations_set_session_cleanup" => &["tool", "enabled", "days"],
+        "manifest_trust" => &["manifestId", "trusted"],
+        "cluster_mark_fixed" => &["groupId", "fixed"],
+        "scan_start" if a.get("locationIds").is_some() => &["locationIds"],
+        "clean_prepare" if a.get("conclusionVersion").is_some() => {
+            &["conclusionVersion", "chosenMode"]
+        }
+        "clean_prepare" if a.get("dedupeId").is_some() => &["dedupeId", "dedupeVersion"],
+        _ => return None,
+    };
+    let good = util::exact_keys(a, keys)
+        && keys.iter().all(|k| match *k {
+            "beside" | "expand" | "enabled" | "trusted" | "fixed" | "include" => a[k].is_boolean(),
+            "days" => matches!(a[k].as_u64(), Some(7 | 30 | 90)),
+            "mode" => matches!(a[k].as_str(), Some("category" | "location")),
+            "chosenMode" => matches!(a[k].as_str(), Some("quarantine" | "delete")),
+            "version" | "conclusionVersion" | "dedupeVersion" => a[k]
+                .as_str()
+                .is_some_and(|s| s.len() <= 64 && util::id_ok(s)),
+            "rowId" => a[k].is_null() || a[k].as_str().is_some_and(util::id_ok),
+            "query" => {
+                a[k].is_null()
+                    || a[k].as_str().is_some_and(|s| {
+                        (1..=64).contains(&s.chars().count())
+                            && !s.chars().any(|c| c.is_control() || "\\/:".contains(c))
+                    })
+            }
+            "locationIds" => a[k].as_array().is_some_and(|v| {
+                (1..=24).contains(&v.len())
+                    && v.iter().all(|s| s.as_str().is_some_and(util::id_ok))
+                    && v.iter()
+                        .filter_map(Value::as_str)
+                        .collect::<BTreeSet<_>>()
+                        .len()
+                        == v.len()
+            }),
+            "decision" => {
+                let d = &a[k];
+                ["group", "category", "row", "item"]
+                    .into_iter()
+                    .any(|kind| {
+                        util::exact_keys(
+                            d,
+                            &[kind, if kind == "group" { "choice" } else { "include" }],
+                        ) && d[kind].as_str().is_some_and(util::id_ok)
+                            && if kind == "group" {
+                                matches!(d["choice"].as_str(), Some("clean" | "keep" | "undecided"))
+                            } else {
+                                d["include"].is_boolean()
+                            }
+                    })
+            }
+            _ => a[k].as_str().is_some_and(util::id_ok),
+        });
+    Some(if good {
+        Ok(())
+    } else {
+        Err(IpcError::new("invalid"))
+    })
+}
+
+pub(crate) fn dispatch(core: &Arc<Core>, c: &str, a: &Value) -> Result<Value, IpcError> {
+    match c {
+        "conclusion_get" => conclusion::get(core),
+        "conclusion_decide" => conclusion::decide(core, a),
+        "detail_get" => conclusion::detail(core, a),
+        "group_items" => conclusion::items(core, a),
+        "quarantine_list" => Ok(lock(core)?.m35.quarantine.view.clone()),
+        "quarantine_progress" => {
+            let s = lock(core)?;
+            if let Some(e) = s.m35.purge_progress["quarantine_id"]
+                .as_str()
+                .and_then(|id| s.m35.failures.get(id))
+            {
+                return Err(e.clone());
+            }
+            Ok(s.m35.purge_progress.clone())
+        }
+        "quarantine_restore" => quarantine::restore(core, a),
+        "quarantine_delete" => quarantine::purge(core, a),
+        "quarantine_locate" => quarantine::locate(core, a),
+        "dedupe_start" => dedupe::start(core, a),
+        "dedupe_progress" => Ok(lock(core)?.m35.dedupe_progress.clone()),
+        "dedupe_cancel" => dedupe::cancel(core, a),
+        "dedupe_result" => dedupe::view(core, a),
+        "dedupe_decide" => dedupe::decide(core, a),
+        "locations_set_session_cleanup" | "manifest_trust" => settings_command(core, c, a),
+        "cluster_mark_fixed" => {
+            let mut s = lock(core)?;
+            if s.busy != "idle" {
+                return Err(IpcError::new("busy"));
+            }
+            let id = a["groupId"].as_str().unwrap();
+            if !s.last_record().is_some_and(|r| {
+                r.result
+                    .groups
+                    .iter()
+                    .any(|g| g.group_id == id && g.rule_id == "leak-cluster")
+            }) {
+                return Err(IpcError::new("not_found"));
+            }
+            let mut settings = s.settings.clone();
+            settings.fixed_marks.retain(|m| m.group_id != id);
+            if a["fixed"] == true {
+                settings.fixed_marks.push(Fixed {
+                    group_id: id.into(),
+                    fixed_at: util::timestamp(core.platform.now()),
+                });
+            }
+            bound(&mut settings);
+            core.store.write("", "settings.json", &json!(settings))?;
+            s.settings = settings;
+            if let Some(c) = &mut s.m35.conclusion {
+                c.serial += 1;
+            }
+            drop(s);
+            Ok(crate::service::trends(core, &*lock(core)?))
+        }
+        _ => Err(IpcError::new("invalid")),
+    }
+}
+
+pub(crate) fn prepare(core: &Arc<Core>, args: &Value) -> Result<Value, IpcError> {
+    if args.get("dedupeId").is_some() {
+        return dedupe::prepare(core, args);
+    }
+    let mut s = lock(core)?;
+    conclusion::ensure(core, &mut s)?;
+    let c = s.m35.conclusion.as_ref().unwrap();
+    conclusion::current(&s, c, args["conclusionVersion"].as_str().unwrap())?;
+    let selected = conclusion::selected(&s, c);
+    let mut groups = BTreeSet::new();
+    let mut excluded = Vec::new();
+    for item in &c.record.result.items {
+        if selected.contains(&item.item_id) {
+            groups.insert(item.group_id.clone());
+        }
+    }
+    for item in &c.record.result.items {
+        if groups.contains(&item.group_id) && item.eligible && !selected.contains(&item.item_id) {
+            excluded.push(json!(item.item_id));
+        }
+    }
+    let ids = groups.into_iter().map(Value::String).collect::<Vec<_>>();
+    drop(s);
+    clean::prepare_mode(
+        core,
+        &ids,
+        &excluded,
+        Some((
+            args["chosenMode"].as_str().unwrap(),
+            args["conclusionVersion"].as_str().unwrap(),
+        )),
+    )
+}
+
+pub(crate) fn bound(s: &mut Settings) {
+    s.trusts.sort_by(|a, b| a.trusted_at.cmp(&b.trusted_at));
+    if s.trusts.len() > 256 {
+        s.trusts.drain(..s.trusts.len() - 256);
+    }
+    s.fixed_marks.sort_by(|a, b| a.fixed_at.cmp(&b.fixed_at));
+    if s.fixed_marks.len() > 256 {
+        s.fixed_marks.drain(..s.fixed_marks.len() - 256);
+    }
+    s.keeps.sort_by(|a, b| a.decided_at.cmp(&b.decided_at));
+    if s.keeps.len() > 1024 {
+        s.keeps.drain(..s.keeps.len() - 1024);
+    }
+}
+
+pub(crate) fn valid_settings(s: &Settings) -> bool {
+    s.sessions.iter().all(|x| {
+        ["claude-code", "codex", "cursor", "grok", "kimi-code"].contains(&x.tool.as_str())
+            && [7, 30, 90].contains(&x.days)
+    }) && s
+        .sessions
+        .iter()
+        .map(|x| &x.tool)
+        .collect::<BTreeSet<_>>()
+        .len()
+        == s.sessions.len()
+        && s.trusts.iter().all(|t| {
+            local_path(&t.path).is_some()
+                && t.hash.len() == 64
+                && t.hash
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                && util::parse_time(&t.trusted_at).is_some()
+        })
+        && s.fixed_marks
+            .iter()
+            .all(|m| util::id_ok(&m.group_id) && util::parse_time(&m.fixed_at).is_some())
+        && s.keeps
+            .iter()
+            .all(|k| util::id_ok(&k.key) && util::parse_time(&k.decided_at).is_some())
+}
+
+fn settings_command(core: &Arc<Core>, command: &str, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let mut settings = s.settings.clone();
+    if command == "locations_set_session_cleanup" {
+        let tool = a["tool"].as_str().unwrap();
+        if !core
+            .rules
+            .rules()
+            .iter()
+            .any(|r| r.session_tool.as_deref() == Some(tool))
+        {
+            return Err(IpcError::new("invalid"));
+        }
+        settings.sessions.retain(|x| x.tool != tool);
+        settings.sessions.push(Session {
+            tool: tool.into(),
+            enabled: a["enabled"].as_bool().unwrap(),
+            days: a["days"].as_u64().unwrap() as u16,
+        });
+    } else {
+        let r = s.last_record().ok_or_else(|| IpcError::new("not_found"))?;
+        let d = r.saved["declarations"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .find(|d| manifest_id(d["path"].as_str().unwrap_or("")) == a["manifestId"])
+            .ok_or_else(|| IpcError::new("not_found"))?;
+        if a["trusted"] == true && d["valid"] != true {
+            return Err(IpcError::new("invalid"));
+        }
+        settings
+            .trusts
+            .retain(|t| Some(t.path.as_str()) != d["path"].as_str());
+        if a["trusted"] == true {
+            settings.trusts.push(Trust {
+                path: d["path"].as_str().unwrap().into(),
+                hash: d["hash"]
+                    .as_str()
+                    .ok_or_else(|| IpcError::new("invalid"))?
+                    .into(),
+                trusted_at: util::timestamp(core.platform.now()),
+            });
+        }
+    }
+    bound(&mut settings);
+    core.store.write("", "settings.json", &json!(settings))?;
+    s.settings = settings;
+    invalidate(&mut s, StaleReason::SettingsChanged);
+    Ok(crate::service::locations(core, &s))
+}
+
+pub(crate) fn manifest_id(path: &str) -> String {
+    format!("mf-{}", &util::digest(&path.to_ascii_lowercase())[..12])
+}
+pub(crate) fn locations_extra(core: &Core, s: &State) -> (Vec<Value>, Vec<Value>) {
+    let last = s.last_record();
+    let sessions=core.rules.rules().iter().filter_map(|r|r.session_tool.as_ref().map(|tool|(r,tool))).map(|(r,tool)| {
+        let setting=s.settings.sessions.iter().find(|x|&x.tool==tool);
+        let protected=r.unlocks.as_deref();
+        let groups=last.as_ref().map(|last|last.result.groups.iter().filter(|g|Some(g.rule_id.as_str())==protected).map(|g|util::number(&g.unique_bytes)).sum::<u64>().to_string());
+        let largest=last.as_ref().and_then(|last|{let projection=last.projection();last.result.groups.iter().filter(|g|Some(g.rule_id.as_str())==protected).filter_map(|g|projection.details[&g.group_id]["items"].as_array().and_then(|items|items.first())).map(|i|util::bytes(&i["total_bytes"])).max()}).map(|n|n.to_string());
+        let retention=protected.and_then(|id|core.rules.rule(id)).and_then(|r|r.retention_zh.as_ref());
+        json!({"tool":tool,"title_zh":r.owner_zh,"title_en":r.owner_en,"retention_zh":retention,"retention_en":protected.and_then(|id|core.rules.rule(id)).and_then(|r|r.retention_en.as_ref()),"enabled":setting.is_some_and(|x|x.enabled),"days":setting.map(|x|x.days).unwrap_or(30),"bytes":groups,"largest_bytes":largest})
+    }).collect();
+    let manifests=last.as_ref().into_iter().flat_map(|r|r.saved["declarations"].as_array().into_iter().flatten()).filter(|d|d["error_code"]!="MANIFEST_SHADOWED").map(|d| {
+        let path=d["path"].as_str().unwrap_or(""); let trust=s.settings.trusts.iter().find(|t|t.path.eq_ignore_ascii_case(path));
+        let state=if d["valid"]!=true {"invalid"} else if let Some(t)=trust {if d["hash"]==t.hash {"trusted"} else {"changed"}} else {"untrusted"};
+        json!({"manifest_id":manifest_id(path),"display_path":path,"project_zh":d["manifest"]["project"],"project_en":d["manifest"]["project"],"state":state,"error_zh":if state=="invalid" {Some(format!("项目声明无效（{}）",d["error_code"].as_str().unwrap_or("无法读取")))} else {None},"error_en":if state=="invalid"{Some(format!("Invalid project declaration ({})",d["error_code"].as_str().unwrap_or("unreadable")))}else{None},"disposable":d["manifest"]["disposable"].as_array().into_iter().flatten().map(|v|json!({"title_zh":v["title"],"title_en":v["title"],"kind":v["kind"],"paths_count":v["paths"].as_array().map_or(0,Vec::len),"ask":v["ask"]})).collect::<Vec<_>>(),"protected_count":d["manifest"]["protected"].as_array().map_or(0,Vec::len),"worktree_count":d["manifest"]["worktrees"].as_array().map_or(0,Vec::len)})
+    }).collect();
+    (sessions, manifests)
+}
+
+pub(crate) fn write_event(
+    core: &Core,
+    kind: &str,
+    summary: String,
+    summary_en: String,
+    bytes: String,
+) -> Result<Value, IpcError> {
+    let at = core.platform.now();
+    let id = util::new_id("event", at);
+    let event = json!({"kind":kind,"id":id,"at":util::timestamp(at),"summary_zh":summary,"summary_en":summary_en,"bytes":bytes});
+    core.store.write("events", &format!("{id}.json"), &event)?;
+    Ok(event)
+}
+
+pub(crate) fn push_event(s: &mut State, event: Value) {
+    s.m35.events.push(event);
+}

@@ -1,0 +1,487 @@
+#![forbid(unsafe_code)]
+
+use crate::{
+    IpcError, m35,
+    service::{Core, State, lock},
+    util, views, language,
+};
+use serde_json::{Value, json};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::{Arc, Mutex},
+};
+use water_dup_finder as dup;
+
+pub(crate) struct Record {
+    pub result: dup::DupResult,
+    pub label: String,
+    pub label_en: String,
+    pub serial: u64,
+    pub included: BTreeSet<String>,
+    pub local: bool,
+}
+pub(crate) fn idle() -> Value {
+    json!({"dedupe_id":null,"state":"idle","phase":null,"files_listed":0,"candidate_files":0,"bytes_to_hash":"0","bytes_hashed":"0","found_bytes":"0"})
+}
+pub(crate) fn load(core: &Core, s: &mut State) {
+    for (id, v) in core.store.records("dedupes") {
+        if let Ok(result) = dup::result_from_json(&v["result"].to_string())
+            && result.scan_id == id
+        {
+            s.m35.dedupes.insert(
+                id,
+                Record {
+                    result,
+                    label: v["label"].as_str().unwrap_or("查重位置").into(),
+                    label_en: v["label_en"].as_str().or_else(||v["label"].as_str()).unwrap_or("查重位置").into(),
+                    serial: 1,
+                    included: BTreeSet::new(),
+                    local: false,
+                },
+            );
+        }
+    }
+    trim(core, s);
+}
+fn trim_state(s: &mut State) -> Vec<String> {
+    let mut ids = s.m35.dedupes.keys().cloned().collect::<Vec<_>>();
+    ids.sort_by(|a, b| {
+        s.m35.dedupes[b]
+            .result
+            .ended_at
+            .cmp(&s.m35.dedupes[a].result.ended_at)
+            .then(b.cmp(a))
+    });
+    let dropped = ids.into_iter().skip(5).collect::<Vec<_>>();
+    for id in &dropped {
+        s.m35.dedupes.remove(id);
+    }
+    dropped
+}
+fn trim(core: &Core, s: &mut State) {
+    let dropped = trim_state(s);
+    core.store.remove("dedupes", &dropped);
+}
+struct Observer(Arc<Core>);
+impl dup::DupObserver for Observer {
+    fn on_progress(&self, p: &dup::DupProgress) {
+        if let Ok(mut s) = lock(&self.0) {
+            let id = s.m35.dedupe_progress["dedupe_id"].clone();
+            s.m35.dedupe_progress = json!({"dedupe_id":id,"state":"running","phase":p.phase,"files_listed":p.files_listed,"candidate_files":p.candidate_files,"bytes_to_hash":p.bytes_to_hash.to_string(),"bytes_hashed":p.bytes_hashed.to_string(),"found_bytes":p.found_bytes.to_string()});
+        }
+    }
+}
+
+pub(crate) fn protected(core: &Core, s: &State, root: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    if let Some(r) = s.last_record() {
+        for d in r.saved["declarations"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter(|d| d["valid"] == true)
+        {
+            let path = d["path"].as_str().unwrap_or("");
+            let dir = m35::parent(path);
+            if !util::contains(root, &dir) {
+                continue;
+            }
+            for p in d["manifest"]["protected"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+            {
+                let literal = p
+                    .split(['\\', '/'])
+                    .take_while(|s| !s.contains(['*', '?']))
+                    .collect::<Vec<_>>()
+                    .join("\\");
+                let path = if literal.is_empty() {
+                    dir.clone()
+                } else {
+                    format!("{dir}\\{literal}")
+                };
+                if !out.contains(&path) {
+                    out.push(path);
+                }
+                if out.len() == 1024 {
+                    return out;
+                }
+            }
+        }
+    }
+    let _ = core;
+    out
+}
+pub(crate) fn start(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let home = m35::home(core, &s);
+    let row = home
+        .iter()
+        .find(|v| v["location_id"] == a["locationId"] && v["kind"] != "common")
+        .ok_or_else(|| IpcError::new("invalid"))?;
+    let root = row["display_path"]
+        .as_str()
+        .ok_or_else(|| IpcError::new("invalid"))?
+        .to_owned();
+    let label = row["label_zh"].as_str().unwrap().to_owned();
+    let label_en = row["label_en"].as_str().unwrap().to_owned();
+    let mut id = util::new_id("dedupe", core.platform.now());
+    while s.m35.dedupes.contains_key(&id) {
+        id = util::new_id("dedupe", core.platform.now());
+    }
+    let options = dup::DupOptions {
+        roots: vec![root.clone()],
+        min_bytes: 1 << 20,
+        prefer: vec![],
+        protected: protected(core, &s, &root),
+    };
+    let cancel = dup::CancelFlag::default();
+    s.m35.dedupe_cancel = Some(cancel.clone());
+    s.busy = "deduping";
+    s.m35.dedupe_progress = idle();
+    s.m35.dedupe_progress["dedupe_id"] = json!(id);
+    s.m35.dedupe_progress["state"] = json!("running");
+    s.m35.dedupe_progress["phase"] = json!("listing");
+    drop(s);
+    let worker = core.clone();
+    let worker_id = id.clone();
+    if std::thread::Builder::new()
+        .name("water-dedupe".into())
+        .spawn(move || {
+            let run = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                let result = dup::find_duplicates(
+                    &worker_id,
+                    &options,
+                    &cancel,
+                    &Observer(worker.clone()),
+                    worker.platform.now(),
+                )
+                .map_err(|_| IpcError::new("unavailable"))?;
+                worker.store.write(
+                    "dedupes",
+                    &format!("{worker_id}.json"),
+                    &json!({"label":label,"label_en":label_en,"result":result}),
+                )?;
+                let found: u64 = result
+                    .groups
+                    .iter()
+                    .map(|g| util::number(&g.reclaimable_bytes))
+                    .sum();
+                let files_listed = result.files_listed;
+                let candidate_files = result.candidate_files;
+                let final_state = if result.status == "cancelled" {
+                    "cancelled"
+                } else {
+                    "completed"
+                };
+                let event = m35::write_event(
+                    &worker,
+                    "dedupe",
+                    format!("查重完成 · {} 组", result.groups.len()),
+                    format!("Duplicate search complete · {}",language::count(result.groups.len(),"group","groups")),
+                    found.to_string(),
+                )?;
+                let dropped = {
+                    let mut s = lock(&worker)?;
+                    s.m35.dedupe_progress["found_bytes"] = json!(found.to_string());
+                    s.m35.dedupe_progress["files_listed"] = json!(files_listed);
+                    s.m35.dedupe_progress["candidate_files"] = json!(candidate_files);
+                    m35::push_event(&mut s, event);
+                    s.m35.dedupes.insert(
+                        worker_id.clone(),
+                        Record {
+                            result,
+                            label,
+                            label_en,
+                            serial: 1,
+                            included: BTreeSet::new(),
+                            local: true,
+                        },
+                    );
+                    trim_state(&mut s)
+                };
+                worker.store.remove("dedupes", &dropped);
+                let mut s = lock(&worker)?;
+                s.m35.dedupe_progress["state"] = json!(final_state);
+                Ok::<_, IpcError>(())
+            }))
+            .unwrap_or_else(|_| Err(IpcError::new("unavailable")));
+            if let Ok(mut s) = lock(&worker) {
+                if let Err(e) = run {
+                    s.m35.dedupe_progress["state"] = json!("failed");
+                    s.m35.failures.insert(worker_id, e);
+                }
+                s.busy = "idle";
+                s.m35.dedupe_cancel = None;
+            }
+        })
+        .is_err()
+    {
+        let mut s = lock(core)?;
+        s.busy = "idle";
+        s.m35.dedupe_cancel = None;
+        s.m35.dedupe_progress["state"] = json!("failed");
+        return Err(IpcError::new("unavailable"));
+    }
+    Ok(json!({"dedupe_id":id}))
+}
+pub(crate) fn cancel(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let s = lock(core)?;
+    if s.busy != "deduping" || s.m35.dedupe_progress["dedupe_id"] != a["dedupeId"] {
+        return Err(IpcError::new("not_found"));
+    }
+    if let Some(c) = &s.m35.dedupe_cancel {
+        c.cancel();
+    }
+    Ok(json!({}))
+}
+fn version(r: &Record) -> String {
+    let id = &r.result.scan_id;
+    format!("dv-{}-{}", &id[id.len().saturating_sub(8)..], r.serial)
+}
+fn removable(g: &dup::DupGroup) -> bool {
+    g.copies
+        .iter()
+        .skip(1)
+        .any(|c| c.removable && c.link_count == 1)
+}
+fn chosen_bytes(g: &dup::DupGroup) -> u64 {
+    util::number(&g.size).saturating_mul(
+        g.copies
+            .iter()
+            .skip(1)
+            .filter(|c| c.removable && c.link_count == 1)
+            .count() as u64,
+    )
+}
+fn keep_reason(g: &dup::DupGroup) -> (&'static str, &'static str) {
+    let k = &g.copies[g.keep_index];
+    let others = g
+        .copies
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| *i != g.keep_index)
+        .map(|(_, c)| c)
+        .collect::<Vec<_>>();
+    if k.protected && others.iter().any(|c| !c.protected) {
+        ("这份在项目声明保护的位置里", "This copy is protected by the project declaration")
+    } else if k.preferred && others.iter().any(|c| !c.preferred) {
+        ("这份在‘以这里为准’的文件夹里", "This copy is in the preferred folder")
+    } else if others.iter().any(|c| c.mtime > k.mtime) {
+        ("这份更早", "This copy is older")
+    } else if !k.export_tail && others.iter().any(|c| c.export_tail) {
+        ("这份名字不带副本尾巴", "This copy has no copy suffix in its name")
+    } else {
+        ("按位置排在前面", "This copy comes first by location")
+    }
+}
+fn projection(r: &Record, expand: bool) -> Value {
+    let limit = if expand { 200 } else { 8 };
+    let groups=r.result.groups.iter().take(limit).filter(|g|!g.copies.is_empty()).map(|g|json!({"group_id":g.group_id,"name_zh":m35::name(&g.copies[g.keep_index].path),"name_en":m35::name(&g.copies[g.keep_index].path),"copies":g.copies.len(),"size":g.size,"keep":{"display_path":g.copies[g.keep_index].path,"reason_zh":keep_reason(g).0,"reason_en":keep_reason(g).1},"others":g.copies.iter().enumerate().filter(|(i,_)|*i!=g.keep_index).map(|(_,c)|c.path.clone()).collect::<Vec<_>>(),"included":r.included.contains(&g.group_id),"removable":removable(g),"note_en":if g.copies.iter().skip(1).any(|c|c.link_count>1){Some("Hard-linked copies cannot be removed; moving one path does not free space")}else{None},"note_zh":if g.copies.iter().skip(1).any(|c|c.link_count>1){Some("有硬链接的副本不可移除，移走一条路径腾不出空间")}else{None}})).collect::<Vec<_>>();
+    let more = &r.result.groups[r.result.groups.len().min(limit)..];
+    let skips = &r.result.skipped;
+    let mut notes = Vec::new();
+    for (n, t) in [
+        (skips.offline, "个云端文件没有读取"),
+        (skips.reparse, "个特殊链接没有读取"),
+        (skips.access_denied, "项没有权限"),
+        (skips.locked, "项正在使用"),
+        (skips.changed, "项已经变化"),
+    ] {
+        if n > 0 {
+            notes.push(format!("{n} {t}"));
+        }
+    }
+    let notes_en=[(skips.offline,"cloud files not read"),(skips.reparse,"special links not read"),(skips.access_denied,"items without permission"),(skips.locked,"items in use"),(skips.changed,"items changed")].into_iter().filter(|(n,_)|*n>0).map(|(n,t)|format!("{} {t}",language::number(n))).collect::<Vec<_>>();
+    json!({"skipped_en":if notes_en.is_empty(){None}else{Some(notes_en.join("; "))},"dedupe_id":r.result.scan_id,"version":version(r),"location_label_zh":r.label,"location_label_en":r.label_en,"finished_at":r.result.ended_at,"status":r.result.status,"extra_bytes":r.result.groups.iter().map(|g|util::number(&g.reclaimable_bytes)).sum::<u64>().to_string(),"chosen_bytes":r.result.groups.iter().filter(|g|r.included.contains(&g.group_id)).map(chosen_bytes).sum::<u64>().to_string(),"groups":groups,"more":if more.is_empty(){Value::Null}else{json!({"count":more.len(),"bytes":more.iter().map(|g|util::number(&g.reclaimable_bytes)).sum::<u64>().to_string(),"text_zh":format!("还有 {} 组",more.len()),"text_en":format!("{} more groups",language::number(more.len()))})},"same_name_different":r.result.same_name_different,"skipped_zh":if notes.is_empty(){None}else{Some(notes.join("；"))}})
+}
+pub(crate) fn view(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let s = lock(core)?;
+    let id = a["dedupeId"].as_str().unwrap();
+    if let Some(e) = s.m35.failures.get(id) {
+        return Err(e.clone());
+    }
+    let r = s
+        .m35
+        .dedupes
+        .get(id)
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    Ok(projection(r, a["expand"].as_bool().unwrap()))
+}
+pub(crate) fn decide(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    let r = s
+        .m35
+        .dedupes
+        .get_mut(a["dedupeId"].as_str().unwrap())
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    if version(r) != a["version"] {
+        return Err(IpcError::new("stale"));
+    }
+    let gid = a["groupId"].as_str().unwrap();
+    let g = r
+        .result
+        .groups
+        .iter()
+        .find(|g| g.group_id == gid)
+        .ok_or_else(|| IpcError::new("invalid"))?;
+    if !removable(g) {
+        return Err(IpcError::new("invalid"));
+    }
+    if a["include"] == true {
+        r.included.insert(gid.into());
+    } else {
+        r.included.remove(gid);
+    }
+    r.serial += 1;
+    Ok(projection(r, false))
+}
+
+pub(crate) fn prepare(core: &Arc<Core>, a: &Value) -> Result<Value, IpcError> {
+    let mut s = lock(core)?;
+    if s.busy != "idle" {
+        return Err(IpcError::new("busy"));
+    }
+    let id = a["dedupeId"].as_str().unwrap();
+    let record = s
+        .m35
+        .dedupes
+        .get(id)
+        .ok_or_else(|| IpcError::new("not_found"))?;
+    if !record.local || record.result.status == "cancelled" || version(record) != a["dedupeVersion"]
+    {
+        return Err(IpcError::new("stale"));
+    }
+    let now = core.platform.now();
+    let age = util::parse_time(&record.result.ended_at)
+        .and_then(|t| now.duration_since(t).ok())
+        .unwrap_or_default()
+        .as_secs()
+        .div_ceil(3600)
+        .max(1);
+    let mut plans = Vec::new();
+    let mut groups = Vec::new();
+    let mut items = Vec::new();
+    let mut notes = Vec::new();
+    let mut by_drive = BTreeMap::<String, u64>::new();
+    let mut unavailable = BTreeMap::<String, usize>::new();
+    let mut available = BTreeMap::<String, bool>::new();
+    for g in record
+        .result
+        .groups
+        .iter()
+        .filter(|g| record.included.contains(&g.group_id))
+    {
+        let keep = &g.copies[g.keep_index];
+        let expected = keep.identity.split_once(':');
+        if !water_junk_clean::identity_of(&keep.path)
+            .is_ok_and(|i| expected.is_some_and(|(v, f)| i.volume_serial == v && i.file_id == f))
+        {
+            notes_en.push(format!("{}: the suggested copy to keep has changed; this group was not included",m35::name(&keep.path)));
+            notes.push(format!(
+                "{}：建议保留的那份已经变化，这组没有加入",
+                m35::name(&keep.path)
+            ));
+            continue;
+        }
+        let mut count = 0u64;
+        let mut bytes = 0u64;
+        for copy in g
+            .copies
+            .iter()
+            .enumerate()
+            .filter(|(n, c)| *n != g.keep_index && c.removable && c.link_count == 1)
+            .map(|(_, c)| c)
+        {
+            if !*available.entry(util::drive(&copy.path)).or_insert_with(|| {
+                crate::quarantine::registered_base(core, &util::drive(&copy.path)).is_some()
+            }) {
+                *unavailable.entry(util::drive(&copy.path)).or_default() += 1;
+                continue;
+            }
+            let Some((volume, file)) = copy.identity.split_once(':') else {
+                continue;
+            };
+            let identity = json!({"volume_serial":volume,"file_id":file});
+            let item_id = format!("dupitem-{}", &util::digest(&copy.path)[..16]);
+            let root = record
+                .result
+                .roots
+                .iter()
+                .filter(|r| util::contains(r, &copy.path))
+                .max_by_key(|r| r.len())
+                .ok_or_else(|| IpcError::new("invalid"))?;
+            plans.push(json!({"item_id":item_id,"group_id":g.group_id,"rule_id":"dedupe","level":"confirm","path":copy.path,"root":root,"kind":"file","identity":identity,"total_bytes":g.size,"min_age_hours":age}));
+            items.push(json!({"item_id":item_id,"group_id":g.group_id,"path":copy.path,"kind":"file","total_bytes":g.size,"unique_bytes":g.size,"file_count":1,"newest_activity":copy.mtime,"identity":identity,"eligible":true,"ineligible_reason":null}));
+            count += 1;
+            let n = util::number(&g.size);
+            bytes += n;
+            *by_drive.entry(util::drive(&copy.path)).or_default() += n;
+        }
+        if count > 0 {
+            groups.push(json!({"group_id":g.group_id,"rule_id":"dedupe","level":"confirm","category":"custom","item_count":count,"eligible_count":count,"total_bytes":bytes.to_string(),"eligible_bytes":bytes.to_string(),"unique_bytes":bytes.to_string(),"eligible_unique_bytes":bytes.to_string(),"file_count":count,"oldest_activity":null,"newest_activity":null,"in_use":{"mode":"runs_from_or_references_item","processes":[]},"top_keys":[]}));
+        }
+    }
+    notes_en.extend(unavailable.iter().map(|(drive,count)|crate::quarantine::unavailable_note_en(drive,*count)));
+    notes.extend(
+        unavailable
+            .into_iter()
+            .map(|(drive, count)| crate::quarantine::unavailable_note(&drive, count)),
+    );
+    if plans.is_empty() {
+        return Err(IpcError {
+            code: "invalid".into(),
+            message_en: if notes_en.is_empty(){language::error("invalid").into()}else{notes_en.join("; ")},
+            message_zh: if notes.is_empty() {
+                "所选内容无法清理，请重新选择。".into()
+            } else {
+                notes.join("；")
+            },
+        });
+    }
+    let plan_id = util::new_id("plan", now);
+    let mut rule_plan =
+        water_junk_rules::resolve_plan(&core.rules, &core.folders, &[], &util::timestamp(now))
+            .map_err(|_| IpcError::new("unavailable"))?;
+    rule_plan.targets.clear();
+    let protected_paths = protected(core, &s, &record.result.roots[0]);
+    let plan = json!({"plan_version":"water.clean-plan.v1","plan_id":plan_id,"created_at":util::timestamp(now),"items":plans,"protected_paths":protected_paths,"hard_guards":rule_plan.hard_guards});
+    water_junk_clean::CleanPlan::from_json(&plan.to_string())
+        .map_err(|_| IpcError::new("invalid"))?;
+    let result=water_junk_scan::result_from_json(&json!({"result_version":"water.scan-result.v1","scan_id":id,"started_at":record.result.started_at,"ended_at":record.result.ended_at,"status":"completed","visited_entries":record.result.files_listed,"groups":groups,"items":items,"issues":[]}).to_string()).map_err(|_|IpcError::new("invalid"))?;
+    let source = Arc::new(crate::service::Record {
+        saved: json!({"finished_at":record.result.ended_at,"duration_ms":0,"item_in_use":{}}),
+        result,
+        plan: rule_plan,
+        growth: vec![],
+        previous_at: None,
+        projection: Mutex::new(views::Projection::default()),
+    });
+    *source.projection() =
+        views::Projection::new(&source, &core.rules, core.platform.as_ref(), &s.settings);
+    let token = util::random_hex();
+    let chosen_ids = plans
+        .iter()
+        .map(|p| p["item_id"].clone())
+        .collect::<Vec<_>>();
+    let stored = json!({"plan":plan,"scan_id":id,"token_digest":util::digest(&token),"used":false,"chosen_ids":chosen_ids,"chosen_mode":"quarantine","dedupe_id":id});
+    core.store
+        .write("plans", &format!("{plan_id}.json"), &stored)?;
+    s.plans.insert(plan_id.clone(), stored);
+    s.m35.plan_sources.insert(plan_id.clone(), source);
+    let total = by_drive.values().sum::<u64>();
+    let title = if notes.is_empty() {
+        "重复文件".to_owned()
+    } else {
+        format!("重复文件 · {}", notes.join("；"))
+    };
+    let title_en=if notes_en.is_empty(){"Duplicate files".to_owned()}else{format!("Duplicate files · {}",notes_en.join("; "))};
+    Ok(
+        json!({"plan_id":plan_id,"confirm_token":token,"item_count":plans.len(),"total_bytes":total.to_string(),"groups":groups.iter().map(|g|json!({"group_id":g["group_id"],"title_zh":title,"title_en":title_en,"level":"confirm","item_count":g["item_count"],"total_bytes":g["total_bytes"],"in_use_note_zh":null,"in_use_note_en":null})).collect::<Vec<_>>(),"by_drive":by_drive.into_iter().map(|(root,n)|json!({"root":root,"bytes":n.to_string()})).collect::<Vec<_>>(),"irreversible":false,"excluded_count":0,"delete":{"bytes":"0","categories":[]},"chosen":{"bytes":total.to_string(),"items":[{"title_zh":title,"title_en":title_en,"bytes":total.to_string()}],"mode":"quarantine","note_zh":if notes.is_empty(){None}else{Some(notes.join("；"))},"note_en":if notes_en.is_empty(){None}else{Some(notes_en.join("; "))}},"expected_skip":null}),
+    )
+}

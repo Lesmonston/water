@@ -1,0 +1,103 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+running 12 tests
+test m35_clean_split ... FAILED
+test m35_conclusion_cards ... FAILED
+test m35_quarantine ... FAILED
+test m35_rows_and_detail ... FAILED
+test m35_scope_and_plan ... FAILED
+test m35_trends_history ... FAILED
+test service_clean_flow ... FAILED
+test service_hardening ... FAILED
+test service_ipc_contract ... FAILED
+test service_scan_views ... FAILED
+test service_storage_safety ... FAILED
+test service_trends_locations ... FAILED
+
+failures:
+
+---- m35_clean_split stdout ----
+
+thread 'm35_clean_split' (2472) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- m35_conclusion_cards stdout ----
+
+thread 'm35_conclusion_cards' (34472) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_quarantine stdout ----
+
+thread 'm35_quarantine' (21016) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_rows_and_detail stdout ----
+
+thread 'm35_rows_and_detail' (27948) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_scope_and_plan stdout ----
+
+thread 'm35_scope_and_plan' (34464) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- m35_trends_history stdout ----
+
+thread 'm35_trends_history' (41824) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_clean_flow stdout ----
+
+thread 'service_clean_flow' (39116) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_hardening stdout ----
+
+thread 'service_hardening' (15536) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_ipc_contract stdout ----
+
+thread 'service_ipc_contract' (21344) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_scan_views stdout ----
+
+thread 'service_scan_views' (22080) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_storage_safety stdout ----
+
+thread 'service_storage_safety' (24692) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+---- service_trends_locations stdout ----
+
+thread 'service_trends_locations' (32984) panicked at tests\service_v1.rs:785:9:
+SERVICE_RETURN_BUDGET: scan_progress
+
+
+failures:
+    m35_clean_split
+    m35_conclusion_cards
+    m35_quarantine
+    m35_rows_and_detail
+    m35_scope_and_plan
+    m35_trends_history
+    service_clean_flow
+    service_hardening
+    service_ipc_contract
+    service_scan_views
+    service_storage_safety
+    service_trends_locations
+
+test result: FAILED. 0 passed; 12 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.20s
+
+
+--- stderr ---
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-s1\packages\water-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.47s
+     Running tests\service_v1.rs (.local\w3-target\debug\deps\service_v1-8847eb5f0798e69d.exe)
+error: test failed, to rerun pass `--test service_v1`

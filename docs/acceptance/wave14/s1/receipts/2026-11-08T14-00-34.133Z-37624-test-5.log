@@ -1,0 +1,32 @@
+{"binary":"C:\\Users\\37310\\.rustup\\toolchains\\1.95.0-x86_64-pc-windows-msvc\\bin\\cargo.exe","args":["test","--offline","--locked","--manifest-path","packages/water-service/Cargo.toml","--test","service_v1","--","--test-threads=1"],"exitCode":101,"error":null}
+--- stdout ---
+
+--- stderr ---
+   Compiling water-junk-scan v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-s1\packages\junk-scan)
+   Compiling water-service v0.1.0 (F:\new\smaltalk\water\.worktrees\w14-s1\packages\water-service)
+error[E0433]: cannot find type `Match` in this scope
+  --> tests\service_v1.rs:79:21
+   |
+79 |                     Match::Pattern { base, .. } => base,
+   |                     ^^^^^ use of undeclared type `Match`
+
+error[E0433]: cannot find type `Match` in this scope
+  --> tests\service_v1.rs:80:21
+   |
+80 |                     Match::Marker { fallback_for: Some(_), .. } => continue,
+   |                     ^^^^^ use of undeclared type `Match`
+
+error[E0433]: cannot find type `Match` in this scope
+  --> tests\service_v1.rs:81:21
+   |
+81 |                     Match::Marker { root, .. } | Match::Discovery { root } => root,
+   |                     ^^^^^ use of undeclared type `Match`
+
+error[E0433]: cannot find type `Match` in this scope
+  --> tests\service_v1.rs:81:50
+   |
+81 |                     Match::Marker { root, .. } | Match::Discovery { root } => root,
+   |                                                  ^^^^^ use of undeclared type `Match`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `water-service` (test "service_v1") due to 4 previous errors
