@@ -333,6 +333,18 @@ impl FolderPicker for Fake {
     }
 }
 
+/// The drive the fixtures live on: the checkout's drive (D: on GitHub's runner),
+/// never a fixed letter.
+fn fixture_drive() -> String {
+    let drive = env!("CARGO_MANIFEST_DIR")[..3].to_ascii_uppercase();
+    assert!(
+        drive.ends_with(":\\")
+            && !["V:\\", "W:\\", "X:\\", "Y:\\", "Z:\\"].contains(&drive.as_str()),
+        "fixtures need a checkout outside the synthetic drives V: to Z:, got {drive}"
+    );
+    drive
+}
+
 struct Fixture {
     root: PathBuf,
     parent: PathBuf,
@@ -376,7 +388,7 @@ impl Fixture {
             names: Arc::new(Mutex::new(Vec::new())),
             clean_gate: Arc::new(Mutex::new(None)),
             drives: Arc::new(Mutex::new(vec![DriveInfo {
-                root: "F:\\".into(),
+                root: fixture_drive(),
                 is_system: true,
                 total_bytes: 1_000_000,
                 free_bytes: 800_000,
@@ -512,6 +524,7 @@ fn call(s: &impl TestService, c: &str, a: Value) -> Value {
             | "locations_set_category"
             | "custom_root_remove"
             | "skip_add"
+            | "skip_unit_add"
             | "skip_remove"
             | "clean_prepare"
             | "clean_start"
@@ -2467,7 +2480,7 @@ fn m3c_unique_inuse() {
     );
     assert_eq!(
         g["by_drive"],
-        json!([{"root":"F:\\","item_count":2,"eligible_bytes":"300"}]),
+        json!([{"root":fixture_drive(),"item_count":2,"eligible_bytes":"300"}]),
         "SERVICE_M3C_BY_DRIVE: unique"
     );
     let detail = call(&s, "group_detail", json!({"groupId":"chrome-cache"}));
@@ -2947,8 +2960,9 @@ fn m3c_drive_roots() {
         total_bytes: 1000,
         free_bytes: 500,
     };
+    let fx = fixture_drive();
     *f.fake.drives.lock().unwrap() = vec![
-        d("F:\\", true),
+        d(&fx, true),
         d("W:\\", true),
         d("X:\\", false),
         d("Y:\\", false),
@@ -2960,16 +2974,16 @@ fn m3c_drive_roots() {
         ("Y:\\".into(), "rEfS".into()),
         ("Z:\\".into(), "exFAT".into()),
     ]);
-    // F contains the real fixture known folders, but is deliberately non-system
-    // here: rejection must depend on containment, not the system-drive guard.
+    // The fixture drive contains the real fixture known folders, but is deliberately
+    // non-system here: rejection must depend on containment, not the system-drive guard.
     f.fake.drives.lock().unwrap()[0].is_system = false;
     f.fake
         .file_systems
         .lock()
         .unwrap()
-        .insert("F:\\".into(), "NTFS".into());
+        .insert(fx.clone(), "NTFS".into());
     let s = f.service(false);
-    for root in ["W:\\", "F:\\", "V:\\"] {
+    for root in ["W:\\", fx.as_str(), "V:\\"] {
         f.pick(Some(Path::new(root)));
         assert!(
             matches!(s.call("custom_root_add",json!({})),Err(e) if e.code=="invalid" && e.message_zh==TOO_BROAD),

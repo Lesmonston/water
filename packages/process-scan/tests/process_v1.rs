@@ -2,6 +2,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -33,10 +34,14 @@ struct Session {
 
 impl Session {
     fn new() -> Self {
-        // waitfor signal names allow only ASCII letters and digits.
+        // waitfor signal names allow only ASCII letters and digits. Tests run in
+        // parallel and can read the same clock value (GitHub's runner did), so a
+        // per-process counter keeps each session's token unique.
+        static NEXT: AtomicU32 = AtomicU32::new(0);
         let token = format!(
-            "w2c{}t{:x}",
+            "w2c{}n{}t{:x}",
             std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed),
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .expect("clock")

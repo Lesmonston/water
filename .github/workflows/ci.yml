@@ -35,7 +35,7 @@ jobs:
           - packages/water-service
           - apps/water/host
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Toolchain
         run: |
           rustup toolchain install $env:RUST_TOOLCHAIN --profile minimal --component rustfmt,clippy
@@ -55,7 +55,7 @@ jobs:
     if: github.repository == 'dfan0519-tech/flick'
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Toolchain
         run: |
           rustup toolchain install $env:RUST_TOOLCHAIN --profile minimal --component rustfmt,clippy
@@ -71,6 +71,6 @@ jobs:
     if: github.repository == 'dfan0519-tech/flick'
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: UI unit tests
         run: node --test apps/water/ui/tests/unit.test.mjs

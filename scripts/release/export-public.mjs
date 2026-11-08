@@ -6,6 +6,8 @@
 //   - the desktop app and every crate it builds from (path dependencies of apps/water/host, followed from Cargo.toml),
 //     plus the crates CI checks;
 //   - the UI, the Windows packaging, the CI workflow, rust-toolchain.toml and .gitattributes;
+//   - the root workspace manifest and lock file: crates/water-contracts inherits its edition, rust-version and
+//     dependency versions from it, so every crate that depends on it fails `cargo metadata` without them;
 //   - files those sources read at build or test time (include_str!/include_bytes!, new URL(..., import.meta.url),
 //     relative imports, repo-root paths such as "contracts/..."), pulled in and listed in the report;
 //   - packaging/public/root/, copied over the tree root (README, licences, contributing and security notes, .gitignore).
@@ -47,9 +49,16 @@ while (queue.length) {
   for (const m of read(dir + '/Cargo.toml').toString('utf8').matchAll(/^[\w-]+\s*=\s*\{[^}\n]*\bpath\s*=\s*"([^"]+)"/gm)) queue.push(posix.normalize(dir + '/' + m[1]));
 }
 const ROOTS = [...crates, 'apps/water/ui', 'packaging/windows', 'scripts/ci'];
-const FILES = ['.github/workflows/ci.yml', 'rust-toolchain.toml', '.gitattributes'];
+const FILES = ['.github/workflows/ci.yml', 'rust-toolchain.toml', '.gitattributes', 'Cargo.toml', 'Cargo.lock'];
 const selected = new Set([...ROOTS.flatMap(under), ...FILES.filter(f => blobs.has(f))]);
 for (const f of FILES) if (!blobs.has(f)) throw Error('Missing ' + f);
+// A crate without its own [workspace] that inherits settings must be a member of the root workspace exported above.
+const rootMembers = [...(read('Cargo.toml').toString('utf8').match(/^members\s*=\s*\[([^\]]*)\]/m)?.[1] ?? '').matchAll(/"([^"]+)"/g)].map(m => m[1]);
+for (const dir of crates) {
+  const manifest = read(dir + '/Cargo.toml').toString('utf8');
+  if (!/^\[workspace\]/m.test(manifest) && /\.workspace\s*=\s*true/.test(manifest) && !rootMembers.includes(dir))
+    throw Error(dir + ' inherits from a workspace that is not the exported root one');
+}
 
 // Files the selected sources read: resolve, pull in when present in the commit, report the rest as dangling.
 const TEXT = /\.(rs|mjs|js|json|toml|md|html|css|ps1|nsi|yml|yaml|txt|svg)$/i;
