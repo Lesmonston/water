@@ -75,7 +75,7 @@ omits absent keys and empty exclusions, preserving legacy request bytes.
 The 17 additions follow IPC-M35 section 1 in both registries; `group_items`
 preserves explicit nulls for omitted row/search values.
 
-The three W12 commands follow those additions in both registries:
+The three newest commands follow those additions in both registries:
 `skip_unit_add` forwards exactly `conclusionVersion` and `unitId`,
 `diagnostics_get` forwards `{}`, and `app_info` returns the Flick name, host
 package version, `MIT OR Apache-2.0` license and project homepage without a
@@ -154,23 +154,15 @@ code explicitly. A partial initial query also consumes the bounded wait's limit.
 They never
 open a window or picker and never scan real user locations.
 
-The native final gate has a ticket-wide one-window budget. Its 17 steps run a
-checkup, preview, confirmation, cleanup, quarantine and permanent purge through the UI. The seven
-categories are disabled and only a synthetic fixture under this worktree's
-`.local/w12-p3-native/` is selectable; protected locations are measured read-only.
-It archives the assigned window screenshots and verifies fixture deletion and retained
-guard files, one scan, snapshot, plan and clean, the clean and purge journals, a private WebView profile
-and child process exit. Do not launch the binary or a picker manually. All registry packages
-come from the accepted AC lock and build offline with one job. macOS, release
-packaging and the real picker UI remain unverified. Known M1 limitations are in
-`contracts/desktop-v1/WIRING.md` section 7, as superseded by
-`contracts/m2-prep-v1/HOST-FINISHING.md`, `contracts/m2-v1/HOST-M2.md` and
-`contracts/m3-v1/HOST-M3.md` and `contracts/m3-v1/HOST-M3-FIX.md`. Foreground activation and backend-failure
-UI are covered by code and unit tests; the single native gate exercises the
-normal backend. It does not launch a second instance, inject startup failure,
-request a real system shutdown or close the window during active cleanup.
+The maintainers' native end-to-end check opens one window and drives 17 steps through the UI: checkup,
+preview, confirmation, cleanup, quarantine and permanent purge, on a synthetic fixture folder only (the seven
+categories are off; protected locations are measured read-only). It verifies the fixture deletion and the
+retained guard files, the stored scan, snapshot, plan and clean, the clean and purge journals, a private
+WebView profile and that child processes exit. Registry packages build offline from the locked versions.
+macOS, release packaging and the real picker UI are not covered by it. Foreground activation and
+backend-failure UI are covered by code and unit tests; the check does not launch a second instance, inject
+startup failure, request a real system shutdown or close the window during an active cleanup.
 Tests use a recording Opener, including an owned junction rejection fixture;
-neither tests nor the native gate click “打开文件夹” or launch Explorer.
-The baseline UI and service are unchanged in this host-only native check.
-The fixture enters the baseline service's `.flick-quarantine` before
-permanent purge. Exclusions and persistent skips are not exercised by this flow.
+neither tests nor the native check click “打开文件夹” or launch Explorer.
+The fixture enters `.flick-quarantine` before permanent purge. Exclusions and persistent skips are not
+exercised by this flow.

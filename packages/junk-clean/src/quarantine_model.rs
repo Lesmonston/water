@@ -50,7 +50,7 @@ pub struct QuarantineReport {
     pub status: RunStatus,
     pub moved_bytes: String,
     pub items: Vec<MoveReport>,
-    /// W12: set when the journal failed after a move ran; the report is still returned (contracts/w12-v1/W12.md section 3).
+    /// Set when the journal failed after a move ran; the report is still returned.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub journal_error: Option<String>,
 }

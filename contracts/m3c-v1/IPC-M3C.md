@@ -1,4 +1,4 @@
-# IPC-M3C：界面接口增量（M3 收口）
+# IPC-M3C：界面接口增量
 
 2026-10-31 冻结。补充 [IPC](../checkup-v1/IPC.md)（`water.ipc.v1`），冲突时以本文为准。
 

@@ -279,7 +279,7 @@ pub struct CleanReport {
     pub estimate_bytes: String,
     pub volumes: Vec<VolumeReport>,
     pub items: Vec<ItemReport>,
-    /// W12: set when the journal failed after an action ran; the report is still returned (contracts/w12-v1/W12.md section 3).
+    /// Set when the journal failed after an action ran; the report is still returned.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub journal_error: Option<String>,
 }

@@ -1936,7 +1936,7 @@ Add-Type -TypeDefinition $code -Language CSharp
     );
 }
 
-// W10 fixtures have their own randomly-created owner directly under this tree's .local.
+// These fixtures have their own randomly-created owner directly under this tree's .local.
 struct QFixture {
     parent: PathBuf,
     base: PathBuf,

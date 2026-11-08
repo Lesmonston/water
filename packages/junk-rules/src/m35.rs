@@ -1,4 +1,4 @@
-//! Optional M3.5 fields and validation shared by rule and plan readers.
+//! Optional rule fields and their validation, shared by rule and plan readers.
 use crate::RulesError;
 use crate::rules::Rule;
 use crate::types::{
